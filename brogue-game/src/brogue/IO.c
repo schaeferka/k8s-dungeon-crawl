@@ -28,8 +28,6 @@
 #include "GlobalsBase.h"
 #include "Globals.h"
 
-#include "metrics_server.h"
-
 // Populates path[][] with a list of coordinates starting at origin and traversing down the map. Returns the number of steps in the path.
 short getPlayerPathOnMap(pos path[1000], short **map, pos origin) {
     pos at = origin;
@@ -535,7 +533,6 @@ static void initializeMenuButtons(buttonState *state, brogueButton buttons[5]) {
 
 // This is basically the main loop for the game.
 void mainInputLoop() {
-    update_metrics();
     pos oldTargetLoc = { 0, 0 };
     short steps, oldRNG, dir;
     pos path[1000];
@@ -571,9 +568,6 @@ void mainInputLoop() {
     rogue.cursorLoc = INVALID_POS;
 
     while (!rogue.gameHasEnded && (!playingBack || !canceled)) { // repeats until the game ends
-        // Call update_metrics() in each iteration to keep metrics in sync
-        update_metrics();
-
         oldRNG = rogue.RNG;
         rogue.RNG = RNG_COSMETIC;
 
@@ -833,7 +827,6 @@ void mainInputLoop() {
     freeGrid(costMap);
     freeGrid(playerPathingMap);
     freeGrid(cursorSnapMap);
-    update_metrics();
 }
 
 // accuracy depends on how many clock cycles occur per second
@@ -2445,7 +2438,6 @@ void nextBrogueEvent(rogueEvent *returnEvent, boolean textInput, boolean colorsD
 }
 
 void executeMouseClick(rogueEvent *theEvent) {
-    update_metrics();
     short x, y;
     boolean autoConfirm;
     x = theEvent->param1;
@@ -2470,7 +2462,6 @@ void executeMouseClick(rogueEvent *theEvent) {
 }
 
 void executeKeystroke(signed long keystroke, boolean controlKey, boolean shiftKey) {
-    update_metrics();
     short direction = -1;
 
     confirmMessages();
@@ -2746,7 +2737,6 @@ boolean getInputTextString(char *inputText,
                            const char *promptSuffix,
                            short textEntryType,
                            boolean useDialogBox) {
-    update_metrics();
     short charNum, i, x, y, promptSuffixLen, defaultEntrylengthOverflow;
     char keystroke, suffix[100];
     const short textEntryBounds[TEXT_INPUT_TYPES][2] = {{' ', '~'}, {' ', '~'}, {'0', '9'}};
@@ -2867,8 +2857,6 @@ void displayCenteredAlert(char *message) {
 
 // Flashes a message on the screen starting at (x, y) lasting for the given time (in ms) and with the given colors.
 void flashMessage(char *message, short x, short y, int time, const color *fColor, const color *bColor) {
-    update_metrics();
-
     boolean fastForward;
     int     i, j, messageLength, percentComplete, previousPercentComplete;
     color backColors[COLS], backColor, foreColor;
@@ -3718,7 +3706,6 @@ enum entityDisplayTypes {
 // we won't know if it will fit on the screen in normal order until we try.
 // So if we try and fail, this function will call itself again, but with this set to true.
 void refreshSideBar(short focusX, short focusY, boolean focusedEntityMustGoFirst) {
-    update_metrics();
     short printY, oldPrintY, shortestDistance, i, j, k, px, py, x = 0, y = 0, displayEntityCount, indirectVision;
     creature *closestMonst = NULL;
     item *theItem, *closestItem = NULL;
@@ -4080,7 +4067,6 @@ short printStringWithWrapping(const char *theString, short x, short y, short wid
 }
 
 char nextKeyPress(boolean textInput) {
-    update_metrics();
     rogueEvent theEvent;
     do {
         nextBrogueEvent(&theEvent, textInput, false, false);

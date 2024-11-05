@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     net-tools \
     x11-xserver-utils \
+    libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js
@@ -60,7 +61,7 @@ RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
     echo '<?xml version="1.0" encoding="UTF-8"?><channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="use_compositing" type="bool" value="false"/></property></channel>' > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
 
 # Build Brogue application and metrics server
-RUN make clean && make
+RUN make
 
 # Confirm that metrics_server was created and move it to /app if needed
 #RUN if [ -f "bin/metrics_server" ]; then cp bin/metrics_server /app/metrics_server; fi
@@ -87,5 +88,4 @@ CMD bash -c "Xvfb :1 -screen 0 1280x960x24 & \
              DISPLAY=:1 x11vnc -display :1 -usepw -forever -o /var/log/x11vnc.log & \
              /opt/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 16080 & \
              DISPLAY=:1 /app/brogue -G & \
-             /app/metrics_server & \
              wait"

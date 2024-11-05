@@ -19,6 +19,9 @@ BrogueCE-*
 *.desktop
 gmon.out
 
-/brogue-game/.env
-/brogue-game/tmux-error.log
-/brogue-game/port-forward.log
+# Ignore all .log files in any directory
+*.log
+
+# Ignore all .env files in any directory
+*.env
+

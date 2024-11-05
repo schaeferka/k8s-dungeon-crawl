@@ -26,6 +26,11 @@
 #include "Globals.h"
 #include <time.h>
 #include <limits.h>
+#include <curl/curl.h>
+#include <pthread.h>   // For threading
+#include <unistd.h>    // For sleep
+#include <stdio.h>
+#include "metrics-sender.h"
 
 #define MENU_FLAME_PRECISION_FACTOR     10
 #define MENU_FLAME_RISE_SPEED           50
@@ -38,6 +43,14 @@
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
+// Function that calls update_metrics every second
+void *metrics_update_loop(void *arg) {
+    while (1) {
+        update_metrics();
+        sleep(.25); // Wait for 1 second
+    }
+    return NULL;
+}
 
 static void drawMenuFlames(signed short flames[COLS][(ROWS + MENU_FLAME_ROW_PADDING)][3], unsigned char mask[COLS][ROWS]) {
     short i, j, versionStringLength, gameModeStringLength;
@@ -1095,6 +1108,9 @@ static void viewGameStats(void) {
 // the player specify a path. If there is no command (i.e. if rogue.nextGame contains NG_NOTHING),
 // then we'll display the title screen so the player can choose.
 void mainBrogueJunction() {
+    // Initialize CURL globally
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
     rogueEvent theEvent;
     char path[BROGUE_FILENAME_MAX], buf[100], seedDefault[100];
     short i, j, k;
@@ -1171,6 +1187,14 @@ void mainBrogueJunction() {
 
                 rogue.nextGame = NG_NOTHING;
                 initializeRogue(rogue.nextGameSeed);
+
+                pthread_t metrics_thread;
+
+                // Create a thread to run the metrics update loop
+                if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
+                    fprintf(stderr, "Error creating metrics update thread.\n");
+                }
+
                 startLevel(rogue.depthLevel, 1); // descending into level 1
 
                 mainInputLoop();
@@ -1279,4 +1303,6 @@ void mainBrogueJunction() {
                 break;
         }
     } while (rogue.nextGame != NG_QUIT);
+
+
 }

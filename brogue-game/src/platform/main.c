@@ -2,7 +2,6 @@
 #include <limits.h>
 #include "platform.h"
 #include "GlobalsBase.h"
-#include "metrics_server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -373,15 +372,6 @@ int main(int argc, char *argv[])
     // call, whether true or false
     graphicsMode = setGraphicsMode(initialGraphics);
 
-    // Check if the metrics server is already running
-    if (is_metrics_server_running()) {
-        printf("Metrics server is already running on port %d. Skipping start.\n", METRICS_PORT);
-    } else {
-        printf("Starting metrics server on port %d...\n", METRICS_PORT);
-        start_metrics_server();
-        printf("Metrics server started successfully on port %d.\n", METRICS_PORT);
-    }
-    
     loadKeymap();
     currentConsole.gameLoop();
 

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: portal-service
+  namespace: portal
+spec:
+  selector:
+    app: portal
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
