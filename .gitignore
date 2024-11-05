@@ -20,3 +20,5 @@ BrogueCE-*
 gmon.out
 
 /brogue-game/.env
+/brogue-game/tmux-error.log
+/brogue-game/port-forward.log
