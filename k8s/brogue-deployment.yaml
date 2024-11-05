@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brogue
+  namespace: monsties
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: brogue
+  template:
+    metadata:
+      labels:
+        app: brogue
+    spec:
+      serviceAccountName: brogue-sa
+      containers:
+      - name: brogue
+        image: broguek8s:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 6080
+        - containerPort: 5900
+        env:
+        - name: DISPLAY
+          value: ":1"
+        - name: SDL_VIDEODRIVER
+          value: "x11"
+        - name: SDL_AUDIODRIVER
+          value: "dummy"
