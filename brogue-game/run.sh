@@ -6,8 +6,9 @@ IMAGE_NAME="broguek8s:latest"
 CLUSTER_NAME="k3d-k3s-default"
 NAMESPACE_FILE="$SCRIPT_DIR/brogue-namespace.yaml"
 DEPLOYMENT_FILES=("$SCRIPT_DIR/brogue-deployment.yaml" "$SCRIPT_DIR/brogue-service.yaml" "$SCRIPT_DIR/brogue-clusterroles.yaml" "$SCRIPT_DIR/brogue-clusterrolebindings.yaml" "$SCRIPT_DIR/brogue-serviceaccount.yaml")
-LOCAL_PORT_6080=8081
-LOCAL_PORT_5900=5902
+LOCAL_PORT_16080=8090
+LOCAL_PORT_15900=5910
+LOCAL_PORT_18000=8010  # Add the metrics server port
 
 # Function to check if a port is in use
 check_port() {
@@ -19,31 +20,65 @@ check_port() {
     fi
 }
 
-# Check if LOCAL_PORT_6080 is in use
-if ! check_port $LOCAL_PORT_6080; then
-    echo "Port $LOCAL_PORT_6080 is already in use."
-    echo "To free up this port, you can identify the process using it with:"
-    echo "   lsof -i :$LOCAL_PORT_6080"
-    echo "Then, terminate the process by running:"
-    echo "   kill -9 <PID>"
-    echo "Or, alternatively, change the LOCAL_PORT_6080 variable in this script to an available port."
-    exit 1
+# Function to find the next available port starting from the given port
+find_available_port() {
+    local port=$1
+    while check_port $port; do
+        ((port++))
+    done
+    echo $port
+}
+
+# Check if "yolo" argument is provided
+if [[ " $@ " =~ " yolo " ]]; then
+    echo "YOLO mode: Automatically finding available ports for $LOCAL_PORT_16080, $LOCAL_PORT_15900, and $LOCAL_PORT_18000 if in use."
+    
+    # Find available port for noVNC
+    LOCAL_PORT_16080=$(find_available_port $LOCAL_PORT_16080)
+    echo "Selected noVNC port: $LOCAL_PORT_16080"
+
+    # Find available port for VNC
+    LOCAL_PORT_15900=$(find_available_port $LOCAL_PORT_15900)
+    echo "Selected VNC port: $LOCAL_PORT_15900"
+
+    # Find available port for Metrics
+    LOCAL_PORT_18000=$(find_available_port $LOCAL_PORT_18000)
+    echo "Selected Metrics port: $LOCAL_PORT_18000"
+else
+    # Check each port individually and prompt for action if any are in use
+    if ! check_port $LOCAL_PORT_16080; then
+        echo "Port $LOCAL_PORT_16080 is already in use."
+        echo "To free up this port, you can identify the process using it with:"
+        echo "   lsof -i :$LOCAL_PORT_16080"
+        echo "Then, terminate the process by running:"
+        echo "   kill -9 <PID>"
+        echo "Or, alternatively, change the LOCAL_PORT_16080 variable in this script to an available port."
+        exit 1
+    fi
+
+    if ! check_port $LOCAL_PORT_15900; then
+        echo "Port $LOCAL_PORT_15900 is already in use."
+        echo "To free up this port, you can identify the process using it with:"
+        echo "   lsof -i :$LOCAL_PORT_15900"
+        echo "Then, terminate the process by running:"
+        echo "   kill -9 <PID>"
+        echo "Or, alternatively, change the LOCAL_PORT_15900 variable in this script to an available port."
+        exit 1
+    fi
+
+    if ! check_port $LOCAL_PORT_18000; then
+        echo "Port $LOCAL_PORT_18000 is already in use."
+        echo "To free up this port, you can identify the process using it with:"
+        echo "   lsof -i :$LOCAL_PORT_18000"
+        echo "Then, terminate the process by running:"
+        echo "   kill -9 <PID>"
+        echo "Or, alternatively, change the LOCAL_PORT_18000 variable in this script to an available port."
+        exit 1
+    fi
 fi
 
-# Check if LOCAL_PORT_5900 is in use
-if ! check_port $LOCAL_PORT_5900; then
-    echo "Port $LOCAL_PORT_5900 is already in use."
-    echo "To free up this port, you can identify the process using it with:"
-    echo "   lsof -i :$LOCAL_PORT_5900"
-    echo "Then, terminate the process by running:"
-    echo "   kill -9 <PID>"
-    echo "Or, alternatively, change the LOCAL_PORT_5900 variable in this script to an available port."
-    exit 1
-fi
-
-# Proceed with the rest of the script if ports are available
-echo "Ports $LOCAL_PORT_6080 and $LOCAL_PORT_5900 are available. Continuing with deployment..."
-
+# Proceed with the rest of the script if ports are available or have been reassigned in YOLO mode
+echo "Ports $LOCAL_PORT_16080, $LOCAL_PORT_15900, and $LOCAL_PORT_18000 are available. Continuing with deployment..."
 
 # Step 1: Check if "build" argument is included, and build the Docker image if so
 if [[ " $@ " =~ " build " ]]; then
@@ -57,7 +92,7 @@ fi
 echo "Checking if k3d cluster $CLUSTER_NAME is running..."
 if ! k3d cluster list | grep -q "^$CLUSTER_NAME"; then
     echo "Cluster $CLUSTER_NAME is not running. Starting cluster..."
-    k3d cluster create $CLUSTER_NAME --port "$LOCAL_PORT_6080:30080@loadbalancer" --port "$LOCAL_PORT_5900:30090@loadbalancer"
+    k3d cluster create $CLUSTER_NAME --port "$LOCAL_PORT_16080:30080@loadbalancer" --port "$LOCAL_PORT_15900:30090@loadbalancer" --port "$LOCAL_PORT_18000:30800@loadbalancer"
 else
     echo "Cluster $CLUSTER_NAME is already running."
 fi
@@ -120,7 +155,7 @@ done
 echo "brogue-service is available. Starting port forwarding..."
 
 echo "Starting port forwarding in a tmux session..."
-tmux new-session -d -s brogue_port_forward "kubectl port-forward service/brogue-service -n $NAMESPACE $LOCAL_PORT_6080:6080 $LOCAL_PORT_5900:5900 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+tmux new-session -d -s brogue_port_forward "kubectl port-forward service/brogue-service -n $NAMESPACE $LOCAL_PORT_16080:16080 $LOCAL_PORT_15900:15900 $LOCAL_PORT_18000:18000 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 
 # Inform the user about tmux session
 echo "Port forwarding started in a tmux session named 'brogue_port_forward'."
@@ -128,20 +163,6 @@ echo "You can attach to the session with: tmux attach -t brogue_port_forward"
 echo "Or kill the session with: tmux kill-session -t brogue_port_forward"
 echo
 echo "Deployment complete. You can connect to Brogue using the following options:"
-echo " - For noVNC, open your browser and go to: http://localhost:$LOCAL_PORT_6080"
-echo " - For VNC, connect using a VNC client to: localhost:$LOCAL_PORT_5900"
-
-# Instructions on checking and freeing up ports
-echo
-echo
-echo "If you encounter issues with port conflicts, here’s how to check and free up the ports:"
-echo
-echo "1. To check if ports $LOCAL_PORT_6080 or $LOCAL_PORT_5900 are in use, run:"
-echo "   lsof -i :$LOCAL_PORT_6080"
-echo "   lsof -i :$LOCAL_PORT_5900"
-echo
-echo "2. If a process is using the port, identify its PID and kill it using:"
-echo "   kill -9 <PID>"
-echo
-echo "Note: Replace <PID> with the actual Process ID you see in the output of the 'lsof' command."
-echo
+echo " - For noVNC, open your browser and go to: http://localhost:$LOCAL_PORT_16080"
+echo " - For VNC, connect using a VNC client to: localhost:$LOCAL_PORT_15900"
+echo " - For metrics, connect to: http://localhost:$LOCAL_PORT_18000/metrics"

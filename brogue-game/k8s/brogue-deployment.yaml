@@ -21,15 +21,16 @@ spec:
         resources:
           limits:
             memory: "512Mi"
-            cpu: "500m"
+            cpu: "1000m"
           requests:
             memory: "256Mi"
-            cpu: "250m"
+            cpu: "500m"
         securityContext:
           privileged: true
         ports:
-        - containerPort: 6080
-        - containerPort: 5900
+        - containerPort: 16080 # noVNC port
+        - containerPort: 15900 # VNC port
+        - containerPort: 18000 # Metrics port
         env:
         - name: DISPLAY
           value: ":1"

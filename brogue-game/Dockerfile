@@ -71,7 +71,7 @@ RUN mkdir ~/.vnc \
     && x11vnc -storepasswd $VNC_PASSWORD ~/.vnc/passwd
 
 # Expose the VNC, noVNC, and metrics HTTP ports
-EXPOSE 5900 6080 8000
+EXPOSE 15900 16080 18000
 
 # Set environment variables to center the Brogue window
 ENV SDL_VIDEO_WINDOW_POS=center
@@ -85,6 +85,7 @@ CMD bash -c "Xvfb :1 -screen 0 1280x960x24 & \
              export SDL_VIDEODRIVER=dummy; \
              DISPLAY=:1 xset r on & \
              DISPLAY=:1 x11vnc -display :1 -usepw -forever -o /var/log/x11vnc.log & \
-             DISPLAY=:1 /app/brogue & \
-             /opt/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 6080 & \
+             /opt/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 16080 & \
+             DISPLAY=:1 /app/brogue -G & \
+             /app/metrics_server & \
              wait"

@@ -9,8 +9,11 @@ spec:
   type: ClusterIP  # Change to NodePort or LoadBalancer if external access is required
   ports:
   - name: novnc
-    port: 6080
-    targetPort: 6080
+    port: 16080
+    targetPort: 16080
   - name: vnc
-    port: 5900
-    targetPort: 5900
+    port: 15900
+    targetPort: 15900
+  - name: metrics
+    port: 18000
+    targetPort: 18000

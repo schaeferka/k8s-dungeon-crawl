@@ -18,3 +18,5 @@ BrogueCE-*
 *.gcov
 *.desktop
 gmon.out
+
+/brogue-game/.env

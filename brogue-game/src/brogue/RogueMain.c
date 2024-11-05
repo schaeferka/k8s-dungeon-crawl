@@ -183,6 +183,7 @@ void initializeGameVariant() {
 // Either way, previousGameSeed is set to the seed we use.
 // None of this seed stuff is applicable if we're playing a recording.
 void initializeRogue(uint64_t seed) {
+    update_metrics();
     short i, j, k;
     item *theItem;
     boolean playingback, playbackFF, playbackPaused, wizard, easy, displayStealthRangeMode;
@@ -525,6 +526,7 @@ void initializeRogue(uint64_t seed) {
     clearMessageArchive();
     blackOutScreen();
     welcome();
+    update_metrics();
 }
 
 // call this once per level to set all the dynamic colors as a function of depth
@@ -562,6 +564,9 @@ void startLevel(short oldLevelNumber, short stairDirection) {
     rogue.lastTarget = NULL;
 
     connectingStairsDiscovered = (pmapAt(rogue.downLoc)->flags & (DISCOVERED | MAGIC_MAPPED) ? true : false);
+
+    update_metrics();
+
     if (stairDirection == 0) { // fallen
         levels[oldLevelNumber-1].playerExitedVia = (pos){ .x = player.loc.x, .y = player.loc.y };
     }
@@ -735,6 +740,8 @@ void startLevel(short oldLevelNumber, short stairDirection) {
         // Simulate 50 turns so the level is broken in (swamp gas accumulating, brimstone percolating, etc.).
         timeAway = 50;
 
+        update_metrics();
+
     } else { // level has already been visited
 
         // restore level
@@ -773,6 +780,8 @@ void startLevel(short oldLevelNumber, short stairDirection) {
         levels[rogue.depthLevel-1].items           = NULL;
 
         restoreItems();
+
+        update_metrics();
 
     }
 
@@ -918,6 +927,7 @@ void startLevel(short oldLevelNumber, short stairDirection) {
     flushBufferToFile();
     deleteAllFlares(); // So discovering something on the same turn that you fall down a level doesn't flash stuff on the previous level.
     hideCursor();
+    update_metrics();
 }
 
 static void freeGlobalDynamicGrid(short ***grid) {
