@@ -27,6 +27,7 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
+#include "portal-utilities.h"
 
 #include <time.h>
 
@@ -950,6 +951,9 @@ static void removeDeadMonstersFromList(creatureList *list) {
         creature *decedent = next->creature;
         next = next->nextCreature;
         if (decedent->bookkeepingFlags & MB_HAS_DIED) {
+            // K*S: Notify the portal of the monster's death
+            send_monster_death_to_portal(decedent->portalName);
+
             removeCreature(list, decedent);
             if (decedent->leader == &player
                 && !(decedent->bookkeepingFlags & MB_DOES_NOT_RESURRECT)

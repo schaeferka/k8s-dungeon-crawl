@@ -24,6 +24,11 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
+// K*S: Include the portal-utilities.h file
+#include "portal-utilities.h" 
+
+// K*S: Used to create unique portalName for each monster
+int MONSTIE_COUNT = 0;
 
 void mutateMonster(creature *monst, short mutationIndex) {
     monst->mutationIndex = mutationIndex;
@@ -158,6 +163,14 @@ void initializeMonster(creature *monst, boolean itemPossible) {
     if (!(monst->info.flags & MONST_INANIMATE) || (monst->info.abilityFlags & MA_ENTER_SUMMONS)) {
         monst->bookkeepingFlags |= MB_WEAPON_AUTO_ID;
     }
+
+    // K*S: Create unique portalName and sned monster to portal
+     // Increment MONSTIE_COUNT and construct portalName
+    MONSTIE_COUNT++;
+    snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTIE_COUNT);
+
+    // Send the monster details to the portal
+    send_monster_to_portal(monst);
 
 }
 

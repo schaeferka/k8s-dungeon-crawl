@@ -8,8 +8,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy the portal.py file into the container
-COPY portal.py .
+# Copy the entire portal folder, including templates
+COPY . .
 
 # Expose the Flask server port
 EXPOSE 5001

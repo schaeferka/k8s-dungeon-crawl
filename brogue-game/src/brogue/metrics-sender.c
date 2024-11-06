@@ -1,5 +1,3 @@
-// K8S: Sends metrics data to the Portal server using a POST request
-
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,9 +8,7 @@
 // Define the Portal URL
 #define PORTAL_URL "http://portal-service.portal:5000/metrics"
 
-// Prototype for sending metrics
-static void send_numeric_metrics_to_portal(int gold, int depth, int hp, int turns);
-
+// Define the PlayerMetrics struct
 typedef struct {
     // Numeric metrics
     int gold;
@@ -56,26 +52,12 @@ typedef struct {
     int weaknessAmount;               // number of points of weakness that are inflicted by the weakness status
     int poisonAmount; 
 
-    //item *weapon;
-    //item *armor;
-    //item *ringLeft;
-    //item *ringRight;
-    //item *swappedIn;
-    //item *swappedOut;
-
-    //pos upLoc;                          // upstairs location this level
-    //pos downLoc;                        // downstairs location this level
-
-    // metered items
-    //long long foodSpawned;                    // amount of nutrition units spawned so far this game
-    //meteredItem *meteredItems;
-
-    //creature *lastTarget;               // to keep track of the last monster the player has thrown at or zapped
-    //item *lastItemThrown;
-
     // Additional metrics can be added here
 } PlayerMetrics;
 
+// Function prototypes
+static void send_metrics_to_portal(const PlayerMetrics *metrics);
+void update_metrics(void);
 
 void update_metrics(void) {
     // Create and populate an instance of PlayerMetrics
@@ -116,7 +98,7 @@ void update_metrics(void) {
         
         .regenPerTurn = player.regenPerTurn,  
         .weaknessAmount = player.weaknessAmount,
-        .poisonAmount = player.poisonAmount              // which RNG are we currently using?
+        .poisonAmount = player.poisonAmount              
     };
 
     // Log for debugging
@@ -182,4 +164,3 @@ static void send_metrics_to_portal(const PlayerMetrics *metrics) {
         fprintf(stderr, "Failed to initialize CURL session for metrics.\n");
     }
 }
-

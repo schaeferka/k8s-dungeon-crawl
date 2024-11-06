@@ -2256,6 +2256,8 @@ typedef struct monsterClass {
 } monsterClass;
 
 typedef struct creature {
+    // K*S: Needed for unique identification of creatures.
+    char portalName[50];
     creatureType info;
     pos loc;
     short depth;
