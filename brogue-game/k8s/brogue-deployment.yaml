@@ -17,7 +17,7 @@ spec:
       containers:
       - name: brogue
         image: broguek8s:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         resources:
           limits:
             memory: "512Mi"

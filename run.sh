@@ -55,8 +55,8 @@ fi
 # Step 1: Build Docker images
 if [[ " $@ " =~ " build " ]]; then
     echo "Building Docker images for Brogue and Portal..."
-    docker build -t $IMAGE_NAME_BROGUE $BROGUE_DIR
-    docker build -t $IMAGE_NAME_PORTAL $PORTAL_DIR
+    docker build --platform=linux/amd64 -t $IMAGE_NAME_BROGUE $BROGUE_DIR
+    docker build --platform=linux/amd64 -t $IMAGE_NAME_PORTAL $PORTAL_DIR
 else
     echo "Skipping Docker image build."
 fi

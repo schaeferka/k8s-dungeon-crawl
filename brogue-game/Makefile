@@ -60,10 +60,15 @@ objects += $(sources:.c=.o)
 # Set the default goal to create the Brogue binary
 .DEFAULT_GOAL := bin/brogue$(.exe)
 
+COMPILE_CMD = $(CC) $(CFLAGS) $(CPPFLAGS) -c
+OUTPUT_FLAG = -o
+
 %.o: %.c
-    $(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@ 
+	$(COMPILE_CMD) $< $(OUTPUT_FLAG) $@
+
+CLEAN_CMD = rm -f
 
 clean:
-    rm -f $(objects) bin/brogue$(.exe)
+	$(CLEAN_CMD) $(objects) bin/brogue$(.exe)
 
 .PHONY: clean
