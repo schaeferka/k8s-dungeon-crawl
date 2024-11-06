@@ -1,3 +1,5 @@
+// K8S: Sends metrics data to the Portal server using a POST request
+
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +8,7 @@
 #include "GlobalsBase.h"
 
 // Define the Portal URL
-#define PORTAL_URL "http://portal-service.portal:5000/metrics"
+#define PORTAL_URL "http://portal-service.portal.svc.cluster.local:5000/metrics/update"
 
 // Prototype for send_metrics_to_portal
 static void send_metrics_to_portal(int gold, int depth, int hp, int turns);

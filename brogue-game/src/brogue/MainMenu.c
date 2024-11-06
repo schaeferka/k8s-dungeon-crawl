@@ -30,6 +30,7 @@
 #include <pthread.h>   // For threading
 #include <unistd.h>    // For sleep
 #include <stdio.h>
+// K8S: Include the metrics-sender header file
 #include "metrics-sender.h"
 
 #define MENU_FLAME_PRECISION_FACTOR     10
@@ -43,11 +44,11 @@
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
-// Function that calls update_metrics every second
+// K8S: Function that calls update_metrics every second
 void *metrics_update_loop(void *arg) {
     while (1) {
         update_metrics();
-        sleep(.25); // Wait for 1 second
+        sleep(.25);
     }
     return NULL;
 }
@@ -1188,9 +1189,8 @@ void mainBrogueJunction() {
                 rogue.nextGame = NG_NOTHING;
                 initializeRogue(rogue.nextGameSeed);
 
+                // K8S: Create a thread to run the metrics update loop
                 pthread_t metrics_thread;
-
-                // Create a thread to run the metrics update loop
                 if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
                     fprintf(stderr, "Error creating metrics update thread.\n");
                 }

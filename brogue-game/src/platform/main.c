@@ -15,9 +15,6 @@
 #error "The DATADIR macro is undefined."
 #endif
 
-// Define the port for the metrics server
-#define METRICS_PORT 18000
-
 struct brogueConsole currentConsole;
 
 char dataDirectory[BROGUE_FILENAME_MAX] = STRINGIFY(DATADIR);
@@ -61,27 +58,6 @@ static void printCommandlineHelp() {
     "--data-dir DIRECTORY       specify directory containing game resources (experimental)\n"
     );
     return;
-}
-
-// Function to check if the metrics server is already running
-boolean is_metrics_server_running() {
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        perror("Socket creation failed");
-        return false;  // Return false on failure to avoid blocking the start
-    }
-
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1
-    serv_addr.sin_port = htons(METRICS_PORT);
-
-    // Try to connect to the server on METRICS_PORT
-    boolean is_running = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0;
-
-    close(sockfd);  // Close the socket after checking
-    return is_running;
 }
 
 static void cliError(const char *prefix, const char *errorMsg) {
