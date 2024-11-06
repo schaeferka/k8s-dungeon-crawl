@@ -1,3 +1,5 @@
+// K8S: Declares the functions to send metrics data to the Portal
+
 #ifndef METRICS_SENDER_H
 #define METRICS_SENDER_H
 

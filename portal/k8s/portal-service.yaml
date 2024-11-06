@@ -6,7 +6,8 @@ metadata:
 spec:
   selector:
     app: portal
+  type: ClusterIP
   ports:
-    - protocol: TCP
+    - name: metrics
       port: 5000
       targetPort: 5000

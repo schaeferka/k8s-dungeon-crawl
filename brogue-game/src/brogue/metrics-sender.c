@@ -1,3 +1,5 @@
+// K8S: Sends metrics data to the Portal server using a POST request
+
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
