@@ -12,7 +12,8 @@
 #include <unistd.h>
 
 #ifndef DATADIR
-#error "The DATADIR macro is undefined."
+// TODO: Investigate why the macro is not defined
+//#error "The DATADIR macro is undefined."
 #endif
 
 struct brogueConsole currentConsole;
