@@ -27,6 +27,7 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
+#include "monster-metrics.h"
 #include "portal-utilities.h"
 
 #include <time.h>
@@ -802,6 +803,8 @@ void startLevel(short oldLevelNumber, short stairDirection) {
 
     if (!levels[rogue.depthLevel-1].visited) {
         levels[rogue.depthLevel-1].visited = true;
+        // K8S: Send monsters for the level to the portal
+        update_monster_metrics(rogue.depthLevel-1);
         if (rogue.depthLevel == gameConst->amuletLevel) {
             messageWithColor(levelFeelings[0].message, levelFeelings[0].color, 0);
         } else if (rogue.depthLevel == gameConst->deepestLevel) {
@@ -951,8 +954,8 @@ static void removeDeadMonstersFromList(creatureList *list) {
         creature *decedent = next->creature;
         next = next->nextCreature;
         if (decedent->bookkeepingFlags & MB_HAS_DIED) {
-            // K*S: Notify the portal of the monster's death
-            send_monster_death_to_portal(decedent->portalName);
+            // K8S: Notify the portal of the monster's death
+            //send_monster_death_to_portal(decedent->portalName);
 
             removeCreature(list, decedent);
             if (decedent->leader == &player

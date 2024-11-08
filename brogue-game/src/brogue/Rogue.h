@@ -2256,7 +2256,7 @@ typedef struct monsterClass {
 } monsterClass;
 
 typedef struct creature {
-    // K*S: Needed for unique identification of creatures.
+    // K8S: Needed for unique identification of creatures.
     char portalName[50];
     creatureType info;
     pos loc;
@@ -2572,6 +2572,9 @@ typedef struct levelData {
     pos playerExitedVia;
     unsigned long awaySince;
 } levelData;
+
+// K8S: For sending data to the portal
+extern levelData *levels;
 
 enum machineFeatureFlags {
     MF_GENERATE_ITEM                = Fl(0),    // feature entails generating an item (overridden if the machine is adopting an item)

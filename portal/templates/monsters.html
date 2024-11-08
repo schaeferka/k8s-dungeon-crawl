@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monster Tracker</title>
+    <title>K8s Dungeon Crawl - Monster Tracker</title>
     <style>
         .dead-monster {
-            background-color: #f8d7da; /* Light red background */
+            background-color: #f8d7da;
         }
         table {
             width: 100%;
@@ -17,73 +17,129 @@
             text-align: left;
             border: 1px solid #ddd;
         }
+        .nav-buttons {
+            margin-bottom: 20px;
+        }
     </style>
+    <script>
+        async function fetchMonsterData() {
+            try {
+                const response = await fetch('/monsters/data');
+                const data = await response.json();
+                updateTables(data.created_monsters, data.dead_monsters);
+            } catch (error) {
+                console.error('Error fetching monster data:', error);
+            }
+        }
+
+        function updateTables(createdMonsters, deadMonsters) {
+            const createdTableBody = document.getElementById('created-monsters-body');
+            const deadTableBody = document.getElementById('dead-monsters-body');
+
+            createdTableBody.innerHTML = '';
+            deadTableBody.innerHTML = '';
+
+            // Set of dead monster names for highlighting
+            const deadMonsterNames = new Set(deadMonsters.map(monster => monster.name));
+
+            createdMonsters.forEach(monster => {
+                const row = document.createElement('tr');
+                if (deadMonsterNames.has(monster.name)) {
+                    row.classList.add('dead-monster');
+                }
+                row.innerHTML = `
+                    <td>${monster.name || ''}</td>
+                    <td>${monster.type || ''}</td>
+                    <td>${monster.maxHP || ''}</td>
+                    <td>${monster.defense || ''}</td>
+                    <td>${monster.accuracy || ''}</td>
+                    <td>${monster.damageMin || ''} - ${monster.damageMax || ''}</td>
+                    <td>${monster.turnsBetweenRegen || ''}</td>
+                    <td>${monster.movementSpeed || ''}</td>
+                    <td>${monster.attackSpeed || ''}</td>
+                    <td>${monster.level || ''}</td>
+                    <td>${monster.hp || ''}</td>
+                `;
+                createdTableBody.appendChild(row);
+            });
+
+            deadMonsters.forEach(monster => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${monster.name || ''}</td>
+                    <td>${monster.type || ''}</td>
+                    <td>${monster.maxHP || ''}</td>
+                    <td>${monster.defense || ''}</td>
+                    <td>${monster.accuracy || ''}</td>
+                    <td>${monster.damageMin || ''} - ${monster.damageMax || ''}</td>
+                    <td>${monster.turnsBetweenRegen || ''}</td>
+                    <td>${monster.movementSpeed || ''}</td>
+                    <td>${monster.attackSpeed || ''}</td>
+                    <td>${monster.level || ''}</td>
+                    <td>${monster.hp || ''}</td>
+                `;
+                deadTableBody.appendChild(row);
+            });
+        }
+
+        // Fetch and update data every 5 seconds
+        setInterval(fetchMonsterData, 5000);
+        window.onload = fetchMonsterData;
+    </script>
 </head>
 <body>
-    <h1>Monster Tracker</h1>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='/'">Tracker</button>
+        <button onclick="window.location.href='/monsters'">Monsters</button>
+        <button onclick="window.location.href='/player'">Player</button>
+        <button onclick="window.location.href='/gamestate'">Game State</button>
+    </div>    
 
-    <h2>Created Monsters</h2>
+    <h1>K8s Dungeon Crawl</h1>
+    <h2>Monster Tracker</h2>
+
+    <h3>Created Monsters</h3>
     <table>
-        <tr>
-            <th>Portal Name</th>
-            <th>Monster Name</th>
-            <th>Max HP</th>
-            <th>Defense</th>
-            <th>Accuracy</th>
-            <th>Damage</th>
-            <th>Turns Between Regen</th>
-            <th>Movement Speed</th>
-            <th>Attack Speed</th>
-            <th>Depth</th>
-            <th>Current HP</th>
-        </tr>
-        {% for monster in created_monsters %}
-        <tr {% if monster.portalName in dead_monster_names %}class="dead-monster"{% endif %}>
-            <td>{{ monster.portalName }}</td>
-            <td>{{ monster.monsterName }}</td>
-            <td>{{ monster.maxHP }}</td>
-            <td>{{ monster.defense }}</td>
-            <td>{{ monster.accuracy }}</td>
-            <td>{{ monster.damageMin }} - {{ monster.damageMax }}</td>
-            <td>{{ monster.turnsBetweenRegen }}</td>
-            <td>{{ monster.movementSpeed }}</td>
-            <td>{{ monster.attackSpeed }}</td>
-            <td>{{ monster.depth }}</td>
-            <td>{{ monster.currentHP }}</td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>Portal Name</th>
+                <th>Monster Name</th>
+                <th>Max HP</th>
+                <th>Defense</th>
+                <th>Accuracy</th>
+                <th>Damage</th>
+                <th>Turns Between Regen</th>
+                <th>Movement Speed</th>
+                <th>Attack Speed</th>
+                <th>Depth</th>
+                <th>Current HP</th>
+            </tr>
+        </thead>
+        <tbody id="created-monsters-body">
+            <!-- JavaScript will populate this area -->
+        </tbody>
     </table>
 
-    <h2>Dead Monsters</h2>
+    <h3>Dead Monsters</h3>
     <table>
-        <tr>
-            <th>Portal Name</th>
-            <th>Monster Name</th>
-            <th>Max HP</th>
-            <th>Defense</th>
-            <th>Accuracy</th>
-            <th>Damage</th>
-            <th>Turns Between Regen</th>
-            <th>Movement Speed</th>
-            <th>Attack Speed</th>
-            <th>Depth</th>
-            <th>Current HP</th>
-        </tr>
-        {% for monster in dead_monsters %}
-        <tr>
-            <td>{{ monster.portalName }}</td>
-            <td>{{ monster.monsterName }}</td>
-            <td>{{ monster.maxHP }}</td>
-            <td>{{ monster.defense }}</td>
-            <td>{{ monster.accuracy }}</td>
-            <td>{{ monster.damageMin }} - {{ monster.damageMax }}</td>
-            <td>{{ monster.turnsBetweenRegen }}</td>
-            <td>{{ monster.movementSpeed }}</td>
-            <td>{{ monster.attackSpeed }}</td>
-            <td>{{ monster.depth }}</td>
-            <td>{{ monster.currentHP }}</td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>Portal Name</th>
+                <th>Monster Name</th>
+                <th>Max HP</th>
+                <th>Defense</th>
+                <th>Accuracy</th>
+                <th>Damage</th>
+                <th>Turns Between Regen</th>
+                <th>Movement Speed</th>
+                <th>Attack Speed</th>
+                <th>Depth</th>
+                <th>Current HP</th>
+            </tr>
+        </thead>
+        <tbody id="dead-monsters-body">
+            <!-- JavaScript will populate this area -->
+        </tbody>
     </table>
 </body>
 </html>

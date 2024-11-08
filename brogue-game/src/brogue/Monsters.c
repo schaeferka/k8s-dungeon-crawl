@@ -24,10 +24,11 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-// K*S: Include the portal-utilities.h file
-#include "portal-utilities.h" 
+// K*S: Include the monster-metrics.h file
+#include "monster-metrics.h" 
+#include "portal-utilities.h"
 
-// K*S: Used to create unique portalName for each monster
+// K8S: Used to create unique portalName for each monster
 int MONSTIE_COUNT = 0;
 
 void mutateMonster(creature *monst, short mutationIndex) {
@@ -164,14 +165,10 @@ void initializeMonster(creature *monst, boolean itemPossible) {
         monst->bookkeepingFlags |= MB_WEAPON_AUTO_ID;
     }
 
-    // K*S: Create unique portalName and sned monster to portal
+    // K8S: Create unique portalName and send monster to portal
      // Increment MONSTIE_COUNT and construct portalName
     MONSTIE_COUNT++;
     snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTIE_COUNT);
-
-    // Send the monster details to the portal
-    send_monster_to_portal(monst);
-
 }
 
 /// @brief Checks if the player knows a monster's location via telepathy or entrancement.

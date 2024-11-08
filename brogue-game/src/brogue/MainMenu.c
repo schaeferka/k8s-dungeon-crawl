@@ -32,6 +32,20 @@
 #include <stdio.h>
 // K8S: Include the metrics-sender header file
 #include "metrics-sender.h"
+#include "monster-metrics.h"
+
+#include <time.h>    // For nanosleep if usleep is not available
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L  // Enables nanosleep support in strict C
+#endif
+
+void sleep_for_microseconds(int microseconds) {
+    struct timespec ts;
+    ts.tv_sec = microseconds / 1000000;
+    ts.tv_nsec = (microseconds % 1000000) * 1000;
+    nanosleep(&ts, NULL);
+}
+
 
 #define MENU_FLAME_PRECISION_FACTOR     10
 #define MENU_FLAME_RISE_SPEED           50
@@ -44,11 +58,13 @@
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
-// K8S: Function that calls update_metrics every second
+// K8S: Function that calls update_metrics every 0.25 seconds
+void *metrics_update_loop(void *arg);
 void *metrics_update_loop(void *arg) {
     while (1) {
         update_metrics();
-        sleep(.25);
+        update_monster_metrics();
+        sleep_for_microseconds(250000); // Sleep for 0.25 seconds
     }
     return NULL;
 }
@@ -1189,10 +1205,12 @@ void mainBrogueJunction() {
                 rogue.nextGame = NG_NOTHING;
                 initializeRogue(rogue.nextGameSeed);
 
-                // K8S: Create a thread to run the metrics update loop
+                 // K8S: Create a detached thread to run the metrics update loop
                 pthread_t metrics_thread;
                 if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
                     fprintf(stderr, "Error creating metrics update thread.\n");
+                } else {
+                    pthread_detach(metrics_thread);  // Detach the thread to avoid memory leaks
                 }
 
                 startLevel(rogue.depthLevel, 1); // descending into level 1

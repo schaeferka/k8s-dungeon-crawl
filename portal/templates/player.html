@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8s Dungeon Crawl - Player Information</title>
+    <style>
+        .nav-buttons {
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .section {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .section h2 {
+            text-align: center;
+        }
+        .item-detail {
+            margin-left: 20px;
+        }
+    </style>
+<script>
+    async function fetchPlayerData() {
+        try {
+            const response = await fetch('/player/data');
+            const data = await response.json();
+            updatePlayerInfo(data);
+        } catch (error) {
+            console.error('Error fetching player data:', error);
+        }
+    }
+
+    function updatePlayerInfo(playerInfo) {
+        const playerStatsDiv = document.getElementById('player-stats');
+        const itemsDiv = document.getElementById('items');
+        const inventoryDiv = document.getElementById('inventory-items');
+        const modifiersDiv = document.getElementById('modifiers');
+
+        playerStatsDiv.innerHTML = '';
+        itemsDiv.innerHTML = '';
+        inventoryDiv.innerHTML = '';
+        modifiersDiv.innerHTML = '';
+
+        const playerStatsKeys = [
+            "currentHP", "gold", "maxHP", "poisonAmount", "regenPerTurn",
+            "stealthRange", "strength", "weaknessAmount"
+        ];
+        const itemKeys = ["armor", "ringLeft", "ringRight", "weapon"];
+        const modifierKeys = [
+            "awarenessBonus", "clairvoyance", "disturbed", "lightMultiplier",
+            "reaping", "regenerationBonus", "stealthBonus", "transference", "wisdomBonus"
+        ];
+
+        // Populate Player Stats section
+        playerStatsKeys.forEach(key => {
+            if (key in playerInfo) {
+                const statItem = document.createElement('p');
+                statItem.textContent = `${key}: ${playerInfo[key]}`;
+                playerStatsDiv.appendChild(statItem);
+            }
+        });
+
+        // Populate Items section with expanded details
+        itemKeys.forEach(key => {
+            if (key in playerInfo && typeof playerInfo[key] === 'object' && playerInfo[key] !== null) {
+                const itemSection = document.createElement('div');
+                itemSection.innerHTML = `<strong>${playerInfo[key].name} (${key}):</strong><br>
+                                         <p>${playerInfo[key].description}</p>`;
+
+                for (const [itemKey, itemValue] of Object.entries(playerInfo[key])) {
+                    if (itemKey !== "name" && itemKey !== "description") {  // Avoid repeating name and description
+                        const itemDetail = document.createElement('p');
+                        itemDetail.className = 'item-detail';
+                        itemDetail.textContent = `${itemKey}: ${itemValue}`;
+                        itemSection.appendChild(itemDetail);
+                    }
+                }
+                itemsDiv.appendChild(itemSection);
+            }
+        });
+
+        // Populate Inventory section
+        if (playerInfo.inventory && playerInfo.inventory.length > 0) {
+            playerInfo.inventory.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = `
+                    <strong>${item.name}</strong> (${item.category}):<br>
+                    Quantity: ${item.quantity}<br>
+                    Armor: ${item.armor || 0}<br>
+                    Damage: ${item.damage ? `${item.damage.min} - ${item.damage.max}` : 'N/A'}<br>
+                    Description: ${item.description}<br><br>
+                `;
+                inventoryDiv.appendChild(itemDiv);
+            });
+        } else {
+            inventoryDiv.innerHTML = '<p>No items in inventory.</p>';
+        }
+
+        // Populate Modifiers section
+        modifierKeys.forEach(key => {
+            if (key in playerInfo) {
+                const modifierItem = document.createElement('p');
+                modifierItem.textContent = `${key}: ${playerInfo[key]}`;
+                modifiersDiv.appendChild(modifierItem);
+            }
+        });
+    }
+
+    setInterval(fetchPlayerData, 5000);
+    window.onload = fetchPlayerData;
+</script>
+
+</head>
+<body>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='/'">Tracker</button>
+        <button onclick="window.location.href='/monsters'">Monsters</button>
+        <button onclick="window.location.href='/player'">Player</button>
+        <button onclick="window.location.href='/gamestate'">Game State</button>
+    </div>
+
+    <h1>K8s Dungeon Crawl</h1>
+    <h2>Player Information</h2>
+
+    <div class="container">
+        <div class="section" id="player-stats">
+            <h2>Player Stats</h2>
+            <!-- JavaScript will populate this area with player stats -->
+        </div>
+
+        <div class="section" id="items">
+            <h2>Items</h2>
+            <!-- JavaScript will populate this area with item details -->
+        </div>
+
+        <div class="section" id="inventory">
+            <h2>Inventory</h2>
+            <div id="inventory-items"></div>
+            <!-- JavaScript will populate this area with inventory details -->
+        </div>
+
+        <div class="section" id="modifiers">
+            <h2>Modifiers</h2>
+            <!-- JavaScript will populate this area with modifiers -->
+        </div>
+    </div>
+</body>
+</html>

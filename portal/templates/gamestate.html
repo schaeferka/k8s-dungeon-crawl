@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game State Information</title>
+    <style>
+        .nav-buttons {
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        async function fetchGameStateData() {
+            try {
+                const response = await fetch('/gamestate/data');
+                const data = await response.json();
+                updateGameStateInfo(data);
+            } catch (error) {
+                console.error('Error fetching game state data:', error);
+            }
+        }
+
+        function updateGameStateInfo(gameState) {
+            const gameStateDiv = document.getElementById('game-state-info');
+            gameStateDiv.innerHTML = '';
+
+            for (const [key, value] of Object.entries(gameState)) {
+                const infoItem = document.createElement('p');
+                infoItem.textContent = `${key}: ${value}`;
+                gameStateDiv.appendChild(infoItem);
+            }
+        }
+
+        setInterval(fetchGameStateData, 5000);
+        window.onload = fetchGameStateData;
+    </script>
+</head>
+<body>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='/'">Tracker</button>
+        <button onclick="window.location.href='/monsters'">Monsters</button>
+        <button onclick="window.location.href='/player'">Player</button>
+        <button onclick="window.location.href='/gamestate'">Game State</button>
+    </div>
+    
+    <h1>K8s Dungeon Crawl</h1>
+    <h2>Game State Information</h2>
+    <div id="game-state-info">
+        <!-- JavaScript will populate this area with game state data -->
+    </div>
+</body>
+</html>
