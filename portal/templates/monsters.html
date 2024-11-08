@@ -49,7 +49,7 @@
                 }
                 row.innerHTML = `
                     <td>${monster.name || ''}</td>
-                    <td>${monster.type || ''}</td>
+                    <td>${monster.hp || ''}</td>
                     <td>${monster.maxHP || ''}</td>
                     <td>${monster.defense || ''}</td>
                     <td>${monster.accuracy || ''}</td>
@@ -58,7 +58,7 @@
                     <td>${monster.movementSpeed || ''}</td>
                     <td>${monster.attackSpeed || ''}</td>
                     <td>${monster.level || ''}</td>
-                    <td>${monster.hp || ''}</td>
+                    <td>${monster.type || ''}</td>
                 `;
                 createdTableBody.appendChild(row);
             });
@@ -67,7 +67,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${monster.name || ''}</td>
-                    <td>${monster.type || ''}</td>
+                    <td>${monster.hp || ''}</td>
                     <td>${monster.maxHP || ''}</td>
                     <td>${monster.defense || ''}</td>
                     <td>${monster.accuracy || ''}</td>
@@ -76,7 +76,7 @@
                     <td>${monster.movementSpeed || ''}</td>
                     <td>${monster.attackSpeed || ''}</td>
                     <td>${monster.level || ''}</td>
-                    <td>${monster.hp || ''}</td>
+                    <td>${monster.type || ''}</td>
                 `;
                 deadTableBody.appendChild(row);
             });
@@ -103,7 +103,7 @@
         <thead>
             <tr>
                 <th>Portal Name</th>
-                <th>Monster Name</th>
+                <th>Current HP</th>
                 <th>Max HP</th>
                 <th>Defense</th>
                 <th>Accuracy</th>
@@ -112,7 +112,7 @@
                 <th>Movement Speed</th>
                 <th>Attack Speed</th>
                 <th>Depth</th>
-                <th>Current HP</th>
+                <th>Monster Type</th>
             </tr>
         </thead>
         <tbody id="created-monsters-body">
@@ -125,7 +125,7 @@
         <thead>
             <tr>
                 <th>Portal Name</th>
-                <th>Monster Name</th>
+                <th>Current HP</th>
                 <th>Max HP</th>
                 <th>Defense</th>
                 <th>Accuracy</th>
@@ -134,7 +134,7 @@
                 <th>Movement Speed</th>
                 <th>Attack Speed</th>
                 <th>Depth</th>
-                <th>Current HP</th>
+                <th>Monster Type</th>
             </tr>
         </thead>
         <tbody id="dead-monsters-body">
