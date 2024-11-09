@@ -59,6 +59,7 @@
                     <td>${monster.turnsBetweenRegen || ''}</td>
                     <td>${monster.movementSpeed || ''}</td>
                     <td>${monster.attackSpeed || ''}</td>
+                    <td>${monster.id || ''}</td>
                     <td>${monster.type || ''}</td>
                 `;
                 createdTableBody.appendChild(row);
@@ -71,13 +72,14 @@
                     <td>${monster.name || ''}</td>
                     <td>${monster.level || ''}</td>
                     <td>${monster.hp || '0'} / ${monster.maxHP || ''}</td>
+                    <td>${monster.id || ''}</td>
                 `;
                 deadTableBody.appendChild(row);
             });
         }
 
         // Fetch and update data every 5 seconds
-        setInterval(fetchMonsterData, 5000);
+        setInterval(fetchMonsterData, 200);
         window.onload = fetchMonsterData;
     </script>
 </head>
@@ -106,6 +108,7 @@
                 <th>Turns Between Regen</th>
                 <th>Movement Speed</th>
                 <th>Attack Speed</th>
+                <th>ID</th>
                 <th>Type</th>
             </tr>
         </thead>
@@ -121,6 +124,7 @@
                 <th>Portal Name</th>
                 <th>Depth</th>
                 <th>HP (at death)</th>
+                <th>ID</th>
             </tr>
         </thead>
         <tbody id="dead-monsters-body">

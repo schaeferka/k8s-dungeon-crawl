@@ -68,7 +68,7 @@ void *metrics_update_loop(void *arg) {
     while (1) {
         update_metrics();
         update_monster_metrics();
-        sleep_for_microseconds(100000); // Sleep for 0.10 seconds
+        sleep_for_microseconds(10); // Sleep for 0.10 seconds
     }
     return NULL;
 }

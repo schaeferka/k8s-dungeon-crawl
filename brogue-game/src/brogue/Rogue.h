@@ -2264,6 +2264,8 @@ typedef struct creature {
     char portalName[50];
     // K8S: Needed for identifying if creature created by portal
     boolean isPortalCreated;
+    // K8s: Needed for identifying if creature is dead
+    boolean isDead;
     creatureType info;
     pos loc;
     short depth;

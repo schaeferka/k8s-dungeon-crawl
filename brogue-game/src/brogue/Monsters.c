@@ -26,7 +26,6 @@
 #include "Globals.h"
 // K*S: Include the monster-metrics.h file
 #include "monster-metrics.h" 
-#include "portal-utilities.h"
 
 void mutateMonster(creature *monst, short mutationIndex) {
     monst->mutationIndex = mutationIndex;
@@ -166,6 +165,7 @@ void initializeMonster(creature *monst, boolean itemPossible) {
      // Increment MONSTIE_COUNT and construct portalName
     MONSTIE_COUNT++;
     monst->id = MONSTIE_COUNT; 
+    monst->isDead = false;
     snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTIE_COUNT);
 }
 
