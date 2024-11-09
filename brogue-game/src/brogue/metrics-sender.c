@@ -96,8 +96,8 @@ void update_metrics(void) {
     };
 
     // Log for debugging
-    printf("Updating metrics: gold=%d, depth=%d, currentHP=%d, maxHP=%d, turns=%d, wizard=%d, gameInProgress=%d\n",
-           metrics.gold, metrics.depthLevel, metrics.currentHP, metrics.maxHP, metrics.turns, metrics.wizard, metrics.gameInProgress);
+    //printf("Updating metrics: gold=%d, depth=%d, currentHP=%d, maxHP=%d, turns=%d, wizard=%d, gameInProgress=%d\n",
+    //       metrics.gold, metrics.depthLevel, metrics.currentHP, metrics.maxHP, metrics.turns, metrics.wizard, metrics.gameInProgress);
 
     // Send the metrics to the Portal server
     send_metrics_to_portal(&metrics);
@@ -217,7 +217,7 @@ void send_metrics_to_portal(const Metrics *metrics) {
         if (res != CURLE_OK) {
             fprintf(stderr, "Failed to send metrics: %s\n", curl_easy_strerror(res));
         } else {
-            printf("Metrics sent successfully: %s\n", post_data);
+            //printf("Metrics sent successfully: %s\n", post_data);
         }
 
         curl_slist_free_all(headers);

@@ -53,7 +53,7 @@ void update_monster_metrics() {
     offset += snprintf(monster_json + offset, sizeof(monster_json) - offset, "]");
     
     // Log the full JSON data being sent
-    printf("Sending monster data to portal: %s\n", monster_json);
+    //printf("Sending monster data to portal: %s\n", monster_json);
     send_monster_data_to_portal("/monsters", monster_json);
 }
 
@@ -86,8 +86,10 @@ void send_monster_death(creature *monst) {
 }
 
 void reset_monster_metrics() {
-    send_monster_data_to_portal("/monsters/reset", "{}");
-    printf("Monster lists and metrics have been reset for a new game.\n");
+    // K8S: Debug log
+    printf("Entered reset_monster_metrics\n");
+    //send_monster_data_to_portal("/monsters/reset", "{}");
+    //printf("Monster lists and metrics have been reset for a new game.\n");
 }
 
 void send_monster_data_to_portal(const char *endpoint, const char *data) {
@@ -108,7 +110,7 @@ void send_monster_data_to_portal(const char *endpoint, const char *data) {
             fprintf(stderr, "Failed to send data to portal: %s\n", curl_easy_strerror(res));
         } else {
             // Log successful transmission
-            printf("Successfully sent data to %s: %s\n", endpoint, data);
+            //printf("Successfully sent data to %s: %s\n", endpoint, data);
         }
 
         curl_slist_free_all(headers);

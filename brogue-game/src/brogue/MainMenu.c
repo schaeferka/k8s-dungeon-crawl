@@ -58,6 +58,10 @@ void sleep_for_microseconds(int microseconds) {
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
+// K8S: Define a flag to track if the thread has been started
+static int metrics_thread_started = 0;
+// K8S: Mutex to protect the flag
+static pthread_mutex_t metrics_thread_mutex = PTHREAD_MUTEX_INITIALIZER;
 // K8S: Function that calls update_metrics every 0.10 seconds
 void *metrics_update_loop(void *arg);
 void *metrics_update_loop(void *arg) {
@@ -67,6 +71,34 @@ void *metrics_update_loop(void *arg) {
         sleep_for_microseconds(100000); // Sleep for 0.10 seconds
     }
     return NULL;
+}
+
+// K8S: Function to start the metrics thread if it has not been started
+void start_metrics_thread_if_needed() {
+    // K8S: Debug log
+    printf("Entering start_metrics_thread_if_needed\n");
+    // Lock the mutex to protect the metrics_thread_started flag
+    pthread_mutex_lock(&metrics_thread_mutex);
+    
+    // Check if the thread has already been started
+    if (!metrics_thread_started) {
+        pthread_t metrics_thread;
+        
+        // Create the thread and set the started flag if successful
+        if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
+            fprintf(stderr, "Error creating metrics update thread.\n");
+        } else {
+            pthread_detach(metrics_thread);  // Detach the thread to avoid memory leaks
+            metrics_thread_started = 1;      // Set the flag to indicate the thread has been started
+            // K8S: Debug log
+            printf("Metrics thread started\n");
+        }
+    }
+    
+    // Unlock the mutex
+    pthread_mutex_unlock(&metrics_thread_mutex);
+    // K8S: Debug log
+    printf("Mutex unlocked\n");
 }
 
 static void drawMenuFlames(signed short flames[COLS][(ROWS + MENU_FLAME_ROW_PADDING)][3], unsigned char mask[COLS][ROWS]) {
@@ -347,6 +379,8 @@ static void stackButtons(brogueButton *buttons, short buttonCount, windowpos sta
 /// @param buttonCount The number of buttons in the array
 /// @param shadowBuf The display buffer object for the background/shadow
 static void initializeMenu(buttonState *menu, brogueButton *buttons, short buttonCount, screenDisplayBuffer *shadowBuf) {
+    // K8S: Debug log
+    printf("initializeMenu\n");
     memset((void *) menu, 0, sizeof( buttonState ));
     short minX, maxX, minY, maxY;
     minX = COLS;
@@ -371,6 +405,9 @@ static void initializeMenu(buttonState *menu, brogueButton *buttons, short butto
     // Warning: shading of neighboring rectangles stacks
     clearDisplayBuffer(shadowBuf);
     rectangularShading(minX, minY, width, height + 1, &black, INTERFACE_OPACITY, shadowBuf);
+
+    // K8S: Debug log
+    printf("initializeMenu finished\n");
 }
 
 /// @brief Initialize the main menu
@@ -558,7 +595,12 @@ static void titleMenu() {
 
     // Initialize the main menu with buttons stacked on top of the quit button
     windowpos quitButtonPosition = {COLS - 20, ROWS - 3};
+
+    // K8S: Debug log
+    printf("initializeMainMenu\n");
     initializeMainMenu(&mainMenu, mainButtons, quitButtonPosition, &mainShadowBuf);
+    // K8S: Debug log
+    printf("initializeMainMenu finished\n");
 
     // Display the title and flames
     initializeMenuFlames(true, colors, colorStorage, colorSources, flames, mask);
@@ -915,6 +957,8 @@ typedef struct gameStats {
 /// @param run The run to add
 /// @param stats The stats to update
 static void addRuntoGameStats(rogueRun *run, gameStats *stats) {
+    // K8S: Debug log
+    printf("Entering addRuntoGameStats\n");
 
     stats->games++;
     stats->cumulativeScore += run->score;
@@ -1125,6 +1169,8 @@ static void viewGameStats(void) {
 // the player specify a path. If there is no command (i.e. if rogue.nextGame contains NG_NOTHING),
 // then we'll display the title screen so the player can choose.
 void mainBrogueJunction() {
+    // K8S: Debug log
+    printf("Entering mainBrogueJunction\n");
     // Initialize CURL globally
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
@@ -1203,23 +1249,36 @@ void mainBrogueJunction() {
                 }
 
                 rogue.nextGame = NG_NOTHING;
+                // K8S: Debug log
+                printf("initializeRogue\n");
                 initializeRogue(rogue.nextGameSeed);
+                // K8S: Debug log
+                printf("Finished initializeRogue\n");
 
+
+                // K8S: Debug log
+                printf("Preparing to start_metrics_thread_if_needed\n");
                  // K8S: Create a detached thread to run the metrics update loop
-                pthread_t metrics_thread;
-                if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
-                    fprintf(stderr, "Error creating metrics update thread.\n");
-                } else {
-                    pthread_detach(metrics_thread);  // Detach the thread to avoid memory leaks
-                }
+                start_metrics_thread_if_needed();
+                // K8S: Debug log
+                printf("Finished start_metrics_thread_if_needed\n");
 
+                // K8S: Debug log
+                printf("Getting ready to startLevel\n");
                 startLevel(rogue.depthLevel, 1); // descending into level 1
+                // K8S: Debug log
+                printf("Finished startLevel\n");
 
                 mainInputLoop();
                 if(serverMode) {
                     rogue.nextGame = NG_QUIT;
                 }
+
+                // K8S: Debug log
+                printf("Freeing everything\n");
                 freeEverything();
+                // K8S: Debug log
+                printf("Finished freeing everything\n");
                 break;
             case NG_OPEN_GAME:
                 rogue.nextGame = NG_NOTHING;

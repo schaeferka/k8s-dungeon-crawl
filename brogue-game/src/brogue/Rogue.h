@@ -2258,6 +2258,8 @@ typedef struct monsterClass {
 typedef struct creature {
     // K8S: Needed for unique identification of creatures.
     char portalName[50];
+    // K8S: Needed for identifying if creature created by portal
+    boolean isPortalCreated;
     creatureType info;
     pos loc;
     short depth;
