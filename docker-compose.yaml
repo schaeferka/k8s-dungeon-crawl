@@ -15,7 +15,7 @@ services:
       context: ./brogue-game  # Path to the Brogue game directory
     container_name: brogue_game_container
     depends_on:
-      - portal  # Ensures Portal starts before metrics-sender
+      - portal  # Ensures Portal starts before game
     environment:
       - PORTAL_URL=http://portal_container:5000/metrics  # Use internal Docker hostname for Portal
     ports:

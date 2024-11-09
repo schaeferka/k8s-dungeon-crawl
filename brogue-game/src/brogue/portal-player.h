@@ -1,7 +1,7 @@
 // K8S: Declares the functions to send metrics data to the Portal
 
-#ifndef METRICS_SENDER_H
-#define METRICS_SENDER_H
+#ifndef PORTAL_PLAYER_H
+#define PORTAL_PLAYER_H
 
 // Define the PlayerMetrics struct
 typedef struct {
@@ -68,4 +68,4 @@ const char *getItemCategory(unsigned short category);
 
 void extract_inventory_json(char *buffer, size_t buffer_size);
 
-#endif // METRICS_SENDER_H
+#endif // PORTAL_PLAYER_H

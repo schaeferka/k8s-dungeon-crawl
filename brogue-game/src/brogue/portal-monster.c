@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "monster-metrics.h" 
-#include "metrics-sender.h"
+#include "portal-monster.h" 
+#include "portal-player.h"
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"

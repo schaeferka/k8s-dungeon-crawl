@@ -24,8 +24,8 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-// K*S: Include the monster-metrics.h file
-#include "monster-metrics.h" 
+// K*S: Include the portal-monster.h file
+#include "portal-monster.h" 
 
 void mutateMonster(creature *monst, short mutationIndex) {
     monst->mutationIndex = mutationIndex;

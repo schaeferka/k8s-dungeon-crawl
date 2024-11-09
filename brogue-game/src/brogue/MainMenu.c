@@ -30,9 +30,9 @@
 #include <pthread.h>   // For threading
 #include <unistd.h>    // For sleep
 #include <stdio.h>
-// K8S: Include the metrics-sender header file
-#include "metrics-sender.h"
-#include "monster-metrics.h"
+// K8S: Include the portal header files
+#include "portal-player.h"
+#include "portal-monster.h"
 
 #include <time.h>    // For nanosleep if usleep is not available
 #ifndef _POSIX_C_SOURCE

@@ -27,7 +27,7 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
-#include "monster-metrics.h"
+#include "portal-monster.h"
 
 #include <time.h>
 

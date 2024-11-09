@@ -5,7 +5,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "metrics-sender.h"
+#include "portal-player.h"
 
 // Define the Portal URL
 #define PORTAL_URL "http://portal-service.portal:5000/metrics"

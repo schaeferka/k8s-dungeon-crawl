@@ -1,5 +1,5 @@
-#ifndef MONSTER_METRICS_H
-#define MONSTER_METRICS_H
+#ifndef PORTAL_MONSTER_H
+#define PORTAL_MONSTER_H
 
 #include "Rogue.h"  // Include the creature and levelData definitions
 #include <stdbool.h>  // For boolean type
@@ -42,4 +42,4 @@ void monster_death_notification(creature *monst);  // Notify the portal of a mon
 // External variables
 extern levelData *levels;  // The global levels array, defined elsewhere
 
-#endif // MONSTER_METRICS_H
+#endif // PORTAL_MONSTER_H
