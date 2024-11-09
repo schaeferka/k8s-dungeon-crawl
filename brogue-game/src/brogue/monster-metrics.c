@@ -140,7 +140,7 @@ boolean remove_monster(creatureList *list, creature *remove) {
 void send_monster_death(creature *monst) {
     char death_data[256];
     snprintf(death_data, sizeof(death_data), 
-             "{\"name\": \"%s\", \"status\": \"dead\"}", monst->portalName);
+             "{\"name\": \"%s\", \"id\": \"%d\", \"status\": \"dead\"}", monst->portalName);
     
     // Log the death data being sent
     printf("Sending monster death data to portal: %s\n", death_data);
