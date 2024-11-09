@@ -4576,7 +4576,9 @@ short printMonsterInfo(creature *monst, short y, boolean dim, boolean highlight)
             }
         }
 
-        sprintf(buf, ": %s", monstName);
+        // K8S: To display portal name for the monster
+        //sprintf(buf, ": %s", monstName);
+        sprintf(buf, " %s", monst->portalName);
         printString(buf, monst->carriedItem?2:1, y++, (dim ? &gray : &white), &black, 0);
     }
 

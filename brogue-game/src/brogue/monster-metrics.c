@@ -98,13 +98,13 @@ void update_monster_metrics() {
                 }
                 first_entry = false;
 
-                // Add monster data to JSON
+                // Add monster data to JSON, including the `id` field
                 offset += snprintf(monster_json + offset, sizeof(monster_json) - offset,
-                                   "{ \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"level\": %d, "
+                                   "{ \"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"level\": %d, "
                                    "\"position\": {\"x\": %d, \"y\": %d}, "
                                    "\"attackSpeed\": %d, \"movementSpeed\": %d, \"accuracy\": %d, \"defense\": %d, "
                                    "\"damageMin\": %d, \"damageMax\": %d, \"turnsBetweenRegen\": %ld }",
-                                   monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP, levelIndex,
+                                   monst->id, monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP, levelIndex,
                                    monst->loc.x, monst->loc.y, monst->attackSpeed, monst->movementSpeed, monst->info.accuracy,
                                    monst->info.defense, monst->info.damage.lowerBound, monst->info.damage.upperBound,
                                    monst->info.turnsBetweenRegen);

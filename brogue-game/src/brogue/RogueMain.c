@@ -32,6 +32,8 @@
 
 #include <time.h>
 
+int MONSTIE_COUNT = 0;
+
 int rogueMain() {
     previousGameSeed = 0;
     mainBrogueJunction();
@@ -186,6 +188,9 @@ void initializeGameVariant() {
 // Either way, previousGameSeed is set to the seed we use.
 // None of this seed stuff is applicable if we're playing a recording.
 void initializeRogue(uint64_t seed) {
+    // K8S: Initialize the monster count
+    MONSTIE_COUNT = 0;
+
     short i, j, k;
     item *theItem;
     boolean playingback, playbackFF, playbackPaused, wizard, easy, displayStealthRangeMode;

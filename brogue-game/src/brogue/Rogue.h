@@ -130,8 +130,8 @@ typedef long long fixpt;
 // printStringWithWrapping, and breakUpLongWordsIn
 #define TEXT_MAX_LENGTH (COLS * ROWS * 2)
 
-// K8S: Used to create unique portalName for each monster
-static int MONSTIE_COUNT = 0;
+// K8S: For creating unique monster ids
+extern int MONSTIE_COUNT;
 
 // Returns the sign of the input:
 // - if (x == 0)  ===> returns 0
