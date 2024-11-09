@@ -45,20 +45,13 @@ poison_amount = Gauge('brogue_poison_amount', 'Amount of poison inflicted')
 brogue_monster_count = Counter('brogue_monster_count', 'Total number of monsters created')
 monster_death_count = Counter('brogue_monster_death_count', 'Total number of monsters that have died')
 
-# Lists to store monster creation and death information
-created_monsters = []
-dead_monsters = []
+# Dictionaries to store monster data by ID
+created_monsters = {}
+dead_monsters = {}
 
 # Global dictionaries to store player and game state data
 game_state_data = {}
 player_info_data = {}
-
-# Helper function to find a monster by name and level
-def find_monster(monsters, name, level):
-    for monster in monsters:
-        if monster["name"] == name and monster["level"] == level:
-            return monster
-    return None
 
 # Endpoint to receive game metrics
 @app.route('/metrics', methods=['POST'])
@@ -68,7 +61,6 @@ def receive_metrics():
     if not data:
         return jsonify({"error": "No JSON payload received"}), 400
 
-    # Define keys for game state and player info data
     game_state_keys = [
         "RNG", "absoluteTurnNumber", "deepestLevel", "depthLevel", "easyMode",
         "gameHasEnded", "gameInProgress", "goldGenerated", "milliseconds",
@@ -83,74 +75,52 @@ def receive_metrics():
         "weapon", "armor", "ringLeft", "ringRight"
     ]
 
-    # Update game state and player info data
     game_state_data.update({key: data[key] for key in game_state_keys if key in data})
     player_info_data.update({key: data[key] for key in player_info_keys if key in data})
-
-    # Update inventory data
     player_info_data["inventory"] = data.get("inventory", [])
 
     return jsonify({"status": "success"}), 200
 
-# Endpoint to receive and update monster creation data
-@app.route('/monster', methods=['POST'])
-def receive_monster():
-    monsters = request.json
-    app.logger.info("Received monster data: %s", monsters) 
-    if not monsters:
-        return jsonify({"error": "No JSON payload received"}), 400
-
-    for monster in monsters:
-        existing_monster = find_monster(created_monsters, monster["name"], monster["level"])
-        if existing_monster:
-            # Update existing monster's data
-            app.logger.info("Updating existing monster: %s", existing_monster)
-            existing_monster.update(monster)
-        else:
-            # Add new monster to created_monsters list
-            created_monsters.append(monster)
-            brogue_monster_count.inc()  # Increment the monster count
-            app.logger.info("Added new monster: %s", monster)
-
-    return jsonify({"status": "success", "received": monsters}), 200
-
+# Endpoint to receive or update monster data
 @app.route('/monsters', methods=['POST'])
 def monsters_data():
     monsters = request.json
+    app.logger.info("Received monster data: %s", monsters)
     if not monsters:
         return jsonify({"error": "No JSON payload received"}), 400
 
     for monster in monsters:
-        existing_monster = find_monster(created_monsters, monster["name"], monster["level"])
-        if existing_monster:
-            app.logger.info("Updating existing monster: %s", existing_monster)
-            existing_monster.update(monster)
+        monster_id = monster.get("id")
+        if monster_id is None:
+            app.logger.warning("Skipping monster entry without 'id': %s", monster)
+            continue
+
+        # Check if monster is already created or updated
+        if monster_id in created_monsters:
+            if created_monsters[monster_id] != monster:
+                created_monsters[monster_id].update(monster)
+                app.logger.info("Updated existing monster: %s", monster)
         else:
-            created_monsters.append(monster)
+            created_monsters[monster_id] = monster
             brogue_monster_count.inc()
             app.logger.info("Added new monster: %s", monster)
 
     return jsonify({"status": "success", "received": monsters}), 200
 
-
 # Endpoint to receive monster death notifications
 @app.route('/monster/death', methods=['POST'])
 def receive_monster_death():
     data = request.json
-    if not data or 'name' not in data:
+    monster_id = data.get("id")
+    if not data or monster_id is None:
         return jsonify({"error": "No valid JSON payload received"}), 400
 
-    # Log and move monster to dead_monsters
-    app.logger.info("Received death notification for monster: %s", data['name'])
-    dead_monsters.append(data)
-    monster_death_count.inc()  # Increment the death count
+    app.logger.info("Received death notification for monster ID: %s", monster_id)
+    if monster_id in created_monsters:
+        dead_monsters[monster_id] = created_monsters.pop(monster_id)
+        monster_death_count.inc()
 
-    # Remove from created_monsters
-    existing_monster = find_monster(created_monsters, data["name"], data.get("level", 0))
-    if existing_monster:
-        created_monsters.remove(existing_monster)
-
-    return jsonify({"status": "success", "name": data['name']}), 200
+    return jsonify({"status": "success", "id": monster_id}), 200
 
 # Endpoint to reset monster lists for a new game
 @app.route('/monsters/reset', methods=['POST'])
@@ -160,7 +130,7 @@ def reset_monsters():
     app.logger.info("Monster lists have been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
-# Other endpoints...
+# Other endpoints to serve player, game state, and monster data
 @app.route('/player/data', methods=['GET'])
 def player_data_endpoint():
     return jsonify(player_info_data)
@@ -172,8 +142,8 @@ def gamestate_data_endpoint():
 @app.route('/monsters/data', methods=['GET'])
 def monsters_data_endpoint():
     return jsonify({
-        "created_monsters": created_monsters,
-        "dead_monsters": dead_monsters
+        "created_monsters": list(created_monsters.values()),
+        "dead_monsters": list(dead_monsters.values())
     })
 
 # HTML page endpoints

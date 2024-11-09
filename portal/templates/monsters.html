@@ -39,12 +39,13 @@
             createdTableBody.innerHTML = '';
             deadTableBody.innerHTML = '';
 
-            // Set of dead monster names for highlighting
-            const deadMonsterNames = new Set(deadMonsters.map(monster => monster.name));
+            // Create a set of dead monster IDs for highlighting
+            const deadMonsterIDs = new Set(deadMonsters.map(monster => monster.id));
 
+            // Populate the Created Monsters table
             createdMonsters.forEach(monster => {
                 const row = document.createElement('tr');
-                if (deadMonsterNames.has(monster.name)) {
+                if (deadMonsterIDs.has(monster.id)) {
                     row.classList.add('dead-monster');
                 }
                 row.innerHTML = `
@@ -63,10 +64,13 @@
                 createdTableBody.appendChild(row);
             });
 
+            // Populate the Dead Monsters table with more details if available
             deadMonsters.forEach(monster => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${monster.name || ''}</td>
+                    <td>${monster.level || ''}</td>
+                    <td>${monster.hp || '0'} / ${monster.maxHP || ''}</td>
                 `;
                 deadTableBody.appendChild(row);
             });
@@ -115,6 +119,8 @@
         <thead>
             <tr>
                 <th>Portal Name</th>
+                <th>Depth</th>
+                <th>HP (at death)</th>
             </tr>
         </thead>
         <tbody id="dead-monsters-body">

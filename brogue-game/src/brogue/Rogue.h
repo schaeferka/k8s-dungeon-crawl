@@ -130,6 +130,9 @@ typedef long long fixpt;
 // printStringWithWrapping, and breakUpLongWordsIn
 #define TEXT_MAX_LENGTH (COLS * ROWS * 2)
 
+// K8S: Used to create unique portalName for each monster
+static int MONSTIE_COUNT = 0;
+
 // Returns the sign of the input:
 // - if (x == 0)  ===> returns 0
 // - if (x >= 1)  ===> returns +1
@@ -2257,6 +2260,7 @@ typedef struct monsterClass {
 
 typedef struct creature {
     // K8S: Needed for unique identification of creatures.
+    int id;
     char portalName[50];
     // K8S: Needed for identifying if creature created by portal
     boolean isPortalCreated;

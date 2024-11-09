@@ -57,7 +57,7 @@ typedef struct {
 
 // Declaration of the function to send metrics data to the Portal
 void send_metrics_to_portal(const Metrics *metrics);
-extern void update_metrics();
+extern void update_metrics(void);
 
 // Declaration of utility functions
 const itemTable *getWeaponDetails(short kind);

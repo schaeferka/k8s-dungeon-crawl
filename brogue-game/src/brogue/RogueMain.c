@@ -997,7 +997,7 @@ void freeEverything() {
     freeGlobalDynamicGrid(&rogue.mapToShore);
     freeGlobalDynamicGrid(&rogue.mapToSafeTerrain);
 
-    for (i=0; i<gameConst->deepestLevel+1; i++) {
+    for (i = 0; i < gameConst->deepestLevel + 1; i++) {
         freeCreatureList(&levels[i].monsters);
         freeCreatureList(&levels[i].dormantMonsters);
 
@@ -1006,6 +1006,7 @@ void freeEverything() {
             deleteItem(theItem);
         }
         levels[i].items = NULL;
+
         if (levels[i].scentMap) {
             freeGrid(levels[i].scentMap);
             levels[i].scentMap = NULL;
@@ -1019,17 +1020,20 @@ void freeEverything() {
         deleteItem(theItem);
     }
     floorItems = NULL;
+
     for (theItem = packItems; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     packItems = NULL;
+
     for (theItem = monsterItemsHopper; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     monsterItemsHopper = NULL;
-    for (i=0; i<MAX_WAYPOINT_COUNT; i++) {
+
+    for (i = 0; i < MAX_WAYPOINT_COUNT; i++) {
         freeGrid(rogue.wpDistance[i]);
     }
 
@@ -1043,6 +1047,10 @@ void freeEverything() {
     levels = NULL;
 
     free(rogue.featRecord);
+
+    // Reset the monster cache and MONSTIE_COUNT for new game
+    memset(monsterCache, 0, sizeof(monsterCache));  // Reset all entries in the monster cache
+    MONSTIE_COUNT = 0;  // Reset monster ID counter
 
     // Clean up CURL globally before exiting the program
     curl_global_cleanup();
