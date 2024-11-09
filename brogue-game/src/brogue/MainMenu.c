@@ -41,8 +41,8 @@
 
 void sleep_for_microseconds(int microseconds) {
     struct timespec ts;
-    ts.tv_sec = microseconds / 1000000;
-    ts.tv_nsec = (microseconds % 1000000) * 1000;
+    ts.tv_sec = microseconds / 100000;
+    ts.tv_nsec = (microseconds % 100000) * 1000;
     nanosleep(&ts, NULL);
 }
 
@@ -58,13 +58,13 @@ void sleep_for_microseconds(int microseconds) {
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
-// K8S: Function that calls update_metrics every 0.25 seconds
+// K8S: Function that calls update_metrics every 0.10 seconds
 void *metrics_update_loop(void *arg);
 void *metrics_update_loop(void *arg) {
     while (1) {
         update_metrics();
         update_monster_metrics();
-        sleep_for_microseconds(250000); // Sleep for 0.25 seconds
+        sleep_for_microseconds(100000); // Sleep for 0.10 seconds
     }
     return NULL;
 }

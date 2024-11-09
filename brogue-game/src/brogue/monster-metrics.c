@@ -85,7 +85,7 @@ void send_monster_death(creature *monst) {
     send_monster_data_to_portal("/monster/death", death_data);
 }
 
-void reset_game_metrics() {
+void reset_monster_metrics() {
     send_monster_data_to_portal("/monsters/reset", "{}");
     printf("Monster lists and metrics have been reset for a new game.\n");
 }

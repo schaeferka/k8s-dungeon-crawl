@@ -65,7 +65,6 @@ const itemTable *getArmorDetails(short kind);
 const itemTable *getRingDetails(short kind);
 extern const char *getItemCategoryName(unsigned short category);
 const char *getItemCategory(unsigned short category);
-extern void resetMonsterMetrics();
 
 void extract_inventory_json(char *buffer, size_t buffer_size);
 

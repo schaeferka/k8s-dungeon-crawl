@@ -955,6 +955,7 @@ static void removeDeadMonstersFromList(creatureList *list) {
         next = next->nextCreature;
         if (decedent->bookkeepingFlags & MB_HAS_DIED) {
             // K8S: Notify the portal of the monster's death
+            update_monster_metrics(rogue.depthLevel-1);
             send_monster_death(decedent->portalName);
 
             removeCreature(list, decedent);
