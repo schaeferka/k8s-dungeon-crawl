@@ -36,10 +36,13 @@ void update_monsters();  // Function to send updated monster metrics
 void reset_monster_metrics();  // Reset all monster-related metrics
 bool is_monster_data_changed(const creature *monst, int levelIndex);  // Check if monster data has changed
 void send_monster_death_to_portal(creature *monst);  // Notify the portal of a monster's death
+void free_and_reallocate_monster_data();
 
 extern void reset_monster_cache();
-extern void end_of_game_cleanup();
-extern void initialize_new_game() ;
+extern void end_of_game_monster_cleanup();
+extern void initialize_monsters_new_game();
+
+void send_monster_reset_to_portal();
 
 // External variables
 extern levelData *levels;  // The global levels array, defined elsewhere

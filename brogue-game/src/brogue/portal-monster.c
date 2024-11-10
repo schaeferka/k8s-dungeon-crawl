@@ -11,6 +11,7 @@
 
 #define PORTAL_URL "http://portal-service.portal:5000/monster"
 #define PORTAL_DEATH_URL "http://portal-service.portal:5000/monster/death"
+#define RESET_URL "http://portal-service.portal:5000/monsters"
 
 MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
 
@@ -251,11 +252,39 @@ void reset_monster_cache() {
     }
 }
 
-void end_of_game_cleanup() {
+void end_of_game_monster_cleanup() {
     reset_monster_cache();
 }
 
-void initialize_new_game() {
-    reset_monster_cache();
+void initialize_monsters_new_game() {
+    //reset_monster_cache();           // Reset local monster cache
+    send_monster_reset_to_portal();   // Inform the portal to reset monster data
+    update_monsters();                // Populate initial monster data if needed
+    printf("Monster data reset and initialized for new game\n");
 }
 
+void send_monster_reset_to_portal() {
+    CURL *curl = curl_easy_init();
+    if (curl) {
+        char url[256];
+        snprintf(url, sizeof(url), "http://portal-service.portal:5000%s", "/monsters/reset");
+
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");  // Use POST or appropriate method for reset
+
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            fprintf(stderr, "Failed to send reset command to portal: %s\n", curl_easy_strerror(res));
+        } else {
+            printf("Successfully sent reset command to portal\n");
+        }
+
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    } else {
+        fprintf(stderr, "CURL initialization failed for sending reset command.\n");
+    }
+}

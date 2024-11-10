@@ -196,7 +196,6 @@ void initializeGameVariant() {
 // Either way, previousGameSeed is set to the seed we use.
 // None of this seed stuff is applicable if we're playing a recording.
 void initializeRogue(uint64_t seed) {
-    printf("initializeRogue\n");
     // K8S: Initialize the monster count
     MONSTIE_COUNT = 0;
 
@@ -218,12 +217,10 @@ void initializeRogue(uint64_t seed) {
 
     strcpy(currentGamePath, rogue.currentGamePath);
 
-    printf("initializeRogue before free\n");
     if (rogue.meteredItems != NULL) {
         free(rogue.meteredItems);
     }
-
-    printf("initializeRogue before memset\n");
+    
     memset((void *) &rogue, 0, sizeof( playerCharacter )); // the flood
     rogue.playbackMode = playingback;
     rogue.playbackPaused = playbackPaused;
@@ -233,7 +230,6 @@ void initializeRogue(uint64_t seed) {
     rogue.displayStealthRangeMode = displayStealthRangeMode;
     rogue.trueColorMode = trueColorMode;
 
-    printf("initializeRogue before gameHasEnded\n");
     rogue.gameHasEnded = false;
     rogue.gameInProgress = true;
     rogue.highScoreSaved = false;
@@ -256,7 +252,6 @@ void initializeRogue(uint64_t seed) {
 
     initRecording();
 
-    printf("initializeRogue before levels allocated\n");
     levels = malloc(sizeof(levelData) * (gameConst->deepestLevel+1));
     levels[0].upStairsLoc.x = (DCOLS - 1) / 2 - 1;
     levels[0].upStairsLoc.y = DROWS - 2;
@@ -379,14 +374,12 @@ void initializeRogue(uint64_t seed) {
     rogue.mapToSafeTerrain = allocGrid();
 
     // Zero out the dynamic grids, as an essential safeguard against OOSes:
-    printf("initializeRogue before fillGrid\n");
     fillGrid(safetyMap, 0);
     fillGrid(allySafetyMap, 0);
     fillGrid(chokeMap, 0);
     fillGrid(rogue.mapToSafeTerrain, 0);
 
     // initialize the player
-    printf("initializeRogue before player initialized\n");
     memset(&player, '\0', sizeof(creature));
     player.info = monsterCatalog[0];
     setPlayerDisplayChar();
@@ -400,7 +393,6 @@ void initializeRogue(uint64_t seed) {
     player.ticksUntilTurn = 0;
     player.mutationIndex = -1;
 
-    printf("initializeRogue before rogue initialized\n");
     rogue.depthLevel = 1;
     rogue.deepestLevel = 1;
     rogue.scentTurnNumber = 1000;
@@ -446,7 +438,6 @@ void initializeRogue(uint64_t seed) {
     rogue.lightMultiplier = 1;
 
 
-    printf("initializeRogue before theItem initialized\n");
     theItem = generateItem(FOOD, RATION);
     theItem = addItemToPack(theItem);
 
@@ -559,11 +550,9 @@ void initializeRogue(uint64_t seed) {
         theItem = addItemToPack(theItem);
 
     }
-    printf("initializeRogue before clearMessageArchive\n");
     clearMessageArchive();
-    printf("initializeRogue before blackOutScreen\n");
     blackOutScreen();
-    printf("initializeRogue before welcome\n");
+    initialize_monsters_new_game();
     welcome();
 }
 
@@ -1075,6 +1064,7 @@ void freeEverything() {
     item *theItem, *theItem2;
 
     cleanup_game_resources();
+    end_of_game_monster_cleanup();
 
 #ifdef AUDIT_RNG
     fclose(RNGLogFile);

@@ -108,10 +108,12 @@ void *metrics_update_loop(void *arg) {
 
 // Cancel the thread in game cleanup code
 void cleanup_game_resources() {
+    MONSTIE_COUNT = 0;
     rogue.gameHasEnded = true;
     pthread_cancel(metrics_thread);
     pthread_join(metrics_thread, NULL);  // Ensure cleanup
     metrics_thread_started = 0;
+    initialize_monsters_new_game();
 }
 
 
@@ -1199,6 +1201,7 @@ void mainBrogueJunction() {
         rogue.gameHasEnded = false;
         rogue.playbackFastForward = false;
         rogue.playbackMode = false;
+        
         switch (rogue.nextGame) {
             case NG_NOTHING:
                 // Run the main menu to get a decision out of the player.
@@ -1252,11 +1255,12 @@ void mainBrogueJunction() {
 
                 initializeRogue(rogue.nextGameSeed);
             
-                // K8S: TODO: Fix memory issue - Create a detached thread to run the metrics update loop
+                // K8S: Create a detached thread to run the metrics update loop
                 start_metrics_thread_if_needed();
 
                 startLevel(rogue.depthLevel, 1); // descending into level 1
-
+                update_metrics();
+                update_monsters();
                 mainInputLoop();
                 if(serverMode) {
                     rogue.nextGame = NG_QUIT;
