@@ -15,59 +15,62 @@
 MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
 
 bool is_monster_data_changed(const creature *monst, int levelIndex) {
-    if (monst->id < 0 || monst->id >= MAX_MONSTERS) {
-        fprintf(stderr, "Warning: Monster ID %d out of bounds\n", monst->id);
-        return true;  // Default to true to ensure it's sent if out of bounds
+    if (!rogue.gameHasEnded) {
+        if (monst->id < 0 || monst->id >= MAX_MONSTERS) {
+            fprintf(stderr, "Warning: Monster ID %d out of bounds\n", monst->id);
+            return true;  // Default to true to ensure it's sent if out of bounds
+        }
+
+        MonsterCacheEntry *cacheEntry = &monsterCache[monst->id];
+
+        // Check if the cache has been initialized for this monster
+        if (!cacheEntry->is_initialized) {
+            cacheEntry->is_initialized = true;
+            return true;  // Treat uninitialized entry as "changed"
+        }
+
+        // Compare all fields to detect changes
+        if (strcmp(cacheEntry->name, monst->portalName) != 0 ||
+            cacheEntry->hp != monst->currentHP ||
+            cacheEntry->maxHP != monst->info.maxHP ||
+            cacheEntry->level != levelIndex ||
+            cacheEntry->x != monst->loc.x ||
+            cacheEntry->y != monst->loc.y ||
+            cacheEntry->attackSpeed != monst->attackSpeed ||
+            cacheEntry->movementSpeed != monst->movementSpeed ||
+            cacheEntry->accuracy != monst->info.accuracy ||
+            cacheEntry->defense != monst->info.defense ||
+            cacheEntry->damageMin != monst->info.damage.lowerBound ||
+            cacheEntry->damageMax != monst->info.damage.upperBound ||
+            cacheEntry->isDead != monst->isDead ||
+            cacheEntry->turnsBetweenRegen != monst->info.turnsBetweenRegen) {
+
+            // Update cache with new data
+            strncpy(cacheEntry->name, monst->portalName, sizeof(cacheEntry->name) - 1);
+            cacheEntry->name[sizeof(cacheEntry->name) - 1] = '\0';  // Ensure null termination
+            cacheEntry->hp = monst->currentHP;
+            cacheEntry->maxHP = monst->info.maxHP;
+            cacheEntry->level = levelIndex;
+            cacheEntry->x = monst->loc.x;
+            cacheEntry->y = monst->loc.y;
+            cacheEntry->attackSpeed = monst->attackSpeed;
+            cacheEntry->movementSpeed = monst->movementSpeed;
+            cacheEntry->accuracy = monst->info.accuracy;
+            cacheEntry->defense = monst->info.defense;
+            cacheEntry->damageMin = monst->info.damage.lowerBound;
+            cacheEntry->damageMax = monst->info.damage.upperBound;
+            cacheEntry->isDead = monst->isDead;
+            cacheEntry->turnsBetweenRegen = monst->info.turnsBetweenRegen;
+
+            return true;  // Data has changed
+        }
+
+        return false;  // No changes detected
     }
-
-    MonsterCacheEntry *cacheEntry = &monsterCache[monst->id];
-
-    // Check if the cache has been initialized for this monster
-    if (!cacheEntry->is_initialized) {
-        cacheEntry->is_initialized = true;
-        return true;  // Treat uninitialized entry as "changed"
-    }
-
-    // Compare all fields to detect changes
-    if (strcmp(cacheEntry->name, monst->portalName) != 0 ||
-        cacheEntry->hp != monst->currentHP ||
-        cacheEntry->maxHP != monst->info.maxHP ||
-        cacheEntry->level != levelIndex ||
-        cacheEntry->x != monst->loc.x ||
-        cacheEntry->y != monst->loc.y ||
-        cacheEntry->attackSpeed != monst->attackSpeed ||
-        cacheEntry->movementSpeed != monst->movementSpeed ||
-        cacheEntry->accuracy != monst->info.accuracy ||
-        cacheEntry->defense != monst->info.defense ||
-        cacheEntry->damageMin != monst->info.damage.lowerBound ||
-        cacheEntry->damageMax != monst->info.damage.upperBound ||
-        cacheEntry->isDead != monst->isDead ||
-        cacheEntry->turnsBetweenRegen != monst->info.turnsBetweenRegen) {
-
-        // Update cache with new data
-        strncpy(cacheEntry->name, monst->portalName, sizeof(cacheEntry->name) - 1);
-        cacheEntry->name[sizeof(cacheEntry->name) - 1] = '\0';  // Ensure null termination
-        cacheEntry->hp = monst->currentHP;
-        cacheEntry->maxHP = monst->info.maxHP;
-        cacheEntry->level = levelIndex;
-        cacheEntry->x = monst->loc.x;
-        cacheEntry->y = monst->loc.y;
-        cacheEntry->attackSpeed = monst->attackSpeed;
-        cacheEntry->movementSpeed = monst->movementSpeed;
-        cacheEntry->accuracy = monst->info.accuracy;
-        cacheEntry->defense = monst->info.defense;
-        cacheEntry->damageMin = monst->info.damage.lowerBound;
-        cacheEntry->damageMax = monst->info.damage.upperBound;
-        cacheEntry->isDead = monst->isDead;
-        cacheEntry->turnsBetweenRegen = monst->info.turnsBetweenRegen;
-
-        return true;  // Data has changed
-    }
-
-    return false;  // No changes detected
 }
 
 void update_monsters() {
+    if (!rogue.gameHasEnded) {
     char monster_json[MONSTER_JSON_SIZE];
     size_t offset = 0;
     bool has_changes = false;  // Flag to track if there are changes to send
@@ -91,7 +94,7 @@ void update_monsters() {
                     monst->currentHP = 0;  // Ensure HP is zero
 
                     // Notify the portal of the monster's death
-                    monster_death_notification(monst);
+                    send_monster_death_to_portal(monst);
 
                     // Skip processing further metrics for this monster
                     continue;
@@ -134,37 +137,20 @@ void update_monsters() {
 
     // Only send the JSON if there are changes
     if (has_changes) {
-        printf("Sending monster data to portal: %s\n", monster_json);
-        send_monster_data_to_portal("/monsters", monster_json);
+        //printf("Sending monster data to portal: %s\n", monster_json);
+        send_monsters_to_portal("/monsters", monster_json);
     } else {
         printf("No changes detected in monster data; skipping portal update.\n");
     }
-}
-
-
-bool remove_monster(creatureList *list, creature *remove) {
-    creatureListNode **node = &list->head;
-    while (*node != NULL) {
-        if ((*node)->creature == remove) {
-            creatureListNode *removeNode = *node;
-            *node = removeNode->nextCreature;
-            freeCreature(removeNode->creature);
-            
-            send_monster_death(removeNode->creature);
-            
-            free(removeNode);
-            return true;
-        }
-        node = &(*node)->nextCreature;
     }
-    return false;
 }
 
-void monster_death_notification(creature *monst) {
+void send_monster_death_to_portal(creature *monst) {
+    
     char death_data[512];  // Increased buffer size for full data
     CURL *curl;
     CURLcode res;
-
+if (!rogue.gameHasEnded) {
     printf("OH NO! A monster died: %s\n", monst->portalName);  
 
     // Prepare the JSON payload with all monster's data, including `isDead` status
@@ -180,7 +166,7 @@ void monster_death_notification(creature *monst) {
              monst->isDead ? "true" : "false");
 
     // Log the data to be sent
-    printf("Sending full monster death data to portal: %s\n", death_data);
+    //printf("Sending monster death data to portal: %s\n", death_data);
 
     // Initialize CURL for sending data
     curl = curl_easy_init();
@@ -204,7 +190,7 @@ void monster_death_notification(creature *monst) {
             fprintf(stderr, "Failed to send full monster death data to portal: %s\n", curl_easy_strerror(res));
         } else {
             // Success message
-            printf("Successfully sent full monster death data to portal: %s\n", death_data);
+            printf("Successfully sent monster death data to portal: %s\n", death_data);
         }
 
         // Clean up
@@ -214,55 +200,10 @@ void monster_death_notification(creature *monst) {
         fprintf(stderr, "CURL initialization failed for sending full monster death data.\n");
     }
 }
-
-void send_monster_death(creature *monst) {
-    char death_data[256];
-    CURL *curl;
-    CURLcode res;
-
-    printf("A monster died: %s %d\n", monst->portalName, monst->id);  
-    // Prepare the JSON payload with monster's name, id, and status
-    snprintf(death_data, sizeof(death_data), 
-             "{\"name\": \"%s\", \"id\": \"%d\", \"status\": \"dead\"}", 
-             monst->portalName, monst->id);
-
-    // Log the data to be sent
-    printf("Sending monster death data to portal: %s\n", death_data);
-
-    // Initialize CURL for sending data
-    curl = curl_easy_init();
-    if (curl) {
-        // Set the URL to the portal's death endpoint
-        curl_easy_setopt(curl, CURLOPT_URL, "http://portal-service.portal:5000/monster/death");
-
-        // Set the payload to send
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, death_data);
-
-        // Set HTTP headers
-        struct curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        // Perform the POST request
-        res = curl_easy_perform(curl);
-
-        // Check for errors
-        if (res != CURLE_OK) {
-            fprintf(stderr, "Failed to send monster death data to portal: %s\n", curl_easy_strerror(res));
-        } else {
-            // Success message
-            printf("Successfully sent monster death data to portal: %s\n", death_data);
-        }
-
-        // Clean up
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-    } else {
-        fprintf(stderr, "CURL initialization failed for sending monster death data.\n");
-    }
 }
 
-void send_monster_data_to_portal(const char *endpoint, const char *data) {
+void send_monsters_to_portal(const char *endpoint, const char *data) {
+    if (!rogue.gameHasEnded) {
     CURL *curl = curl_easy_init();
     if (curl) {
         char url[256];
@@ -287,4 +228,34 @@ void send_monster_data_to_portal(const char *endpoint, const char *data) {
     } else {
         fprintf(stderr, "CURL initialization failed for sending data.\n");
     }
+    }
 }
+
+void reset_monster_cache() {
+    for (int i = 0; i < MAX_MONSTERS; i++) {
+        monsterCache[i].is_initialized = false;
+        monsterCache[i].hp = 0;
+        monsterCache[i].maxHP = 0;
+        monsterCache[i].level = 0;
+        monsterCache[i].x = 0;
+        monsterCache[i].y = 0;
+        monsterCache[i].attackSpeed = 0;
+        monsterCache[i].movementSpeed = 0;
+        monsterCache[i].accuracy = 0;
+        monsterCache[i].defense = 0;
+        monsterCache[i].damageMin = 0;
+        monsterCache[i].damageMax = 0;
+        monsterCache[i].isDead = false;
+        monsterCache[i].turnsBetweenRegen = 0;
+        memset(monsterCache[i].name, 0, sizeof(monsterCache[i].name));
+    }
+}
+
+void end_of_game_cleanup() {
+    reset_monster_cache();
+}
+
+void initialize_new_game() {
+    reset_monster_cache();
+}
+

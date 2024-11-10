@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <time.h>
 #include "PlatformDefines.h"
+#include <pthread.h>
 
 // unicode: comment this line to revert to ASCII
 #define USE_UNICODE
@@ -2583,6 +2584,10 @@ typedef struct levelData {
 
 // K8S: For sending data to the portal
 extern levelData *levels;
+//void free_levels();
+//void initialize_levels();
+// K8S: For sending data to the portal
+
 
 enum machineFeatureFlags {
     MF_GENERATE_ITEM                = Fl(0),    // feature entails generating an item (overridden if the machine is adopting an item)
@@ -3063,6 +3068,9 @@ extern "C" {
     void freeCreatureList(creatureList *list);
     void removeDeadMonsters(void);
     void freeEverything(void);
+    void free_levels();
+    void initialize_levels();
+    void free_pack_items();
     boolean randomMatchingLocation(pos *loc, short dungeonType, short liquidType, short terrainType);
     enum dungeonLayers highestPriorityLayer(short x, short y, boolean skipGas);
     enum dungeonLayers layerWithTMFlag(short x, short y, unsigned long flag);

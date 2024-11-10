@@ -31,13 +31,15 @@ typedef struct {
 extern MonsterCacheEntry monsterCache[MAX_MONSTERS];  // Array to cache monster data
 
 // Function declarations
-void send_monster_data_to_portal(const char *endpoint, const char *data); // Send data to portal
+void send_monsters_to_portal(const char *endpoint, const char *data); // Send data to portal
 void update_monsters();  // Function to send updated monster metrics
-bool remove_monster(creatureList *list, creature *remove);  // Remove a monster from a list
-void send_monster_death(creature *monst);  // Notify the portal of a monster's death
 void reset_monster_metrics();  // Reset all monster-related metrics
 bool is_monster_data_changed(const creature *monst, int levelIndex);  // Check if monster data has changed
-void monster_death_notification(creature *monst);  // Notify the portal of a monster's death
+void send_monster_death_to_portal(creature *monst);  // Notify the portal of a monster's death
+
+extern void reset_monster_cache();
+extern void end_of_game_cleanup();
+extern void initialize_new_game() ;
 
 // External variables
 extern levelData *levels;  // The global levels array, defined elsewhere

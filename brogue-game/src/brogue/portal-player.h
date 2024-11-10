@@ -68,4 +68,6 @@ const char *getItemCategory(unsigned short category);
 
 void extract_inventory_json(char *buffer, size_t buffer_size);
 
+//void free_pack_items();
+
 #endif // PORTAL_PLAYER_H

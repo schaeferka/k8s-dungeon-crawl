@@ -161,7 +161,7 @@ void initializeMonster(creature *monst, boolean itemPossible) {
         monst->bookkeepingFlags |= MB_WEAPON_AUTO_ID;
     }
 
-    // K8S: Create unique portalName and send monster to portal
+    // K8S: Create unique portalName and id
      // Increment MONSTIE_COUNT and construct portalName
     MONSTIE_COUNT++;
     monst->id = MONSTIE_COUNT; 

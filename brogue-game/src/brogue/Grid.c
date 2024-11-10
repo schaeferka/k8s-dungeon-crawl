@@ -39,8 +39,13 @@ short **allocGrid() {
 }
 
 void freeGrid(short **array) {
-    free(array[0]);
+    if (!array) return;  // Skip freeing if the array is NULL
+    printf("freeGrid\n");
+    if (array[0]) {       // Only free array[0] if it's non-NULL
+        free(array[0]);
+    }
     free(array);
+    printf("freeGrid after free(array)\n");
 }
 
 void copyGrid(short **to, short **from) {

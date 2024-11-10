@@ -10,6 +10,16 @@
 // Define the Portal URL
 #define PORTAL_URL "http://portal-service.portal:5000/metrics"
 
+//void free_pack_items() {
+//    item *current = packItems;
+//    while (current) {
+//        item *next = current->nextItem;
+//        free(current);
+//        current = next;
+//    }
+//    packItems = NULL;  // Reset to NULL to prevent dangling pointer
+//}
+
 const char itemCategories[NUMBER_ITEM_CATEGORIES][11] = {
     "food", "weapon", "armor", "potion", "scroll", "staff", "wand", "ring",
    "charm", "gold", "amulet", "gem", "key"
@@ -46,6 +56,7 @@ const char *getItemCategory(unsigned short category) {
 }
 
 void update_metrics(void) {
+    if (!rogue.gameHasEnded) {
     // Create and populate an instance of PlayerMetrics
     Metrics metrics = {
         .gold = rogue.gold,
@@ -102,12 +113,15 @@ void update_metrics(void) {
     // Send the metrics to the Portal server
     send_metrics_to_portal(&metrics);
 }
+}
 
 void send_metrics_to_portal(const Metrics *metrics) {
     CURL *curl;
     CURLcode res;
 
     curl = curl_easy_init();
+
+    if (!rogue.gameHasEnded) {
     if (curl) {
         char post_data[4096];
          char inventory_json[2048];
@@ -225,10 +239,12 @@ void send_metrics_to_portal(const Metrics *metrics) {
     } else {
         fprintf(stderr, "Failed to initialize CURL session for metrics.\n");
     }
+    }
 }
 
 // Function to extract item details and build JSON for the player's inventory
 void extract_inventory_json(char *buffer, size_t buffer_size) {
+    if (!rogue.gameHasEnded) {
     item *currentItem = packItems;
     size_t offset = 0;
 
@@ -274,4 +290,5 @@ void extract_inventory_json(char *buffer, size_t buffer_size) {
         currentItem = currentItem->nextItem;
     }
     snprintf(buffer + offset, buffer_size - offset, "]");
+}
 }
