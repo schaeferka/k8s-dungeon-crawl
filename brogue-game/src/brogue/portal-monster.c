@@ -67,7 +67,7 @@ bool is_monster_data_changed(const creature *monst, int levelIndex) {
     return false;  // No changes detected
 }
 
-void update_monster_metrics() {
+void update_monsters() {
     char monster_json[MONSTER_JSON_SIZE];
     size_t offset = 0;
     bool has_changes = false;  // Flag to track if there are changes to send

@@ -1,3 +1,7 @@
+#ifndef DATADIR
+#define DATADIR "." 
+#endif
+
 #include <math.h>
 #include <limits.h>
 #include "platform.h"
@@ -12,8 +16,7 @@
 #include <unistd.h>
 
 #ifndef DATADIR
-// TODO: Investigate why the macro is not defined
-//#error "The DATADIR macro is undefined."
+#error "The DATADIR macro is undefined."
 #endif
 
 struct brogueConsole currentConsole;

@@ -32,7 +32,7 @@ extern MonsterCacheEntry monsterCache[MAX_MONSTERS];  // Array to cache monster 
 
 // Function declarations
 void send_monster_data_to_portal(const char *endpoint, const char *data); // Send data to portal
-void update_monster_metrics();  // Function to send updated monster metrics
+void update_monsters();  // Function to send updated monster metrics
 bool remove_monster(creatureList *list, creature *remove);  // Remove a monster from a list
 void send_monster_death(creature *monst);  // Notify the portal of a monster's death
 void reset_monster_metrics();  // Reset all monster-related metrics

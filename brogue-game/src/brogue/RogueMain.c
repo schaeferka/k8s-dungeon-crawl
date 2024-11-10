@@ -808,7 +808,7 @@ void startLevel(short oldLevelNumber, short stairDirection) {
     if (!levels[rogue.depthLevel-1].visited) {
         levels[rogue.depthLevel-1].visited = true;
         // K8S: Send monsters for the level to the portal
-        update_monster_metrics(rogue.depthLevel-1);
+        update_monsters(rogue.depthLevel-1);
         if (rogue.depthLevel == gameConst->amuletLevel) {
             messageWithColor(levelFeelings[0].message, levelFeelings[0].color, 0);
         } else if (rogue.depthLevel == gameConst->deepestLevel) {
@@ -961,7 +961,7 @@ static void removeDeadMonstersFromList(creatureList *list) {
             // K8S: Notify the portal of the monster's death
             decedent->isDead = true;
             decedent->currentHP = 0;
-            update_monster_metrics(rogue.depthLevel-1);
+            update_monsters(rogue.depthLevel-1);
             monster_death_notification(decedent);
     
             removeCreature(list, decedent);
