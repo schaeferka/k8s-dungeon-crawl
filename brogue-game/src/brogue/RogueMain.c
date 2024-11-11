@@ -35,10 +35,8 @@
 int MONSTIE_COUNT = 0;
 
 int rogueMain() {
-    printf("starting rougeMain\n");
     previousGameSeed = 0;
     mainBrogueJunction();
-    printf("ending rougeMain with exit code\n");
     return rogue.gameExitStatusCode;
 }
 
@@ -48,7 +46,6 @@ void printBrogueVersion() {
 }
 
 void executeEvent(rogueEvent *theEvent) {
-    printf("executeEvent\n");
     rogue.playbackBetweenTurns = false;
     if (theEvent->eventType == KEYSTROKE) {
         executeKeystroke(theEvent->param1, theEvent->controlKey, theEvent->shiftKey);
@@ -59,7 +56,6 @@ void executeEvent(rogueEvent *theEvent) {
 }
 
 boolean fileExists(const char *pathname) {
-    printf("fileExists\n");
     FILE *openedFile;
     openedFile = fopen(pathname, "rb");
     if (openedFile) {
@@ -73,7 +69,6 @@ boolean fileExists(const char *pathname) {
 // Player specifies a file; if all goes well, put it into path and return true.
 // Otherwise, return false.
 boolean chooseFile(char *path, char *prompt, char *defaultName, char *suffix) {
-    printf("chooseFile\n");
     if (getInputTextString(path,
                            prompt,
                            min(DCOLS-25, BROGUE_FILENAME_MAX - strlen(suffix)),
@@ -94,7 +89,6 @@ boolean chooseFile(char *path, char *prompt, char *defaultName, char *suffix) {
 // Then, strip off the suffix, replace it with ANNOTATION_SUFFIX,
 // and if that file exists, copy that into annotationPathname. Return true.
 boolean openFile(const char *path) {
-    printf("openFile\n");
     short i;
     char buf[BROGUE_FILENAME_MAX];
     boolean retval;
@@ -143,7 +137,6 @@ static void screen_update_benchmark() {
 #endif
 
 static const char *getOrdinalSuffix(int number) {
-    printf("getOrdinalSuffix\n");
     // Handle special cases for 11, 12, and 13
     if (number == 11 || number == 12 || number == 13) {
         return "th";
@@ -164,7 +157,6 @@ static const char *getOrdinalSuffix(int number) {
 }
 
 static void welcome() {
-    printf("welcome\n");
     char buf[DCOLS*3], buf2[DCOLS*3];
     message("Hello and welcome, adventurer, to the Dungeons of Doom!", 0);
     strcpy(buf, "Retrieve the ");
@@ -181,7 +173,6 @@ static void welcome() {
 }
 
 void initializeGameVariant() {
-    printf("initializeGameVariant\n");
 
     switch (gameVariant) {
         case VARIANT_RAPID_BROGUE:
@@ -204,7 +195,6 @@ void initializeRogue(uint64_t seed) {
     boolean playingback, playbackFF, playbackPaused, wizard, easy, displayStealthRangeMode;
     boolean trueColorMode;
     short oldRNG;
-    printf("initializeRogue before currentGamePath\n");
     char currentGamePath[BROGUE_FILENAME_MAX];
 
     playingback = rogue.playbackMode; // the only animals that need to go on the ark
@@ -265,7 +255,6 @@ void initializeRogue(uint64_t seed) {
     resetDFMessageEligibility();
 
     // initialize the levels list
-    printf("initializeRogue before levels list initialized\n");
     for (i=0; i<gameConst->deepestLevel+1; i++) {
         if (rogue.seed >> 32) {
             // generate a 64-bit seed
@@ -295,7 +284,6 @@ void initializeRogue(uint64_t seed) {
     }
 
     // initialize the waypoints list
-    printf("initializeRogue before waypoints list initialized\n");
     for (i=0; i<MAX_WAYPOINT_COUNT; i++) {
         rogue.wpDistance[i] = allocGrid();
         fillGrid(rogue.wpDistance[i], 0);
@@ -314,25 +302,20 @@ void initializeRogue(uint64_t seed) {
             }
         }
     }
-    printf("initializeRogue before restoreRNG\n");
     restoreRNG;
 
-    printf("initializeRogue before zeroOutGrid\n");
     zeroOutGrid(displayDetail);
 
-    printf("initializeRogue before NUMBER_MONSTER_KINDS\n");
     for (i=0; i<NUMBER_MONSTER_KINDS; i++) {
         monsterCatalog[i].monsterID = i;
     }
 
-    printf("initializeRogue before shuffleFlavors\n");
     shuffleFlavors();
 
     for (i = 0; i < gameConst->numberFeats; i++) {
         rogue.featRecord[i] = featTable[i].initialValue;
     }
 
-    printf("initializeRogue before deleteMessages\n");
     deleteMessages();
     for (i = 0; i < MESSAGE_ARCHIVE_ENTRIES; i++) { // Clear the message archive.
         messageArchive[i].message[0] = '\0';
@@ -340,7 +323,6 @@ void initializeRogue(uint64_t seed) {
     messageArchivePosition = 0;
 
     // Seed the stacks.
-    printf("initializeRogue before seed the stacks\n");
     floorItems = (item *) malloc(sizeof(item));
     memset(floorItems, '\0', sizeof(item));
     floorItems->nextItem = NULL;
@@ -359,11 +341,8 @@ void initializeRogue(uint64_t seed) {
         monsterItemsHopper->nextItem = theItem;
     }
 
-    printf("initializeRogue before monsters initialized\n");
     monsters = &levels[0].monsters;
-    printf("initializeRogue before dormantMonsters initialized\n");
     dormantMonsters = &levels[0].dormantMonsters;
-    printf("initializeRogue before purgatory initialized\n");
     purgatory = createCreatureList();
 
     scentMap            = NULL;
@@ -558,7 +537,6 @@ void initializeRogue(uint64_t seed) {
 
 // call this once per level to set all the dynamic colors as a function of depth
 static void updateColors() {
-    printf("updateColors\n");
     short i;
 
     for (i=0; i<NUMBER_DYNAMIC_COLORS; i++) {
@@ -568,7 +546,6 @@ static void updateColors() {
 }
 
 void startLevel(short oldLevelNumber, short stairDirection) {
-    printf("startLevel\n");
     uint64_t oldSeed;
     item *theItem;
     short i, j, x, y, px, py, flying, dir;
@@ -954,16 +931,13 @@ void startLevel(short oldLevelNumber, short stairDirection) {
 }
 
 static void freeGlobalDynamicGrid(short ***grid) {
-    printf("freeGlobalDynamicGrid\n");
     if (*grid) {
         freeGrid(*grid);
         *grid = NULL;
     }
-    printf("freeGlobalDynamicGrid after free(*grid)\n");
 }
 
-void freeCreature(creature *monst) {
-    printf("freeCreature\n");   
+void freeCreature(creature *monst) {   
     freeGlobalDynamicGrid(&(monst->mapToMe));
     freeGlobalDynamicGrid(&(monst->safetyMap));
     if (monst->carriedItem) {
@@ -974,13 +948,10 @@ void freeCreature(creature *monst) {
         freeCreature(monst->carriedMonster);
         monst->carriedMonster = NULL;
     }
-    printf("freeCreature before free(monst)\n");
     free(monst);
-    printf("freeCreature after free(monst)\n");
 }
 
 static void removeDeadMonstersFromList(creatureList *list) {
-    printf("removeDeadMonstersFromList\n");
     // This needs to be able to access creatures that are dying, but `creatureIterator` skips
     // dying monsters so it can't be used here.
     creatureListNode *next = list->head;
@@ -1009,46 +980,44 @@ static void removeDeadMonstersFromList(creatureList *list) {
 // Removes dead monsters from `monsters`/`dormantMonsters`, and inserts them into `purgatory` if
 // the decedent is a player ally at the moment of death, for possible future resurrection.
 void removeDeadMonsters() {
-    printf("removeDeadMonsters\n");
     removeDeadMonstersFromList(monsters);
     removeDeadMonstersFromList(dormantMonsters);
 }
 
-
 // K8S: Free the levelData levels
-//void free_levels() {
-//    if (levels == NULL) {
-//        return;  // Nothing to free
-//    }
+void free_levels() {
+    if (levels == NULL) {
+        return;  // Nothing to free
+    }
 
-//    for (int i = 0; i < gameConst->deepestLevel; i++) {
+    for (int i = 0; i < gameConst->deepestLevel; i++) {
         // Free any items list for the level
-//        struct item *item = levels[i].items;
-//        while (item) {
-//            struct item *nextItem = item->nextItem;
-//            free(item);
-//            item = nextItem;
-//        }
-//        levels[i].items = NULL;
+        struct item *item = levels[i].items;
+        while (item) {
+            struct item *nextItem = item->nextItem;
+            free(item);
+            item = nextItem;
+        }
+        levels[i].items = NULL;
 
         // Free any monster lists
-//        freeCreatureList(&levels[i].monsters);
-//        freeCreatureList(&levels[i].dormantMonsters);
+        freeCreatureList(&levels[i].monsters);
+        freeCreatureList(&levels[i].dormantMonsters);
 
         // Free the scentMap if it was allocated
-//        if (levels[i].scentMap) {
-//            for (int x = 0; x < DCOLS; x++) {
-//                free(levels[i].scentMap[x]);
-//            }
-//            free(levels[i].scentMap);
-//            levels[i].scentMap = NULL;
-//        }
-//    }
+        if (levels[i].scentMap) {
+            for (int x = 0; x < DCOLS; x++) {
+                free(levels[i].scentMap[x]);
+            }
+            free(levels[i].scentMap);
+            levels[i].scentMap = NULL;
+        }
+    }
 
     // Free the levels array itself if it was dynamically allocated
-//    free(levels);
-//    levels = NULL;
-//}
+    free(levels);
+    levels = NULL;
+}
 
 // K8S: Initialize the levelData levels
 void initialize_levels() {
@@ -1059,7 +1028,6 @@ void initialize_levels() {
 
 
 void freeEverything() {
-    printf("freeEverything\n");
     short i;
     item *theItem, *theItem2;
 
@@ -1070,102 +1038,77 @@ void freeEverything() {
     fclose(RNGLogFile);
 #endif
 
-    //reset_monster_cache();
-    //free_pack_items();
-    //free_levels();
-
     freeGlobalDynamicGrid(&safetyMap);
     freeGlobalDynamicGrid(&allySafetyMap);
     freeGlobalDynamicGrid(&chokeMap);
     freeGlobalDynamicGrid(&rogue.mapToShore);
     freeGlobalDynamicGrid(&rogue.mapToSafeTerrain);
 
-    printf("freeEverything before freeCreatureList for monsters\n");
     for (i = 0; i < gameConst->deepestLevel + 1; i++) {
-        printf("freeEverything before freeCreatureList for monsters in level %d\n", i);
         freeCreatureList(&levels[i].monsters);
-        printf("freeEverything before freeCreatureList for dormantMonsters in level %d\n", i);
         freeCreatureList(&levels[i].dormantMonsters);
 
-        printf("freeEverything before theItem loop for level %d\n", i);
         for (theItem = levels[i].items; theItem != NULL; theItem = theItem2) {
             theItem2 = theItem->nextItem;
             deleteItem(theItem);
         }
-        printf("freeEverything after theItem loop for level %d\n", i);
         levels[i].items = NULL;
 
-        printf("freeEverything before freeGrid for scentMap in level %d\n", i);
         if (levels[i].scentMap) {
             freeGrid(levels[i].scentMap);
             levels[i].scentMap = NULL;
         }
     }
     scentMap = NULL;
-    printf("freeEverything before freeCreatureList for purgatory\n");
     freeCreatureList(&purgatory);
 
-    printf("freeEverything before deleting floor items\n");
     for (theItem = floorItems; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     floorItems = NULL;
 
-    printf("freeEverything before deleting pack items\n");
     for (theItem = packItems; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     packItems = NULL;
 
-    printf("freeEverything before deleting monster items\n");
     for (theItem = monsterItemsHopper; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     monsterItemsHopper = NULL;
+    
+    for (i = 0; i < MAX_WAYPOINT_COUNT; i++) {
+        if (rogue.wpDistance[i]) {  // Only free if wpDistance[i] is non-NULL
+            freeGrid(rogue.wpDistance[i]);
+            rogue.wpDistance[i] = NULL;  // Reset pointer after freeing
+        } else {
+            printf("freeEverything: wpDistance[%d] is NULL, skipping\n", i);
+        }
+    }
 
-    printf("freeEverything before freeing grid for waypoint count\n");
-    printf("MAX_WAYPOINT_COUNT = %d\n", MAX_WAYPOINT_COUNT);
-    //for (i = 0; i < MAX_WAYPOINT_COUNT; i++) {
-    //if (rogue.wpDistance[i]) {  // Only free if wpDistance[i] is non-NULL
-        //printf("freeEverything before freeGrid for waypoint %d\n", i);
-        //freeGrid(rogue.wpDistance[i]);
-        //rogue.wpDistance[i] = NULL;  // Reset pointer after freeing
-        //printf("freeEverything after freeGrid for waypoint %d\n", i);
-    //} else {
-    //    printf("freeEverything: wpDistance[%d] is NULL, skipping\n", i);
-    //}
-//}
-
-    printf("freeEverything before deleteAllFlares\n");
     deleteAllFlares();
     if (rogue.flares) {
         free(rogue.flares);
         rogue.flares = NULL;
     }
 
-    printf("freeEverything before free(levels)\n");
     free(levels);
     levels = NULL;
 
-    printf("freeEverything before free(rogue.featRecord)\n");
     free(rogue.featRecord);
 
     // K8S: Reset the monster cache and MONSTIE_COUNT for new game
-    printf("freeEverything before memset for monsterCache\n");
     memset(monsterCache, 0, sizeof(monsterCache));  // Reset all entries in the monster cache
-    printf("freeEverything before reset for MONSTIE_COUNT\n");
     MONSTIE_COUNT = 0;  // Reset monster ID counter
 
     // Clean up CURL globally before exiting the program
-    printf("freeEverything before curl_global_cleanup\n");
     curl_global_cleanup();
 }
 
 void gameOver(char *killedBy, boolean useCustomPhrasing) {
-    printf("gameOver\n");
     short i, y;
     char buf[200], highScoreText[200], buf2[200];
     rogueHighScoresEntry theEntry;
@@ -1190,14 +1133,12 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
     }
 
     if (rogue.quit) {
-        printf("gameOver inside rogue.quit\n");
         if (rogue.playbackMode) {
             rogue.playbackMode = false;
             message("(The player quit at this point.)", REQUIRE_ACKNOWLEDGMENT);
             rogue.playbackMode = true;
         }
     } else {
-        printf("gameOver inside rogue.quit else for playback\n");
         playback = rogue.playbackMode;
         if (!D_IMMORTAL && !nonInteractivePlayback) {
             rogue.playbackMode = false;
@@ -1249,15 +1190,13 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
         return;
     }
 
-    printf("gameOver before highScoreSaved\n");
     if (rogue.highScoreSaved) {
         return;
     }
     rogue.highScoreSaved = true;
 
-    printf("gameOver before if rogue.quit\n");
+
     if (rogue.quit) {
-        printf("gameOver inside if rogue.quit\n");
         blackOutScreen();
     } else {
         screenDisplayBuffer dbuf = displayBuffer;
@@ -1292,7 +1231,6 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
 
     strcpy(theEntry.description, highScoreText);
 
-    printf("gameOver before not rogue.quit\n");
     if (!rogue.quit) {
         printString(buf, (COLS - strLenWithoutEscapes(buf)) / 2, ROWS / 2, &gray, &black, 0);
 
@@ -1310,12 +1248,10 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
         displayMoreSign();
     }
 
-    printf("gameOver before if serverMode\n");
     if (serverMode) {
         blackOutScreen();
         saveRecordingNoPrompt(recordingFilename);
     } else {
-        printf("gameOver before if !rogue.playbackMode\n");
         if (!rogue.playbackMode && saveHighScore(theEntry)) {
             printHighScores(true);
         }
@@ -1327,7 +1263,6 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
         printf("Recording: %s ended after %li turns (game over).\n", rogue.currentGamePath, rogue.playerTurnNumber);
     }
 
-    printf("gameOver before notifyEvent\n");
     if (!rogue.playbackMode) {
         if (!rogue.quit) {
             notifyEvent(GAMEOVER_DEATH, theEntry.score, 0, theEntry.description, recordingFilename);

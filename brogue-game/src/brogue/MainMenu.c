@@ -33,6 +33,8 @@
 // K8S: Include the portal header files
 #include "portal-player.h"
 #include "portal-monster.h"
+#include "portal-gamestate.h"
+#include "portal-items.h"
 #include "MainMenu.h"
 
 
@@ -93,9 +95,11 @@ void *metrics_update_loop(void *arg) {
         pthread_mutex_unlock(&metrics_thread_mutex);
         
         // Perform the metrics updates
-        update_metrics();
+        update_player();
         update_monsters();
-        sleep_for_microseconds(100000); // Sleep for 0.10 seconds
+        update_items();
+        update_gamestate();
+        sleep_for_microseconds(10000); // Sleep for 0.10 seconds
     }
     
     // Reset metrics_thread_started to allow thread restart in new game
@@ -1259,8 +1263,10 @@ void mainBrogueJunction() {
                 start_metrics_thread_if_needed();
 
                 startLevel(rogue.depthLevel, 1); // descending into level 1
-                update_metrics();
+                update_player();
                 update_monsters();
+                update_gamestate();
+                update_items();
                 mainInputLoop();
                 if(serverMode) {
                     rogue.nextGame = NG_QUIT;

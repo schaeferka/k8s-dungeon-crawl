@@ -1,85 +1,174 @@
 from flask import Flask, request, jsonify, render_template
-from prometheus_client import Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Gauge, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import logging
+import time
 
 app = Flask(__name__, template_folder="templates")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Define Prometheus metrics for each numeric metric in PlayerMetrics
+# Prometheus Gauges and Counters for PlayerMetrics, ItemMetrics, and GameStateMetrics
+
+# Player Metrics
 player_gold = Gauge('brogue_player_gold', 'Amount of gold collected by the player')
-player_gold_generated = Gauge('brogue_gold_generated', 'Total amount of gold generated')
 player_depth = Gauge('brogue_depth_level', 'Current depth level of the player')
 player_deepest_level = Gauge('brogue_deepest_level', 'Deepest level reached by the player')
 player_current_hp = Gauge('brogue_player_current_hp', 'Current hit points of the player')
 player_max_hp = Gauge('brogue_player_max_hp', 'Maximum hit points of the player')
-player_turns = Gauge('brogue_player_turns', 'Total turns played by the player')
 player_strength = Gauge('brogue_strength', 'Player’s strength')
-monster_spawn_fuse = Gauge('brogue_monster_spawn_fuse', 'Time until a monster spawns')
+player_stealth_range = Gauge('brogue_stealth_range', 'Distance from which monsters will notice the player')
+player_turns = Gauge('brogue_player_turns', 'Total turns played by the player')
+player_regen_per_turn = Gauge('brogue_regen_per_turn', 'HP regeneration per turn')
+player_weakness_amount = Gauge('brogue_weakness_amount', 'Amount of weakness inflicted')
+player_poison_amount = Gauge('brogue_poison_amount', 'Amount of poison inflicted')
 
-# Additional metrics from PlayerMetrics struct
-player_turn_number = Gauge('brogue_player_turn_number', 'Number of turns taken by the player')
-absolute_turn_number = Gauge('brogue_absolute_turn_number', 'Total turns since the beginning of the game')
-milliseconds = Gauge('brogue_milliseconds_since_launch', 'Milliseconds since game launch')
-xpxp_this_turn = Gauge('brogue_xpxp_this_turn', 'Squares explored this turn')
-stealth_range = Gauge('brogue_stealth_range', 'Distance from which monsters will notice the player')
-reward_rooms_generated = Gauge('brogue_reward_rooms_generated', 'Number of reward rooms generated')
+# Bonuses and modifiers from rings
+bonus_clairvoyance = Gauge('brogue_clairvoyance_bonus', 'Clairvoyance ring bonus')
+bonus_stealth = Gauge('brogue_stealth_bonus', 'Stealth ring bonus')
+bonus_regeneration = Gauge('brogue_regeneration_bonus', 'Regeneration ring bonus')
+bonus_light_multiplier = Gauge('brogue_light_multiplier', 'Light multiplier ring bonus')
+bonus_awareness = Gauge('brogue_awareness_bonus', 'Awareness ring bonus')
+bonus_transference = Gauge('brogue_transference', 'Transference ring bonus')
+bonus_wisdom = Gauge('brogue_wisdom_bonus', 'Wisdom ring bonus')
+bonus_reaping = Gauge('brogue_reaping_bonus', 'Reaping ring bonus')
 
-# Ring bonuses
-clairvoyance = Gauge('brogue_clairvoyance_bonus', 'Clairvoyance ring bonus')
-stealth_bonus = Gauge('brogue_stealth_bonus', 'Stealth ring bonus')
-regeneration_bonus = Gauge('brogue_regeneration_bonus', 'Regeneration ring bonus')
-light_multiplier = Gauge('brogue_light_multiplier', 'Light multiplier ring bonus')
-awareness_bonus = Gauge('brogue_awareness_bonus', 'Awareness ring bonus')
-transference = Gauge('brogue_transference', 'Transference ring bonus')
-wisdom_bonus = Gauge('brogue_wisdom_bonus', 'Wisdom ring bonus')
-reaping = Gauge('brogue_reaping_bonus', 'Reaping ring bonus')
+# Game State Metrics
+game_reward_rooms = Gauge('brogue_reward_rooms_generated', 'Number of reward rooms generated')
+game_has_ended = Gauge('brogue_game_has_ended', 'Indicates if the game has ended')
+game_monster_spawn_fuse = Gauge('brogue_monster_spawn_fuse', 'Time until a monster spawns')
+game_gold_generated = Gauge('brogue_gold_generated', 'Total amount of gold generated')
+game_absolute_turn_number = Gauge('brogue_absolute_turn_number', 'Total turns since the beginning of the game')
+game_milliseconds = Gauge('brogue_milliseconds_since_launch', 'Milliseconds since game launch')
+game_xpxp_this_turn = Gauge('brogue_xpxp_this_turn', 'Squares explored this turn')
 
-# Health and status effects
-regen_per_turn = Gauge('brogue_regen_per_turn', 'HP regeneration per turn')
-weakness_amount = Gauge('brogue_weakness_amount', 'Amount of weakness inflicted')
-poison_amount = Gauge('brogue_poison_amount', 'Amount of poison inflicted')
+# Item Metrics
+item_weapon_damage_min = Gauge('brogue_weapon_damage_min', 'Minimum damage of equipped weapon')
+item_weapon_damage_max = Gauge('brogue_weapon_damage_max', 'Maximum damage of equipped weapon')
+item_armor_defense = Gauge('brogue_armor_defense', 'Defense of equipped armor')
 
-# Monster counter
-brogue_monster_count = Counter('brogue_monster_count', 'Total number of monsters created')
+# Define Prometheus metrics for monsters
+monster_count = Counter('brogue_monster_count', 'Total number of monsters created')
 monster_death_count = Counter('brogue_monster_death_count', 'Total number of monsters that have died')
 
+monster_lifespan_histogram = Histogram(
+    'brogue_monster_lifespan_seconds', 
+    'Time (in seconds) monsters stay alive',
+    buckets=[10, 30, 60, 300, 600, 1800, 3600, 7200] 
+)
+
+last_monster_created = Gauge(
+    'brogue_last_monster_created_timestamp', 
+    'Timestamp of the last monster creation'
+)
+last_monster_death = Gauge(
+    'brogue_last_monster_death_timestamp', 
+    'Timestamp of the last monster death'
+)
+
 # Dictionaries to store monster data by ID
-created_monsters = {}
-dead_monsters = {}
+current_game_monsters = {}
+overall_monsters = {}  # Maintains data across games
+dead_monsters = {}     # Records deaths across games
 
 # Global dictionaries to store player and game state data
 game_state_data = {}
 player_info_data = {}
+items_data = {}
 
-# Endpoint to receive game metrics
-@app.route('/metrics', methods=['POST'])
-def receive_metrics():
+# Endpoint to serve Prometheus metrics in text format (GET)
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
+# Endpoint to receive Player Metrics (POST)
+@app.route('/player', methods=['POST'])
+def receive_player_metrics():
     data = request.json
-    app.logger.info("Received metrics data: %s", data) 
+    app.logger.info("Received player metrics data: %s", data)
     if not data:
         return jsonify({"error": "No JSON payload received"}), 400
 
-    game_state_keys = [
-        "RNG", "absoluteTurnNumber", "deepestLevel", "depthLevel", "easyMode",
-        "gameHasEnded", "gameInProgress", "goldGenerated", "milliseconds",
-        "monsterSpawnFuse", "playerTurnNumber", "rewardRoomsGenerated", "seed",
-        "turns", "wizard"
-    ]
-    player_info_keys = [
-        "awarenessBonus", "clairvoyance", "disturbed", "gold", "currentHP",
-        "lightMultiplier", "maxHP", "poisonAmount", "reaping", "regenPerTurn",
-        "regenerationBonus", "stealthBonus", "stealthRange", "strength",
-        "transference", "weaknessAmount", "wisdomBonus", "xpXPThisTurn",
-        "weapon", "armor", "ringLeft", "ringRight"
-    ]
+    # Populate the player_info_data dictionary
+    player_info_data.update(data)
 
-    game_state_data.update({key: data[key] for key in game_state_keys if key in data})
-    player_info_data.update({key: data[key] for key in player_info_keys if key in data})
-    player_info_data["inventory"] = data.get("inventory", [])
+    # Set Prometheus Gauges only if data fields are present
+    if "gold" in data:
+        player_gold.set(data["gold"])
+    if "depthLevel" in data:
+        player_depth.set(data["depthLevel"])
+    if "currentHP" in data:
+        player_current_hp.set(data["currentHP"])
+    if "maxHP" in data:
+        player_max_hp.set(data["maxHP"])
+    if "strength" in data:
+        player_strength.set(data["strength"])
+    if "stealthRange" in data:
+        player_stealth_range.set(data["stealthRange"])
+    if "regenPerTurn" in data:
+        player_regen_per_turn.set(data["regenPerTurn"])
+    if "weaknessAmount" in data:
+        player_weakness_amount.set(data["weaknessAmount"])
+    if "poisonAmount" in data:
+        player_poison_amount.set(data["poisonAmount"])
 
     return jsonify({"status": "success"}), 200
+
+
+# Endpoint to receive Game State Metrics (POST)
+@app.route('/gamestate', methods=['POST'])
+def receive_game_state_metrics():
+    data = request.json
+    app.logger.info("Received game state metrics data: %s", data)
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
+
+    # Populate the game_state_data dictionary
+    game_state_data.update(data)
+
+    # Set Prometheus Gauges only if data fields are present
+    if "rewardRoomsGenerated" in data:
+        game_reward_rooms.set(data["rewardRoomsGenerated"])
+    if "monsterSpawnFuse" in data:
+        game_monster_spawn_fuse.set(data["monsterSpawnFuse"])
+    if "goldGenerated" in data:
+        game_gold_generated.set(data["goldGenerated"])
+    if "absoluteTurnNumber" in data:
+        game_absolute_turn_number.set(data["absoluteTurnNumber"])
+    if "milliseconds" in data:
+        game_milliseconds.set(data["milliseconds"])
+    if "xpxpThisTurn" in data:
+        game_xpxp_this_turn.set(data["xpxpThisTurn"])
+    if "gameHasEnded" in data:
+        game_has_ended.set(1 if data["gameHasEnded"] else 0)
+
+    return jsonify({"status": "success"}), 200
+
+
+# Endpoint to receive Item Metrics (POST)
+@app.route('/items', methods=['POST'])
+def receive_item_metrics():
+    data = request.json
+    app.logger.info("Received item metrics data: %s", data)
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
+
+    # Populate the items_data dictionary
+    items_data.update(data)
+
+    # Set Prometheus Gauges for weapon and armor details if fields are present
+    weapon = data.get("weapon", {})
+    armor = data.get("armor", {})
+
+    if "damageMin" in weapon:
+        item_weapon_damage_min.set(weapon["damageMin"])
+    if "damageMax" in weapon:
+        item_weapon_damage_max.set(weapon["damageMax"])
+    if "defense" in armor:
+        item_armor_defense.set(armor["defense"])
+
+    return jsonify({"status": "success"}), 200
+
 
 # Endpoint to receive or update monster data
 @app.route('/monsters', methods=['POST'])
@@ -95,15 +184,18 @@ def monsters_data():
             app.logger.warning("Skipping monster entry without 'id': %s", monster)
             continue
 
-        # Check if monster is already created or updated
-        if monster_id in created_monsters:
-            if created_monsters[monster_id] != monster:
-                created_monsters[monster_id].update(monster)
-                app.logger.info("Updated existing monster: %s", monster)
-        else:
-            created_monsters[monster_id] = monster
-            brogue_monster_count.inc()
-            app.logger.info("Added new monster: %s", monster)
+        # Record the creation time if this is a new monster
+        if monster_id not in overall_monsters:
+            monster["creation_time"] = time.time()
+            monster_count.inc()
+            app.logger.info("Added new monster to overall monsters: %s", monster)
+
+        # Update or add the monster in `overall_monsters`
+        overall_monsters[monster_id] = {**overall_monsters.get(monster_id, {}), **monster}
+
+        # Ensure `current_game_monsters` has the latest data for active monsters
+        if not monster.get("isDead", False):
+            current_game_monsters[monster_id] = monster
 
     return jsonify({"status": "success", "received": monsters}), 200
 
@@ -116,21 +208,38 @@ def receive_monster_death():
         return jsonify({"error": "No valid JSON payload received"}), 400
 
     app.logger.info("Received death notification for monster ID: %s", monster_id)
-    if monster_id in created_monsters:
-        dead_monsters[monster_id] = created_monsters.pop(monster_id)
+
+    if monster_id in overall_monsters:
+        # Calculate lifespan and record the death time
+        creation_time = overall_monsters[monster_id].get("creation_time")
+        if creation_time:
+            lifespan = time.time() - creation_time
+            monster_lifespan_histogram.observe(lifespan)
+
+        last_monster_death.set_to_current_time()
+
+        # Update the monster's `currentHP` to 0 and mark it as dead in `overall_monsters`
+        overall_monsters[monster_id]["hp"] = 0
+        overall_monsters[monster_id]["isDead"] = True
+
+        # Move to dead monsters but keep it in `overall_monsters`
+        dead_monsters[monster_id] = overall_monsters[monster_id]
         monster_death_count.inc()
+
+        # Remove from `current_game_monsters`
+        current_game_monsters.pop(monster_id, None)
 
     return jsonify({"status": "success", "id": monster_id}), 200
 
 # Endpoint to reset monster lists for a new game
 @app.route('/monsters/reset', methods=['POST'])
-def reset_monsters():
-    created_monsters.clear()
-    dead_monsters.clear()
-    app.logger.info("Monster lists have been reset for a new game.")
+def reset_current_game_monsters():
+    current_game_monsters.clear()  # Clear the current game monsters list
+    dead_monsters.clear()  # Clear the dead monsters list as well
+    app.logger.info("Current game monster data and dead monsters data have been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
-# Other endpoints to serve player, game state, and monster data
+# Other endpoint examples for serving player, game state, and monster data
 @app.route('/player/data', methods=['GET'])
 def player_data_endpoint():
     return jsonify(player_info_data)
@@ -139,11 +248,27 @@ def player_data_endpoint():
 def gamestate_data_endpoint():
     return jsonify(game_state_data)
 
+@app.route('/items/data', methods=['GET'])
+def items_data_endpoint():
+    return jsonify(items_data)
+
 @app.route('/monsters/data', methods=['GET'])
-def monsters_data_endpoint():
+def monsters_endpoint():
+    return jsonify({"current_game_monsters": list(current_game_monsters.values())})
+
+@app.route('/overall_monsters', methods=['GET'])
+def overall_monsters_endpoint():
+    return jsonify({"overall_monsters": list(overall_monsters.values())})
+
+@app.route('/dead_monsters', methods=['GET'])
+def dead_monsters_endpoint():
+    return jsonify({"dead_monsters": list(dead_monsters.values())})
+
+@app.route('/monster/timestamps', methods=['GET'])
+def monster_timestamps():
     return jsonify({
-        "created_monsters": list(created_monsters.values()),
-        "dead_monsters": list(dead_monsters.values())
+        "last_monster_created": last_monster_created._value.get(),
+        "last_monster_death": last_monster_death._value.get()
     })
 
 # HTML page endpoints

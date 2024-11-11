@@ -24,30 +24,37 @@
     <script>
         async function fetchMonsterData() {
             try {
-                const response = await fetch('/monsters/data');
-                const data = await response.json();
-                updateTables(data.created_monsters, data.dead_monsters);
+                const currentGameResponse = await fetch('/monsters/data');
+                const currentGameData = await currentGameResponse.json();
+
+                const deadMonstersResponse = await fetch('/dead_monsters');
+                const deadMonstersData = await deadMonstersResponse.json();
+
+                const overallMonstersResponse = await fetch('/overall_monsters');
+                const overallMonstersData = await overallMonstersResponse.json();
+
+                updateTables(
+                    currentGameData.current_game_monsters, 
+                    deadMonstersData.dead_monsters, 
+                    overallMonstersData.overall_monsters
+                );
             } catch (error) {
                 console.error('Error fetching monster data:', error);
             }
         }
 
-        function updateTables(createdMonsters, deadMonsters) {
-            const createdTableBody = document.getElementById('created-monsters-body');
+        function updateTables(currentMonsters, deadMonsters, overallMonsters) {
+            const currentTableBody = document.getElementById('current-monsters-body');
             const deadTableBody = document.getElementById('dead-monsters-body');
+            const overallTableBody = document.getElementById('overall-monsters-body');
 
-            createdTableBody.innerHTML = '';
+            currentTableBody.innerHTML = '';
             deadTableBody.innerHTML = '';
+            overallTableBody.innerHTML = '';
 
-            // Create a set of dead monster IDs for highlighting
-            const deadMonsterIDs = new Set(deadMonsters.map(monster => monster.id));
-
-            // Populate the Created Monsters table
-            createdMonsters.forEach(monster => {
+            // Populate the Current Game Monsters table
+            currentMonsters.forEach(monster => {
                 const row = document.createElement('tr');
-                if (deadMonsterIDs.has(monster.id)) {
-                    row.classList.add('dead-monster');
-                }
                 row.innerHTML = `
                     <td>${monster.name || ''}</td>
                     <td>${monster.hp || ''}</td>
@@ -62,10 +69,10 @@
                     <td>${monster.id || ''}</td>
                     <td>${monster.type || ''}</td>
                 `;
-                createdTableBody.appendChild(row);
+                currentTableBody.appendChild(row);
             });
 
-            // Populate the Dead Monsters table with more details if available
+            // Populate the Dead Monsters table
             deadMonsters.forEach(monster => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -76,10 +83,29 @@
                 `;
                 deadTableBody.appendChild(row);
             });
+
+            // Populate the Overall Monsters table
+            overallMonsters.forEach(monster => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${monster.name || ''}</td>
+                    <td>${monster.hp || ''}</td>
+                    <td>${monster.maxHP || ''}</td>
+                    <td>${monster.level || ''}</td>
+                    <td>${monster.defense || ''}</td>
+                    <td>${monster.accuracy || ''}</td>
+                    <td>${monster.damageMin || ''} - ${monster.damageMax || ''}</td>
+                    <td>${monster.movementSpeed || ''}</td>
+                    <td>${monster.attackSpeed || ''}</td>
+                    <td>${monster.id || ''}</td>
+                    <td>${monster.type || ''}</td>
+                `;
+                overallTableBody.appendChild(row);
+            });
         }
 
-        // Fetch and update data every 5 seconds
-        setInterval(fetchMonsterData, 200);
+        // Fetch and update data every 1 seconds
+        setInterval(fetchMonsterData, 100);
         window.onload = fetchMonsterData;
     </script>
 </head>
@@ -94,7 +120,7 @@
     <h1>K8s Dungeon Crawl</h1>
     <h2>Monster Tracker</h2>
 
-    <h3>Created Monsters</h3>
+    <h3>Current Game Monsters</h3>
     <table>
         <thead>
             <tr>
@@ -112,7 +138,7 @@
                 <th>Type</th>
             </tr>
         </thead>
-        <tbody id="created-monsters-body">
+        <tbody id="current-monsters-body">
             <!-- JavaScript will populate this area -->
         </tbody>
     </table>
@@ -128,6 +154,28 @@
             </tr>
         </thead>
         <tbody id="dead-monsters-body">
+            <!-- JavaScript will populate this area -->
+        </tbody>
+    </table>
+
+    <h3>Overall Monsters (All Games)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Portal Name</th>
+                <th>Current HP</th>
+                <th>Max HP</th>
+                <th>Depth</th>
+                <th>Defense</th>
+                <th>Accuracy</th>
+                <th>Damage</th>
+                <th>Movement Speed</th>
+                <th>Attack Speed</th>
+                <th>ID</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody id="overall-monsters-body">
             <!-- JavaScript will populate this area -->
         </tbody>
     </table>

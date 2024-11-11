@@ -1,39 +1,28 @@
-// K8S: Declares the functions to send metrics data to the Portal
+// portal-player.h
 
 #ifndef PORTAL_PLAYER_H
 #define PORTAL_PLAYER_H
 
-// Define the PlayerMetrics struct
+#include "Rogue.h"
+#include "stdbool.h"
+
+// Structure to hold player-related metrics
 typedef struct {
-    // Numeric metrics
     int gold;
-    int goldGenerated;
     int depthLevel;
     int deepestLevel;
     int currentHP;
     int maxHP;
-    int turns;
     int strength;
-    int monsterSpawnFuse;
-
     int playerTurnNumber;
-    int absoluteTurnNumber;
-    int milliseconds;
     int xpxpThisTurn;
     int stealthRange;
-    int rewardRoomsGenerated;
+    bool disturbed;
+    int regenPerTurn;
+    int weaknessAmount;
+    int poisonAmount;
 
-    // Non-numeric metrics
-    boolean wizard;
-    boolean disturbed;
-    boolean gameInProgress;
-    boolean gameHasEnded;
-    boolean easyMode;
-
-    int seed;
-    int RNG;
-
-    // ring bonuses:
+    // Ring modifiers
     int clairvoyance;
     int stealthBonus;
     int regenerationBonus;
@@ -42,32 +31,10 @@ typedef struct {
     int transference;
     int wisdomBonus;
     int reaping;
+} PlayerMetrics;
 
-    int regenPerTurn;
-    int weaknessAmount;
-    int poisonAmount; 
-
-    // Equipped items
-    item weapon;
-    item armor;
-    item ringLeft;
-    item ringRight;
-
-} Metrics;
-
-// Declaration of the function to send metrics data to the Portal
-void send_metrics_to_portal(const Metrics *metrics);
-extern void update_metrics(void);
-
-// Declaration of utility functions
-const itemTable *getWeaponDetails(short kind);
-const itemTable *getArmorDetails(short kind);
-const itemTable *getRingDetails(short kind);
-extern const char *getItemCategoryName(unsigned short category);
-const char *getItemCategory(unsigned short category);
-
-void extract_inventory_json(char *buffer, size_t buffer_size);
-
-//void free_pack_items();
+// Function declarations
+void update_player(void);
+void send_player_metrics_to_portal(const PlayerMetrics *metrics);
 
 #endif // PORTAL_PLAYER_H

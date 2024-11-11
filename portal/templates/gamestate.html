@@ -8,6 +8,15 @@
         .nav-buttons {
             margin-bottom: 20px;
         }
+        .game-state-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .game-state-section h3 {
+            margin-top: 0;
+        }
     </style>
     <script>
         async function fetchGameStateData() {
@@ -24,14 +33,36 @@
             const gameStateDiv = document.getElementById('game-state-info');
             gameStateDiv.innerHTML = '';
 
-            for (const [key, value] of Object.entries(gameState)) {
-                const infoItem = document.createElement('p');
-                infoItem.textContent = `${key}: ${value}`;
-                gameStateDiv.appendChild(infoItem);
+            // Define sections to organize the data
+            const sections = {
+                "Basic Info": ["wizard", "gameInProgress", "gameHasEnded", "easyMode", "rewardRoomsGenerated"],
+                "Game Timers": ["absoluteTurnNumber", "milliseconds", "xpxpThisTurn", "monsterSpawnFuse"],
+                "Gold and Resources": ["goldGenerated", "seed", "RNG"],
+                "Game Depth": ["depthLevel", "deepestLevel"]
+            };
+
+            // Iterate over sections and create HTML elements for each
+            for (const [sectionTitle, keys] of Object.entries(sections)) {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.classList.add('game-state-section');
+
+                const sectionHeader = document.createElement('h3');
+                sectionHeader.textContent = sectionTitle;
+                sectionDiv.appendChild(sectionHeader);
+
+                // Add each key-value pair in the section
+                keys.forEach(key => {
+                    const value = gameState[key] !== undefined ? gameState[key] : "N/A";
+                    const infoItem = document.createElement('p');
+                    infoItem.textContent = `${key}: ${value}`;
+                    sectionDiv.appendChild(infoItem);
+                });
+
+                gameStateDiv.appendChild(sectionDiv);
             }
         }
 
-        setInterval(fetchGameStateData, 200);
+        setInterval(fetchGameStateData, 1000); // Update every 1 seconds
         window.onload = fetchGameStateData;
     </script>
 </head>
