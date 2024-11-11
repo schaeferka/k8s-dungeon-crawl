@@ -10,12 +10,16 @@
         }
         .container {
             display: flex;
-            flex-wrap: wrap;
             gap: 20px;
             margin-top: 20px;
         }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
         .section {
-            flex: 1 1 45%;
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 5px;
@@ -37,9 +41,17 @@
     <script>
         async function fetchPlayerData() {
             try {
-                const response = await fetch('/player/data');
-                const data = await response.json();
-                updatePlayerInfo(data);
+                const [playerResponse, itemsResponse] = await Promise.all([
+                    fetch('/player/data'),
+                    fetch('/items/data')
+                ]);
+                
+                const playerData = await playerResponse.json();
+                const itemsData = await itemsResponse.json();
+                
+                const combinedData = { ...playerData, ...itemsData };
+                
+                updatePlayerInfo(combinedData);
             } catch (error) {
                 console.error('Error fetching player data:', error);
             }
@@ -66,7 +78,6 @@
                 "reaping", "regenerationBonus", "stealthBonus", "transference", "wisdomBonus"
             ];
 
-            // Populate Player Stats section
             playerStatsKeys.forEach(key => {
                 const statValue = key in playerInfo ? playerInfo[key] : "N/A";
                 const statItem = document.createElement('p');
@@ -74,13 +85,12 @@
                 playerStatsDiv.appendChild(statItem);
             });
 
-            // Populate Items section with expanded details
             itemKeys.forEach(key => {
                 const item = playerInfo[key];
                 if (item && typeof item === 'object') {
                     const itemSection = document.createElement('div');
                     itemSection.classList.add('item-section');
-                    itemSection.innerHTML = `<strong>${item.name || "Unknown"} (${key}):</strong><br>
+                    itemSection.innerHTML = `<strong>(${key}):</strong><br>
                                              <p>${item.description || "No description"}</p>`;
 
                     for (const [itemKey, itemValue] of Object.entries(item)) {
@@ -95,7 +105,6 @@
                 }
             });
 
-            // Populate Inventory section
             if (playerInfo.inventory && playerInfo.inventory.length > 0) {
                 playerInfo.inventory.forEach(item => {
                     const itemDiv = document.createElement('div');
@@ -113,7 +122,6 @@
                 inventoryDiv.innerHTML = '<p>No items in inventory.</p>';
             }
 
-            // Populate Modifiers section
             modifierKeys.forEach(key => {
                 const modifierValue = key in playerInfo ? playerInfo[key] : "N/A";
                 const modifierItem = document.createElement('p');
@@ -122,7 +130,7 @@
             });
         }
 
-        setInterval(fetchPlayerData, 1000); // Fetch data every 5 seconds
+        setInterval(fetchPlayerData, 1000);
         window.onload = fetchPlayerData;
     </script>
 </head>
@@ -131,31 +139,39 @@
         <button onclick="window.location.href='/'">Tracker</button>
         <button onclick="window.location.href='/monsters'">Monsters</button>
         <button onclick="window.location.href='/player'">Player</button>
-        <button onclick="window.location.href='/gamestate'">Game State</button>
+        <button onclick="window.location.href='/game'">Game Info</button>
     </div>
 
     <h1>K8s Dungeon Crawl</h1>
     <h2>Player Information</h2>
 
     <div class="container">
-        <div class="section" id="player-stats-section">
-            <h2>Player Stats</h2>
-            <div id="player-stats"></div>
+        <!-- First column with Player Stats and Modifiers -->
+        <div class="column">
+            <div class="section" id="player-stats-section">
+                <h2>Player Stats</h2>
+                <div id="player-stats"></div>
+            </div>
+            <div class="section" id="modifiers-section">
+                <h2>Modifiers</h2>
+                <div id="modifiers"></div>
+            </div>
         </div>
 
-        <div class="section" id="items-section">
-            <h2>Equipped Items</h2>
-            <div id="items"></div>
+        <!-- Second column with Equipped Items -->
+        <div class="column">
+            <div class="section" id="items-section">
+                <h2>Equipped Items</h2>
+                <div id="items"></div>
+            </div>
         </div>
 
-        <div class="section" id="inventory-section">
-            <h2>Inventory</h2>
-            <div id="inventory-items"></div>
-        </div>
-
-        <div class="section" id="modifiers-section">
-            <h2>Modifiers</h2>
-            <div id="modifiers"></div>
+        <!-- Third column with Inventory -->
+        <div class="column">
+            <div class="section" id="inventory-section">
+                <h2>Inventory</h2>
+                <div id="inventory-items"></div>
+            </div>
         </div>
     </div>
 </body>

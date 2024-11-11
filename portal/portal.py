@@ -42,6 +42,27 @@ game_absolute_turn_number = Gauge('brogue_absolute_turn_number', 'Total turns si
 game_milliseconds = Gauge('brogue_milliseconds_since_launch', 'Milliseconds since game launch')
 game_xpxp_this_turn = Gauge('brogue_xpxp_this_turn', 'Squares explored this turn')
 
+# Prometheus Gauges for Game Stats
+games_played = Gauge('brogue_games_played', 'Total games played')
+games_escaped = Gauge('brogue_games_escaped', 'Total games escaped')
+games_mastered = Gauge('brogue_games_mastered', 'Total games mastered')
+games_won = Gauge('brogue_games_won', 'Total games won')
+win_rate = Gauge('brogue_win_rate', 'Win rate as a percentage')
+deepest_level = Gauge('brogue_game_deepest_level', 'Deepest level reached')
+cumulative_levels = Gauge('brogue_cumulative_levels', 'Total cumulative levels reached across all games')
+highest_score = Gauge('brogue_highest_score', 'Highest score achieved')
+cumulative_score = Gauge('brogue_cumulative_score', 'Cumulative score across all games')
+most_gold = Gauge('brogue_most_gold', 'Most gold collected in a single game')
+cumulative_gold = Gauge('brogue_cumulative_gold', 'Cumulative gold collected across all games')
+most_lumenstones = Gauge('brogue_most_lumenstones', 'Most lumenstones collected in a single game')
+cumulative_lumenstones = Gauge('brogue_cumulative_lumenstones', 'Cumulative lumenstones collected across all games')
+fewest_turns_win = Gauge('brogue_fewest_turns_win', 'Fewest turns taken to win a game')
+cumulative_turns = Gauge('brogue_cumulative_turns', 'Cumulative turns played across all games')
+longest_win_streak = Gauge('brogue_longest_win_streak', 'Longest win streak')
+longest_mastery_streak = Gauge('brogue_longest_mastery_streak', 'Longest mastery streak')
+current_win_streak = Gauge('brogue_current_win_streak', 'Current win streak')
+current_mastery_streak = Gauge('brogue_current_mastery_streak', 'Current mastery streak')
+
 # Item Metrics
 item_weapon_damage_min = Gauge('brogue_weapon_damage_min', 'Minimum damage of equipped weapon')
 item_weapon_damage_max = Gauge('brogue_weapon_damage_max', 'Maximum damage of equipped weapon')
@@ -75,6 +96,8 @@ dead_monsters = {}     # Records deaths across games
 game_state_data = {}
 player_info_data = {}
 items_data = {}
+game_stats_data = {}
+player_pack_data = {}
 
 # Endpoint to serve Prometheus metrics in text format (GET)
 @app.route('/metrics', methods=['GET'])
@@ -114,6 +137,18 @@ def receive_player_metrics():
 
     return jsonify({"status": "success"}), 200
 
+@app.route('/pack', methods=['POST'])
+def receive_pack_data():
+    data = request.json  # Get JSON data from the request
+    app.logger.info("Received pack data: %s", data)
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
+
+    # Store the received pack data in the global dictionary
+    player_pack_data.clear()
+    player_pack_data.update(data)
+
+    return jsonify({"status": "success", "received": data}), 200
 
 # Endpoint to receive Game State Metrics (POST)
 @app.route('/gamestate', methods=['POST'])
@@ -144,6 +179,38 @@ def receive_game_state_metrics():
 
     return jsonify({"status": "success"}), 200
 
+@app.route('/gamestats', methods=['POST'])
+def receive_game_stats_metrics():
+    data = request.json
+    app.logger.info("Received game stats metrics data: %s", data)
+    if not data:
+        return jsonify({"error": "No JSON payload received"}), 400
+
+    # Update the game_stats_data dictionary
+    game_stats_data.update(data)
+
+    # Set Prometheus Gauges only if data fields are present
+    games_played.set(data.get("games", 0))
+    games_escaped.set(data.get("escaped", 0))
+    games_mastered.set(data.get("mastered", 0))
+    games_won.set(data.get("won", 0))
+    win_rate.set(data.get("winRate", 0.0))
+    deepest_level.set(data.get("deepestLevel", 0))
+    cumulative_levels.set(data.get("cumulativeLevels", 0))
+    highest_score.set(data.get("highestScore", 0))
+    cumulative_score.set(data.get("cumulativeScore", 0))
+    most_gold.set(data.get("mostGold", 0))
+    cumulative_gold.set(data.get("cumulativeGold", 0))
+    most_lumenstones.set(data.get("mostLumenstones", 0))
+    cumulative_lumenstones.set(data.get("cumulativeLumenstones", 0))
+    fewest_turns_win.set(data.get("fewestTurnsWin", 0))
+    cumulative_turns.set(data.get("cumulativeTurns", 0))
+    longest_win_streak.set(data.get("longestWinStreak", 0))
+    longest_mastery_streak.set(data.get("longestMasteryStreak", 0))
+    current_win_streak.set(data.get("currentWinStreak", 0))
+    current_mastery_streak.set(data.get("currentMasteryStreak", 0))
+
+    return jsonify({"status": "success"}), 200
 
 # Endpoint to receive Item Metrics (POST)
 @app.route('/items', methods=['POST'])
@@ -248,6 +315,11 @@ def player_data_endpoint():
 def gamestate_data_endpoint():
     return jsonify(game_state_data)
 
+# Endpoint to serve game stats data (GET)
+@app.route('/gamestats/data', methods=['GET'])
+def gamestats_data_endpoint():
+    return jsonify(game_stats_data)
+
 @app.route('/items/data', methods=['GET'])
 def items_data_endpoint():
     return jsonify(items_data)
@@ -255,6 +327,10 @@ def items_data_endpoint():
 @app.route('/monsters/data', methods=['GET'])
 def monsters_endpoint():
     return jsonify({"current_game_monsters": list(current_game_monsters.values())})
+
+@app.route('/pack/data', methods=['GET'])
+def pack_data_endpoint():
+    return jsonify(player_pack_data)
 
 @app.route('/overall_monsters', methods=['GET'])
 def overall_monsters_endpoint():
@@ -280,9 +356,9 @@ def show_tracker():
 def show_player():
     return render_template('player.html')
 
-@app.route('/gamestate', methods=['GET'])
-def show_gamestate():
-    return render_template('gamestate.html')
+@app.route('/game', methods=['GET'])
+def show_game_info():
+    return render_template('game.html')
 
 @app.route('/monsters', methods=['GET'])
 def show_monsters():

@@ -809,7 +809,7 @@ enum potionKind {
     POTION_LICHEN,
 };
 
-enum weaponKind {
+extern enum weaponKind {
     DAGGER,
     SWORD,
     BROADSWORD,
@@ -2584,10 +2584,6 @@ typedef struct levelData {
 
 // K8S: For sending data to the portal
 extern levelData *levels;
-//void free_levels();
-//void initialize_levels();
-// K8S: For sending data to the portal
-
 
 enum machineFeatureFlags {
     MF_GENERATE_ITEM                = Fl(0),    // feature entails generating an item (overridden if the machine is adopting an item)

@@ -35,6 +35,7 @@
 #include "portal-monster.h"
 #include "portal-gamestate.h"
 #include "portal-items.h"
+#include "portal-gamestats.h"
 #include "MainMenu.h"
 
 
@@ -99,6 +100,7 @@ void *metrics_update_loop(void *arg) {
         update_monsters();
         update_items();
         update_gamestate();
+        update_gamestats();
         sleep_for_microseconds(10000); // Sleep for 0.10 seconds
     }
     

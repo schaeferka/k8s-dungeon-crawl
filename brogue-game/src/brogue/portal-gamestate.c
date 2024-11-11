@@ -10,6 +10,7 @@
 #include "portal-gamestate.h"
 
 #define GAMESTATE_PORTAL_URL "http://portal-service.portal:5000/gamestate"
+#define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats"
 
 // Function to send game state information to the portal
 void update_gamestate(void) {
