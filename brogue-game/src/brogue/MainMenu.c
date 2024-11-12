@@ -944,32 +944,10 @@ boolean dialogChooseFile(char *path, const char *suffix, const char *prompt) {
     }
 }
 
-typedef struct gameStats {
-    int games;
-    int escaped;
-    int mastered;
-    int won;
-    float winRate;
-    int deepestLevel;
-    int cumulativeLevels;
-    int highestScore;
-    unsigned long cumulativeScore;
-    int mostGold;
-    unsigned long cumulativeGold;
-    int mostLumenstones;
-    int cumulativeLumenstones;
-    int fewestTurnsWin; // zero means never won
-    unsigned long cumulativeTurns;
-    int longestWinStreak;
-    int longestMasteryStreak;
-    int currentWinStreak;
-    int currentMasteryStreak;
-} gameStats;
-
 /// @brief Updates the given stats to include a run 
 /// @param run The run to add
 /// @param stats The stats to update
-static void addRuntoGameStats(rogueRun *run, gameStats *stats) {
+void addRuntoGameStats(rogueRun *run, gameStats *stats) {
     stats->games++;
     stats->cumulativeScore += run->score;
     stats->cumulativeGold += run->gold;

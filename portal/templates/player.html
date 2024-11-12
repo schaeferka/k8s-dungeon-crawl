@@ -41,15 +41,17 @@
     <script>
         async function fetchPlayerData() {
             try {
-                const [playerResponse, itemsResponse] = await Promise.all([
+                const [playerResponse, itemsResponse, packResponse] = await Promise.all([
                     fetch('/player/data'),
-                    fetch('/items/data')
+                    fetch('/items/data'),
+                    fetch('/pack/data')
                 ]);
                 
                 const playerData = await playerResponse.json();
                 const itemsData = await itemsResponse.json();
-                
-                const combinedData = { ...playerData, ...itemsData };
+                const packData = await packResponse.json();
+
+                const combinedData = { ...playerData, ...itemsData, pack: packData.pack || [] };
                 
                 updatePlayerInfo(combinedData);
             } catch (error) {
@@ -78,6 +80,7 @@
                 "reaping", "regenerationBonus", "stealthBonus", "transference", "wisdomBonus"
             ];
 
+            // Populate Player Stats section
             playerStatsKeys.forEach(key => {
                 const statValue = key in playerInfo ? playerInfo[key] : "N/A";
                 const statItem = document.createElement('p');
@@ -85,6 +88,7 @@
                 playerStatsDiv.appendChild(statItem);
             });
 
+            // Populate Items section with equipped items
             itemKeys.forEach(key => {
                 const item = playerInfo[key];
                 if (item && typeof item === 'object') {
@@ -105,8 +109,9 @@
                 }
             });
 
-            if (playerInfo.inventory && playerInfo.inventory.length > 0) {
-                playerInfo.inventory.forEach(item => {
+            // Populate Inventory section with items from the pack
+            if (playerInfo.pack && playerInfo.pack.length > 0) {
+                playerInfo.pack.forEach(item => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('item-section');
                     itemDiv.innerHTML = `
@@ -114,7 +119,8 @@
                         Quantity: ${item.quantity || 1}<br>
                         Armor: ${item.armor || 0}<br>
                         Damage: ${item.damage ? `${item.damage.min || 0} - ${item.damage.max || 0}` : 'N/A'}<br>
-                        Description: ${item.description || "No description"}<br><br>
+                        Description: ${item.description || "No description"}<br>
+                        Inventory Letter: ${item.inventoryLetter || "N/A"}<br><br>
                     `;
                     inventoryDiv.appendChild(itemDiv);
                 });
@@ -122,6 +128,7 @@
                 inventoryDiv.innerHTML = '<p>No items in inventory.</p>';
             }
 
+            // Populate Modifiers section
             modifierKeys.forEach(key => {
                 const modifierValue = key in playerInfo ? playerInfo[key] : "N/A";
                 const modifierItem = document.createElement('p');
@@ -130,7 +137,7 @@
             });
         }
 
-        setInterval(fetchPlayerData, 1000);
+        setInterval(fetchPlayerData, 1000); // Fetch data every second
         window.onload = fetchPlayerData;
     </script>
 </head>

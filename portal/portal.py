@@ -139,15 +139,21 @@ def receive_player_metrics():
 
 @app.route('/pack', methods=['POST'])
 def receive_pack_data():
-    data = request.json  # Get JSON data from the request
+    data = request.json
     app.logger.info("Received pack data: %s", data)
-    if not data:
-        return jsonify({"error": "No JSON payload received"}), 400
 
-    # Store the received pack data in the global dictionary
+    if not data or "pack" not in data:
+        return jsonify({"error": "Invalid or missing pack data"}), 400
+
+    # Optional: Validate structure of each item in the pack
+    for item in data.get("pack", []):
+        if not all(k in item for k in ["category", "name", "quantity", "inventoryLetter"]):
+            return jsonify({"error": "Item missing required fields"}), 400
+
+    # Store the pack data
     player_pack_data.clear()
     player_pack_data.update(data)
-
+    
     return jsonify({"status": "success", "received": data}), 200
 
 # Endpoint to receive Game State Metrics (POST)

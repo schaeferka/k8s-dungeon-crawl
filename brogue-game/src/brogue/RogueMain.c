@@ -31,6 +31,7 @@
 #include <pthread.h>
 #include <time.h>
 #include "MainMenu.h"
+#include "portal-gamestats.h"
 
 int MONSTIE_COUNT = 0;
 

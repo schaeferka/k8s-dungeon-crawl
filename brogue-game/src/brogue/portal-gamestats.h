@@ -5,33 +5,13 @@
 
 #include "Rogue.h"
 #include "stdbool.h"
-
-// Structure to hold gamestats-related metrics
-
-typedef struct {
-    int games;
-    int escaped;
-    int mastered;
-    int won;
-    float winRate;
-    int deepestLevel;
-    int cumulativeLevels;
-    int highestScore;
-    unsigned long cumulativeScore;
-    int mostGold;
-    unsigned long cumulativeGold;
-    int mostLumenstones;
-    int cumulativeLumenstones;
-    int fewestTurnsWin; // zero means never won
-    unsigned long cumulativeTurns;
-    int longestWinStreak;
-    int longestMasteryStreak;
-    int currentWinStreak;
-    int currentMasteryStreak;
-} GameStatsMetrics;
+#include "MainMenu.h"
 
 // Function declarations
-void update_gamestats(void);
-void send_gamestats_metrics_to_portal(const GameStatsMetrics *gamestats);
+extern void update_gamestats(void);
+
+void extractGameStatsJSON(const gameStats *stats, char *buffer, size_t buffer_size);
+
+void send_gamestats_metrics_to_portal(const char *post_data);
 
 #endif // PORTAL_GAMESTATS_H

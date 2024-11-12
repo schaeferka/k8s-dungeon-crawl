@@ -350,6 +350,8 @@ void send_items_to_portal(const ItemMetrics *items) {
     }
 }
 
+
+
 void send_pack_to_portal() {
     if (!rogue.gameHasEnded) {
         CURL *curl = curl_easy_init();
@@ -399,39 +401,63 @@ void extract_inventory_json(char *buffer, size_t buffer_size) {
     offset += snprintf(buffer + offset, buffer_size - offset, "[");
 
     while (currentItem && offset < buffer_size - 1) {
-        const itemTable *itemDetails = NULL;
-        const char *categoryName = getItemCategory(currentItem->category);
         const char *itemName = "Unknown";
         const char *itemDescription = "No description available";
+        const char *categoryName = getCategoryName(currentItem->category);
+        char *kindName = "Unknown";
 
-        // Determine item details based on category and kind
-        switch (currentItem->category) {
+       switch (currentItem->category) {
             case WEAPON:
-                itemDetails = getWeaponDetails(currentItem->kind);
+                kindName = getWeaponKindName(currentItem->kind);
                 break;
             case ARMOR:
-                itemDetails = getArmorDetails(currentItem->kind);
+                kindName = getArmorKindName(currentItem->kind);
                 break;
             case RING:
-                itemDetails = getRingDetails(currentItem->kind);
+                kindName = getRingKindName(currentItem->kind);
                 break;
-            // Add cases for other categories if needed
-        }
-
-        if (itemDetails) {
-            itemName = itemDetails->name;
-            itemDescription = itemDetails->description;
+            case FOOD:
+                kindName = "Unknown" ? kindName = "Some Food" : kindName;
+                break;
+            case POTION:
+                kindName = getPotionKindName(currentItem->kind);
+                break;
+            case SCROLL:
+                kindName = getScrollKindName(currentItem->kind);
+                break;
+            case STAFF:
+                kindName = getStaffKindName(currentItem->kind);
+                break;
+            case WAND:
+                kindName = getWandKindName(currentItem->kind);
+                break;
+            case CHARM:
+                kindName = getCharmKindName(currentItem->kind);
+                break;
+            case GOLD:
+                kindName = "Gold";
+                break;
+            case AMULET:
+                kindName = "Amulet";
+                break;
+            case GEM:
+                kindName = "Gem";
+                break;
+            case KEY:
+                kindName = "Key";
+                break;
         }
 
         // Format item details as JSON
         if (currentItem->inventoryLetter) {
-            offset += snprintf(buffer + offset, buffer_size - offset,
-                            "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
-                            "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d } }",
-                            categoryName, itemName, itemDescription,
-                            currentItem->quantity, currentItem->armor,
-                            currentItem->damage.lowerBound, currentItem->damage.upperBound),
-                            currentItem->inventoryLetter - ' ';
+                        offset += snprintf(buffer + offset, buffer_size - offset,
+                       "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
+                       "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d }, "
+                       "\"inventoryLetter\": \"%c\" }",
+                       categoryName, kindName, itemDescription,
+                       currentItem->quantity, currentItem->armor,
+                       currentItem->damage.lowerBound, currentItem->damage.upperBound,
+                       currentItem->inventoryLetter);
        
             
 
@@ -446,39 +472,4 @@ void extract_inventory_json(char *buffer, size_t buffer_size) {
 
     printf("Inventory JSON: %s\n", buffer);
     }
-}
-
-const char itemCategories[NUMBER_ITEM_CATEGORIES][11] = {
-    "food", "weapon", "armor", "potion", "scroll", "staff", "wand", "ring",
-   "charm", "gold", "amulet", "gem", "key"
-};
-
-
-const itemTable *getWeaponDetails(short kind) {
-    if (kind >= 0 && kind < NUMBER_WEAPON_KINDS) {
-        return &weaponTable[kind];
-    }
-    return NULL;
-}
-
-const itemTable *getArmorDetails(short kind) {
-    if (kind >= 0 && kind < NUMBER_ARMOR_KINDS) {
-        return &armorTable[kind];
-    }
-    return NULL;
-}
-
-const itemTable *getRingDetails(short kind) {
-    if (kind >= 0 && kind < NUMBER_RING_KINDS) {
-        return &ringTable[kind];
-    }
-    return NULL;
-}
-
-// Now, you can access itemCategoryNames directly
-const char *getItemCategory(unsigned short category) {
-    if (category < NUMBER_ITEM_CATEGORIES) {
-        return itemCategories[category];
-    }
-    return "Unknown Category";
-}
+} 

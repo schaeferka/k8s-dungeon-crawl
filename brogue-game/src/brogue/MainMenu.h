@@ -22,4 +22,28 @@ static pthread_t metrics_thread;
 
 extern void cleanup_game_resources();
 
+typedef struct gameStats {
+    int games;
+    int escaped;
+    int mastered;
+    int won;
+    float winRate;
+    int deepestLevel;
+    int cumulativeLevels;
+    int highestScore;
+    unsigned long cumulativeScore;
+    int mostGold;
+    unsigned long cumulativeGold;
+    int mostLumenstones;
+    int cumulativeLumenstones;
+    int fewestTurnsWin; // zero means never won
+    unsigned long cumulativeTurns;
+    int longestWinStreak;
+    int longestMasteryStreak;
+    int currentWinStreak;
+    int currentMasteryStreak;
+} gameStats;
+
+extern void addRuntoGameStats(rogueRun *run, gameStats *stats);
+
 #endif // MAIN_MENU_H

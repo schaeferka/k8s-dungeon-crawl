@@ -13,6 +13,23 @@ typedef struct {
     item ringRight;
 } ItemMetrics;
 
+typedef struct {
+    unsigned short category;
+    short kind;
+    unsigned long flags;
+    randomRange damage;
+    short armor;
+    short charges;
+    short enchant1;
+    short enchant2;
+    short timesEnchanted;
+    short strengthRequired;
+    unsigned short quiverNumber;
+    short quantity;
+    char inventoryLetter;
+    char inscription[DCOLS];
+} PackItem;
+
 const char* getWeaponKindName(short kind);
 const char* getCategoryName(unsigned short category);
 const char* getWeaponEnchantName(short enchant);
