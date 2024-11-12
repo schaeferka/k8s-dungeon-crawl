@@ -89,7 +89,7 @@ k3d image import $IMAGE_NAME_PORTAL -c $CLUSTER_NAME
 
 # Step 4: Delete existing resources in the cluster for both Brogue and Portal
 echo "Deleting existing Kubernetes resources for Brogue and Portal..."
-for file in "${DEPLOYMENT_FILES_BROGUE[@]}" "${DEPLOYMENT_FILES_PORTAL[@]}" "${DEPLOUMENT_FILES_DM[@]}"; do
+for file in "${DEPLOYMENT_FILES_BROGUE[@]}" "${DEPLOYMENT_FILES_PORTAL[@]}" "${DEPLOYMENT_FILES_DM[@]}"; do
     kubectl delete -f "$file" --ignore-not-found
 done
 kubectl delete -f "$BROGUE_NAMESPACE_FILE" --ignore-not-found

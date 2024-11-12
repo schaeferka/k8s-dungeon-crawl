@@ -1,141 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K8s Dungeon Crawl - Monster Tracker</title>
-    <style>
-        .dead-monster {
-            background-color: #f8d7da;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        .nav-buttons {
-            margin-bottom: 20px;
-        }
-    </style>
-    <script>
-        async function fetchMonsterData() {
-            try {
-                const currentGameResponse = await fetch('/monsters/data');
-                const currentGameData = await currentGameResponse.json();
+{% extends "base.html" %}
 
-                const deadMonstersResponse = await fetch('/dead_monsters');
-                const deadMonstersData = await deadMonstersResponse.json();
+{% block title %}Monster Tracker{% endblock %}
 
-                const overallMonstersResponse = await fetch('/overall_monsters');
-                const overallMonstersData = await overallMonstersResponse.json();
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Monster Tracker</h1>
 
-                updateTables(
-                    currentGameData.current_game_monsters, 
-                    deadMonstersData.dead_monsters, 
-                    overallMonstersData.overall_monsters
-                );
-            } catch (error) {
-                console.error('Error fetching monster data:', error);
-            }
-        }
-
-        function updateTables(currentMonsters, deadMonsters, overallMonsters) {
-            const currentTableBody = document.getElementById('current-monsters-body');
-            const deadTableBody = document.getElementById('dead-monsters-body');
-            const overallTableBody = document.getElementById('overall-monsters-body');
-
-            currentTableBody.innerHTML = '';
-            deadTableBody.innerHTML = '';
-            overallTableBody.innerHTML = '';
-
-            // Populate the Current Game Monsters table
-            currentMonsters.forEach(monster => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${monster.name || ''}</td>
-                    <td>${monster.hp || ''}</td>
-                    <td>${monster.maxHP || ''}</td>
-                    <td>${monster.level || ''}</td>
-                    <td>${monster.defense || ''}</td>
-                    <td>${monster.accuracy || ''}</td>
-                    <td>${monster.damageMin || ''} - ${monster.damageMax || ''}</td>
-                    <td>${monster.turnsBetweenRegen || ''}</td>
-                    <td>${monster.movementSpeed || ''}</td>
-                    <td>${monster.attackSpeed || ''}</td>
-                    <td>${monster.id || ''}</td>
-                    <td>${monster.type || ''}</td>
-                `;
-                currentTableBody.appendChild(row);
-            });
-
-            // Populate the Dead Monsters table
-            deadMonsters.forEach(monster => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${monster.name || ''}</td>
-                    <td>${monster.level || ''}</td>
-                    <td>${monster.hp || '0'} / ${monster.maxHP || ''}</td>
-                    <td>${monster.id || ''}</td>
-                `;
-                deadTableBody.appendChild(row);
-            });
-
-            // Populate the Overall Monsters table
-            overallMonsters.forEach(monster => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${monster.name || ''}</td>
-                    <td>${monster.hp || ''}</td>
-                    <td>${monster.maxHP || ''}</td>
-                    <td>${monster.level || ''}</td>
-                    <td>${monster.defense || ''}</td>
-                    <td>${monster.accuracy || ''}</td>
-                    <td>${monster.damageMin || ''} - ${monster.damageMax || ''}</td>
-                    <td>${monster.movementSpeed || ''}</td>
-                    <td>${monster.attackSpeed || ''}</td>
-                    <td>${monster.id || ''}</td>
-                    <td>${monster.type || ''}</td>
-                `;
-                overallTableBody.appendChild(row);
-            });
-        }
-
-        // Fetch and update data every 1 seconds
-        setInterval(fetchMonsterData, 100);
-        window.onload = fetchMonsterData;
-    </script>
-</head>
-<body>
-    <div class="nav-buttons">
-        <button onclick="window.location.href='/'">Tracker</button>
-        <button onclick="window.location.href='/monsters'">Monsters</button>
-        <button onclick="window.location.href='/player'">Player</button>
-        <button onclick="window.location.href='/game'">Game Info</button>
-    </div>   
-
-    <h1>K8s Dungeon Crawl</h1>
-    <h2>Monster Tracker</h2>
-
-    <h3>Current Game Monsters</h3>
-    <table>
-        <thead>
+    <h3 class="text-xl font-semibold text-gray-700">Current Game Monsters</h3>
+    <table class="w-full border-collapse border border-gray-300">
+        <thead class="bg-gray-200">
             <tr>
-                <th>Portal Name</th>
-                <th>Current HP</th>
-                <th>Max HP</th>
-                <th>Depth</th>
-                <th>Defense</th>
-                <th>Accuracy</th>
-                <th>Damage</th>
-                <th>Turns Between Regen</th>
-                <th>Movement Speed</th>
-                <th>Attack Speed</th>
-                <th>ID</th>
-                <th>Type</th>
+                <th class="border px-4 py-2">Portal Name</th>
+                <th class="border px-4 py-2">Current HP</th>
+                <th class="border px-4 py-2">Max HP</th>
+                <th class="border px-4 py-2">Depth</th>
+                <th class="border px-4 py-2">Defense</th>
+                <th class="border px-4 py-2">Accuracy</th>
+                <th class="border px-4 py-2">Damage</th>
+                <th class="border px-4 py-2">Turns Between Regen</th>
+                <th class="border px-4 py-2">Movement Speed</th>
+                <th class="border px-4 py-2">Attack Speed</th>
+                <th class="border px-4 py-2">ID</th>
+                <th class="border px-4 py-2">Type</th>
             </tr>
         </thead>
         <tbody id="current-monsters-body">
@@ -143,14 +29,14 @@
         </tbody>
     </table>
 
-    <h3>Dead Monsters</h3>
-    <table>
-        <thead>
+    <h3 class="text-xl font-semibold text-gray-700 mt-6">Dead Monsters</h3>
+    <table class="w-full border-collapse border border-gray-300">
+        <thead class="bg-gray-200">
             <tr>
-                <th>Portal Name</th>
-                <th>Depth</th>
-                <th>HP (at death)</th>
-                <th>ID</th>
+                <th class="border px-4 py-2">Portal Name</th>
+                <th class="border px-4 py-2">Depth</th>
+                <th class="border px-4 py-2">HP (at death)</th>
+                <th class="border px-4 py-2">ID</th>
             </tr>
         </thead>
         <tbody id="dead-monsters-body">
@@ -158,26 +44,30 @@
         </tbody>
     </table>
 
-    <h3>Overall Monsters (All Games)</h3>
-    <table>
-        <thead>
+    <h3 class="text-xl font-semibold text-gray-700 mt-6">Overall Monsters (All Games)</h3>
+    <table class="w-full border-collapse border border-gray-300">
+        <thead class="bg-gray-200">
             <tr>
-                <th>Portal Name</th>
-                <th>Current HP</th>
-                <th>Max HP</th>
-                <th>Depth</th>
-                <th>Defense</th>
-                <th>Accuracy</th>
-                <th>Damage</th>
-                <th>Movement Speed</th>
-                <th>Attack Speed</th>
-                <th>ID</th>
-                <th>Type</th>
+                <th class="border px-4 py-2">Portal Name</th>
+                <th class="border px-4 py-2">Current HP</th>
+                <th class="border px-4 py-2">Max HP</th>
+                <th class="border px-4 py-2">Depth</th>
+                <th class="border px-4 py-2">Defense</th>
+                <th class="border px-4 py-2">Accuracy</th>
+                <th class="border px-4 py-2">Damage</th>
+                <th class="border px-4 py-2">Movement Speed</th>
+                <th class="border px-4 py-2">Attack Speed</th>
+                <th class="border px-4 py-2">ID</th>
+                <th class="border px-4 py-2">Type</th>
             </tr>
         </thead>
         <tbody id="overall-monsters-body">
             <!-- JavaScript will populate this area -->
         </tbody>
     </table>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/monsters.js') }}"></script>
+{% endblock %}
