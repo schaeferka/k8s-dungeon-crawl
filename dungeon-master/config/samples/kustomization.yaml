@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- kaschaefer_v1_monster.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
