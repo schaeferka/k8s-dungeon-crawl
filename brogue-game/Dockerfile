@@ -67,9 +67,11 @@ RUN make
 EXPOSE 15900 16080 18000
 
 # Set environment variables to center the Brogue window
-ENV SDL_VIDEO_WINDOW_POS=center
-ENV SDL_VIDEO_CENTERED=1
+ENV SDL_VIDEO_WINDOW_POS=0,0
+ENV SDL_VIDEO_CENTERED=0
 ENV SDL_VIDEO_FULLSCREEN_DISPLAY=1
+ENV SDL_WINDOW_WIDTH=800
+ENV SDL_WINDOW_HEIGHT=600
 
 # Set up the X virtual framebuffer (Xvfb) in the background, start XFCE, x11vnc, Brogue, noVNC, and the metrics server
 CMD bash -c "Xvfb :1 -screen 0 1280x960x24 & \

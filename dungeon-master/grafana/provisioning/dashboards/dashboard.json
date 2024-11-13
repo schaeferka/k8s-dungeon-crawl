@@ -39,7 +39,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<iframe src=\"http://localhost:8090/vnc.html\" style=\"width:100%; height:100%; border:none;\"></iframe>",
+        "content": "<iframe src=\"http://localhost:8090/vnc.html?autoconnect=true&resize=scale\" style=\"width:800px; height:600px; border:none;\"></iframe>",
         "mode": "html"
       },
       "pluginVersion": "11.3.0+security-01",
