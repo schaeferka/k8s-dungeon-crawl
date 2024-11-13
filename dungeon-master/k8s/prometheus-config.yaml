@@ -6,7 +6,7 @@ metadata:
 data:
   prometheus.yml: |
     global:
-      scrape_interval: 15s
+      scrape_interval: 1s
     scrape_configs:
       - job_name: 'portal-metrics'
         metrics_path: '/metrics'

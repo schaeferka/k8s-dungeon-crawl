@@ -17,7 +17,9 @@ spec:
       - name: grafana
         image: grafana/grafana:latest
         env:
-          - name: GF_SECURITY_ADMIN_PASSWORD
-            value: "admin"  # Set a secure password in production
+          - name: GF_SECURITY_ALLOW_EMBEDDING
+            value: "true"
+          - name: GF_PANELS_DISABLE_SANITIZE_HTML
+            value: "true"
         ports:
           - containerPort: 3000
