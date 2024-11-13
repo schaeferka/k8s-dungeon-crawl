@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboard-config
-  namespace: dungeon-master
+  namespace: grafana
 data:
   dashboard.json: |
     {

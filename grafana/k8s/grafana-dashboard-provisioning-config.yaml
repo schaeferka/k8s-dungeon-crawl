@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboard-provisioning
-  namespace: dungeon-master
+  namespace: grafana
 data:
   dashboards.yaml: |
     apiVersion: 1

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  namespace: dungeon-master
+  namespace: prometheus
 data:
   prometheus.yml: |
     global:
