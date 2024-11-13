@@ -334,6 +334,12 @@ def items_data_endpoint():
 def monsters_endpoint():
     return jsonify({"current_game_monsters": list(current_game_monsters.values())})
 
+@app.route('/monsters/count', methods=['GET'])
+def monsters_count_endpoint():
+    # Calculate the total number of items
+    monsters_count = len(current_game_monsters)
+    return jsonify({"monster_count": monsters_count})
+
 @app.route('/pack/data', methods=['GET'])
 def pack_data_endpoint():
     return jsonify(player_pack_data)
