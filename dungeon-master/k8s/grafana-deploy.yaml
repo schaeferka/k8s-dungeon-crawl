@@ -21,5 +21,29 @@ spec:
             value: "true"
           - name: GF_PANELS_DISABLE_SANITIZE_HTML
             value: "true"
+          - name: GF_INSTALL_PLUGINS
+            value: "yesoreyeram-infinity-datasource"
+          - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+            value: "/var/lib/grafana/dashboards/dashboard.json"
+          - name: GF_SECURITY_ADMIN_PASSWORD
+            value: "pass"
         ports:
           - containerPort: 3000
+        volumeMounts:
+          - name: grafana-datasources
+            mountPath: /etc/grafana/provisioning/datasources
+            readOnly: true
+          - name: dashboard-config
+            mountPath: /var/lib/grafana/dashboards
+          - name: provisioning-config
+            mountPath: /etc/grafana/provisioning/dashboards
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-config
+          configMap:
+            name: grafana-dashboard-config
+        - name: provisioning-config
+          configMap:
+            name: grafana-dashboard-provisioning

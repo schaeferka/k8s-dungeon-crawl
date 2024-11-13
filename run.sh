@@ -15,7 +15,7 @@ PORTAL_NAMESPACE_FILE="$PORTAL_DIR/k8s/portal-namespace.yaml"
 DM_NAMESPACE_FILE="$DM_DIR/k8s/dungeon-master-namespace.yaml"
 DEPLOYMENT_FILES_BROGUE=("$BROGUE_DIR/k8s/brogue-deployment.yaml" "$BROGUE_DIR/k8s/brogue-service.yaml" "$BROGUE_DIR/k8s/brogue-clusterroles.yaml" "$BROGUE_DIR/k8s/brogue-clusterrolebindings.yaml" "$BROGUE_DIR/k8s/brogue-serviceaccount.yaml")
 DEPLOYMENT_FILES_PORTAL=("$PORTAL_DIR/k8s/portal-deployment.yaml" "$PORTAL_DIR/k8s/portal-service.yaml" "$PORTAL_DIR/k8s/portal-clusterrole.yaml" "$PORTAL_DIR/k8s/portal-clusterrolebinding.yaml" "$PORTAL_DIR/k8s/portal-serviceaccount.yaml")    
-DEPLOYMENT_FILES_DM=("$DM_DIR/k8s/prometheus-deploy.yaml" "$DM_DIR/k8s/prometheus-service.yaml" "$DM_DIR/k8s/prometheus-config.yaml" "$DM_DIR/k8s/grafana-deploy.yaml" "$DM_DIR/k8s/grafana-service.yaml")
+DEPLOYMENT_FILES_DM=("$DM_DIR/k8s/prometheus-deploy.yaml" "$DM_DIR/k8s/prometheus-service.yaml" "$DM_DIR/k8s/prometheus-config.yaml" "$DM_DIR/k8s/grafana-datasources-config.yaml" "$DM_DIR/k8s/grafana-dashboard-config.yaml" "$DM_DIR/k8s/grafana-dashboard-provisioning-config.yaml" "$DM_DIR/k8s/grafana-deploy.yaml" "$DM_DIR/k8s/grafana-service.yaml")
 LOCAL_PORT_16080=8090
 LOCAL_PORT_15900=5910
 LOCAL_PORT_18000=8010  # Metrics server port for Brogue
@@ -186,7 +186,6 @@ until [[ $(kubectl get pod $GRAFANA_POD_NAME -n $DM_NAMESPACE -o jsonpath='{.sta
     sleep 2
 done
 echo "Grafana pod $GRAFANA_POD_NAME is ready."
-
 
 # Step 8: Start port forwarding in a new tmux session
 echo "Starting port forwarding in a tmux session..."
