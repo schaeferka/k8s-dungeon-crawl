@@ -1,0 +1,9 @@
+apiVersion: kaschaefer.com/v1
+kind: Monster
+metadata:
+  name: goblin-10001
+spec:
+  name: Goblin
+  type: Goblin
+  id: 10001
+  health: 50

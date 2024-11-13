@@ -31,9 +31,9 @@ PROMETHEUS_NAMESPACE_FILE="$PROMETHEUS_DIR/k8s/prometheus-namespace.yaml"
 GRAFANA_NAMESPACE_FILE="$GRAFANA_DIR/k8s/grafana-namespace.yaml"
 DEPLOYMENT_FILES_BROGUE=("$BROGUE_DIR/k8s/brogue-deployment.yaml" "$BROGUE_DIR/k8s/brogue-service.yaml" "$BROGUE_DIR/k8s/brogue-clusterroles.yaml" "$BROGUE_DIR/k8s/brogue-clusterrolebindings.yaml" "$BROGUE_DIR/k8s/brogue-serviceaccount.yaml")
 DEPLOYMENT_FILES_PORTAL=("$PORTAL_DIR/k8s/portal-deployment.yaml" "$PORTAL_DIR/k8s/portal-service.yaml" "$PORTAL_DIR/k8s/portal-clusterrole.yaml" "$PORTAL_DIR/k8s/portal-clusterrolebinding.yaml" "$PORTAL_DIR/k8s/portal-serviceaccount.yaml")    
-DEPLOYMENT_FILES_DM=()
-DEPLOYMENT_FILES_PROMETHEUS=("$DM_DIR/k8s/prometheus-deploy.yaml" "$DM_DIR/k8s/prometheus-service.yaml" "$DM_DIR/k8s/prometheus-config.yaml")
-DEPLOYMENT_FILES_GRAFANA=("$DM_DIR/k8s/grafana-datasources-config.yaml" "$DM_DIR/k8s/grafana-dashboard-config.yaml" "$DM_DIR/k8s/grafana-dashboard-provisioning-config.yaml" "$DM_DIR/k8s/grafana-deploy.yaml" "$DM_DIR/k8s/grafana-service.yaml")
+DEPLOYMENT_FILES_DM=("$DM_DIR/k8s/monster-crd.yaml" "$DM_DIR/k8s/goblin.yaml")
+DEPLOYMENT_FILES_PROMETHEUS=("$PROMETHEUS_DIR/k8s/prometheus-deploy.yaml" "$PROMETHEUS_DIR/k8s/prometheus-service.yaml" "$PROMETHEUS_DIR/k8s/prometheus-config.yaml")
+DEPLOYMENT_FILES_GRAFANA=("$GRAFANA_DIR/k8s/grafana-datasources-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-provisioning-config.yaml" "$GRAFANA_DIR/k8s/grafana-deploy.yaml" "$GRAFANA_DIR/k8s/grafana-service.yaml")
 LOCAL_PORT_16080=8090  # noVNC server port for Brogue
 LOCAL_PORT_15900=5910  # VNC server port for Brogue
 LOCAL_PORT_18000=8010  # Metrics server port for Brogue
@@ -157,94 +157,123 @@ echo "Portal pod $PORTAL_POD_NAME is ready."
 # Step 7: Reset the Prometheus deployment if prom in command line
 if [[ " $@ " =~ " prom " ]]; then
     echo "Prometheus argument detected. Resetting Prometheus deployment..."
-# Reset the Prometheus namespace
-echo "Deleting existing Kubernetes resources for Prometheus..."
-for file in "${DEPLOYMENT_FILES_PROMETHEUS[@]}"; do
-    kubectl delete -f "$file" --ignore-not-found
-done
-kubectl delete -f "$PROMETHEUS_NAMESPACE_FILE" --ignore-not-found
 
-# Apply the Prometheus namespace YAML file
-echo "Applying Prometheus namespace file..."
-kubectl apply -f "$PROMETHEUS_NAMESPACE_FILE"
+    # Check each port individually and prompt for action if any are in use
+    for port in $LOCAL_PORT_9090; do
+        if ! check_port $port; then
+            echo "Port $port is already in use."
+            echo "Please free up the port."
+            echo "The port is in use by the following process: \$(lsof -i :$port)"
+            echo "You can free up the port by killing the process using the port with: kill -9 \$(lsof -t -i:$port)"
+            exit 1
+        fi
+    done
 
-# Wait for the namespace to be ready
-PROMETHEUS_NAMESPACE=$(awk '/name:/{print $2}' "$PROMETHEUS_NAMESPACE_FILE")
-echo "Waiting for namespace $PROMETHEUS_NAMESPACE to be ready..."
-until kubectl get namespace $PROMETHEUS_NAMESPACE >/dev/null 2>&1; do
-    echo "Waiting for namespace $PROMETHEUS_NAMESPACE..."
-    sleep 1
-done
-echo "Namespace $PROMETHEUS_NAMESPACE is ready."
+    # Reset the Prometheus namespace
+    echo "Deleting existing Kubernetes resources for Prometheus..."
+    for file in "${DEPLOYMENT_FILES_PROMETHEUS[@]}"; do
+        kubectl delete -f "$file" --ignore-not-found
+    done
+    kubectl delete -f "$PROMETHEUS_NAMESPACE_FILE" --ignore-not-found
 
-# Wait for Prometheus pod to be created and ready
-echo "Waiting for Prometheus pod to be created..."
-until kubectl get pods -n $DM_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
+    # Apply the Prometheus namespace YAML file
+    echo "Applying Prometheus namespace file..."
+    kubectl apply -f "$PROMETHEUS_NAMESPACE_FILE"
+
+    # Wait for the namespace to be ready
+    PROMETHEUS_NAMESPACE=$(awk '/name:/{print $2}' "$PROMETHEUS_NAMESPACE_FILE")
+    echo "Waiting for namespace $PROMETHEUS_NAMESPACE to be ready..."
+    until kubectl get namespace $PROMETHEUS_NAMESPACE >/dev/null 2>&1; do
+        echo "Waiting for namespace $PROMETHEUS_NAMESPACE..."
+        sleep 1
+    done
+    echo "Namespace $PROMETHEUS_NAMESPACE is ready."
+
+    echo "Applying Prometheus Kubernetes resources..."
+    for file in "${DEPLOYMENT_FILES_PROMETHEUS[@]}"; do
+        kubectl apply -f "$file"
+    done
+
+    # Wait for Prometheus pod to be created and ready
     echo "Waiting for Prometheus pod to be created..."
-    sleep 2
-done
+    until kubectl get pods -n $PROMETHEUS_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
+        echo "Waiting for Prometheus pod to be created..."
+        sleep 2
+    done
 
-PROMETHEUS_POD_NAME=$(kubectl get pods -n $DM_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}")
-echo "Prometheus pod $PROMETHEUS_POD_NAME created. Waiting for it to be ready..."
+    PROMETHEUS_POD_NAME=$(kubectl get pods -n $PROMETHEUS_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}")
+    echo "Prometheus pod $PROMETHEUS_POD_NAME created. Waiting for it to be ready..."
 
-until [[ $(kubectl get pod $PROMETHEUS_POD_NAME -n $DM_NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
-    echo "Waiting for Prometheus pod $PROMETHEUS_POD_NAME to be ready..."
-    sleep 2
-done
-echo "Prometheus pod $PROMETHEUS_POD_NAME is ready."
+    until [[ $(kubectl get pod $PROMETHEUS_POD_NAME -n $PROMETHEUS_NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
+        echo "Waiting for Prometheus pod $PROMETHEUS_POD_NAME to be ready..."
+        sleep 2
+    done
+    echo "Prometheus pod $PROMETHEUS_POD_NAME is ready."
 fi
+
 # Step 8: Reset the Grafana deployment if grafana in command line
 if [[ " $@ " =~ " grafana " ]]; then
     echo "Grafana argument detected. Resetting Grafana deployment..."
-# Reset the Grafana namespace
-echo "Deleting existing Kubernetes resources for Grafana..."
-for file in "${DEPLOYMENT_FILES_GRAFANA[@]}"; do
-    kubectl delete -f "$file" --ignore-not-found
-done
-kubectl delete -f "$GRAFANA_NAMESPACE_FILE" --ignore-not-found
 
-# Apply the Grafana namespace YAML file
-echo "Applying Grafana namespace file..."
-kubectl apply -f "$GRAFANA_NAMESPACE_FILE"
+    # Check each port individually and prompt for action if any are in use
+        for port in $LOCAL_PORT_3000; do
+            if ! check_port $port; then
+                echo "Port $port is already in use."
+                echo "Please free up the port."
+                echo "The port is in use by the following process: \$(lsof -i :$port)"
+                echo "You can free up the port by killing the process using the port with: kill -9 \$(lsof -t -i:$port)"
+                exit 1
+            fi
+        done
+        # Reset the Grafana namespace
+        echo "Deleting existing Kubernetes resources for Grafana..."
+        for file in "${DEPLOYMENT_FILES_GRAFANA[@]}"; do
+            kubectl delete -f "$file" --ignore-not-found
+        done
+        kubectl delete -f "$GRAFANA_NAMESPACE_FILE" --ignore-not-found
 
-# Wait for the namespace to be ready
-DM_NAMESPACE=$(awk '/name:/{print $2}' "$DM_NAMESPACE_FILE")
-echo "Waiting for namespace $DM_NAMESPACE to be ready..."
-until kubectl get namespace $DM_NAMESPACE >/dev/null 2>&1; do
-    echo "Waiting for namespace $DM_NAMESPACE..."
-    sleep 1
-done
-echo "Namespace $DM_NAMESPACE is ready."
+        # Apply the Grafana namespace YAML file
+        echo "Applying Grafana namespace file..."
+        kubectl apply -f "$GRAFANA_NAMESPACE_FILE"
 
-# Wait for Grafana pod to be created and ready
-echo "Waiting for Grafana pod to be created..."
-until kubectl get pods -n $DM_NAMESPACE -l app=grafana -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
-    echo "Waiting for Grafana pod to be created..."
-    sleep 2
-done
+        # Wait for the namespace to be ready
+        GRAFANA_NAMESPACE=$(awk '/name:/{print $2}' "$GRAFANA_NAMESPACE_FILE")
+        echo "Waiting for namespace $GRAFANA_NAMESPACE to be ready..."
+        until kubectl get namespace $GRAFANA_NAMESPACE >/dev/null 2>&1; do
+            echo "Waiting for namespace $GRAFANA_NAMESPACE..."
+            sleep 1
+        done
+        echo "Namespace $GRAFANA_NAMESPACE is ready."
 
-GRAFANA_POD_NAME=$(kubectl get pods -n $DM_NAMESPACE -l app=grafana -o jsonpath="{.items[0].metadata.name}")
-echo "Grafana pod $GRAFANA_POD_NAME created. Waiting for it to be ready..."
+        echo "Applying Grafana Kubernetes resources..."
+        for file in "${DEPLOYMENT_FILES_GRAFANA[@]}"; do
+            kubectl apply -f "$file"
+        done
 
-until [[ $(kubectl get pod $GRAFANA_POD_NAME -n $DM_NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
-    echo "Waiting for Grafana pod $GRAFANA_POD_NAME to be ready..."
-    sleep 2
-done
-echo "Grafana pod $GRAFANA_POD_NAME is ready."
+        # Wait for Grafana pod to be created and ready
+        echo "Waiting for Grafana pod to be created..."
+        until kubectl get pods -n $GRAFANA_NAMESPACE -l app=grafana -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
+            echo "Waiting for Grafana pod to be created..."
+            sleep 2
+        done
+
+        GRAFANA_POD_NAME=$(kubectl get pods -n $GRAFANA_NAMESPACE -l app=grafana -o jsonpath="{.items[0].metadata.name}")
+        echo "Grafana pod $GRAFANA_POD_NAME created. Waiting for it to be ready..."
+
+        until [[ $(kubectl get pod $GRAFANA_POD_NAME -n $GRAFANA_NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
+            echo "Waiting for Grafana pod $GRAFANA_POD_NAME to be ready..."
+            sleep 2
+        done
+        echo "Grafana pod $GRAFANA_POD_NAME is ready."
 fi
 
 # Step 9: Start port forwarding in a new tmux session
 echo "Starting port forwarding in a tmux session..."
 tmux new-session -d -s brogue_port_forward "kubectl port-forward service/brogue-service -n $BROGUE_NAMESPACE $LOCAL_PORT_16080:16080 $LOCAL_PORT_15900:15900 $LOCAL_PORT_18000:18000 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 tmux new-session -d -s portal_port_forward "kubectl port-forward service/portal-service -n $PORTAL_NAMESPACE $LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-if [[ " $@ " =~ " prom " ]]; then
-    echo "Prometheus argument detected. Forwarding Prometheus port..."
-tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-service -n $DM_NAMESPACE $LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-fi
-if [[ " $@ " =~ " grafana " ]]; then
-    echo "Grafana argument detected. Forwarding Grafana port..."
-tmux new-session -d -s grafana_port_forward "kubectl port-forward service/grafana-service -n $DM_NAMESPACE $LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-fi
+tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-service -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+tmux new-session -d -s grafana_port_forward "kubectl port-forward service/grafana-service -n $GRAFANA_NAMESPACE $LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+
 
 # Inform the user about tmux sessions
 echo "Port forwarding started in tmux sessions named 'brogue_port_forward' and 'portal_port_forward'."
