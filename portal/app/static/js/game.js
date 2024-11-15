@@ -26,7 +26,7 @@ function updateGameStateInfo(gameState) {
         "Basic Info": ["wizard", "gameInProgress", "gameHasEnded", "easyMode", "rewardRoomsGenerated"],
         "Game Timers": ["absoluteTurnNumber", "milliseconds", "xpxpThisTurn", "monsterSpawnFuse"],
         "Gold and Resources": ["goldGenerated", "seed", "RNG"],
-        "Game Depth": ["depthLevel", "deepestLevel"]
+        "Game Depth": ["currentDepth", "deepestLevel"]
     };
 
     for (const [sectionTitle, keys] of Object.entries(sections)) {

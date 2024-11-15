@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, render_template, request, current_app
 from app.models.monsters import Monster  # Assuming you have a Monster model
 from prometheus_client import Gauge, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-import time
 from app.services.kubernetes import KubernetesService
+from datetime import datetime
+from time import time
 
 bp = Blueprint('monsters', __name__)
 
@@ -78,8 +79,30 @@ def get_monster_timestamps():
     """
     Returns the timestamps of when monsters were spawned or died.
     """
-    timestamps = [{"name": monster["name"], "spawned_at": monster["spawnTimestamp"], "died_at": monster["deathTimestamp"]} for monster in monsters_overall_data.values()]
-    return jsonify(timestamps)
+    try:
+        timestamps = []
+        for monster in monsters_overall_data.values():
+            # Ensure each monster has the required fields
+            if "name" in monster and "spawnTimestamp" in monster and "deathTimestamp" in monster:
+                timestamps.append({
+                    "name": monster["name"],
+                    "spawnTimestamp": monster["spawnTimestamp"],
+                    "deathTimestamp": monster["deathTimestamp"]
+                })
+            else:
+                # Handle cases where required fields are missing
+                timestamps.append({
+                    "name": monster.get("name", "Unknown"),
+                    "spawnTimestamp": monster.get("spawnTimestamp", "Unknown"),
+                    "deathTimestamp": monster.get("deathTimestamp", "Unknown")
+                })
+
+        return jsonify(timestamps)
+
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving timestamps: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
 
 @bp.route("/update", methods=["POST"], strict_slashes=False) 
 def create():
@@ -94,24 +117,25 @@ def create():
             continue
 
         # Record the creation time if this is a new monster
-        if monster_id not in monsters_overall_data:
-            monster["creation_time"] = time.time()
+        monster["spawnTimestamp"] = int(time())  # Current timestamp in seconds
+        
+        if monster_id not in monsters_data:
+            # Add the monster to overall monsters
             monster_count.inc()
             current_app.logger.info("Added new monster to overall monsters: %s", monster)
 
-        # Update or add the monster in `monsters_overall_data`
-        monsters_overall_data[monster_id] = {**monsters_overall_data.get(monster_id, {}), **monster}
+            # Update or add the monster in `monsters_overall_data`
+            monsters_overall_data[monster_id] = {**monsters_overall_data.get(monster_id, {}), **monster}
 
         # Create the Monster custom resource in Kubernetes when a new monster is added
         try:
             k8s_service.create_monster_resource(
                 name=monster["name"],
-                namespace="default",  # Specify the correct namespace here
+                namespace="monsters",  # Specify the correct namespace here
                 monster_data=monster
             )
         except Exception as e:
             current_app.logger.error(f"Failed to create Monster resource for {monster_id}: {e}")
-            
             
         # Ensure `monsters_data` has the latest data for active monsters
         if not monster.get("isDead", False):
@@ -152,7 +176,7 @@ def receive_monster_death():
         monsters_data[monster_id]["hp"] = 0
         monsters_data[monster_id]["isDead"] = True
         monsters_overall_data[monster_id]["hp"] = 0
-        monsters_overall_data[monster_id]["isDead"] = True
+        monsters_overall_data[monster_id]["isDead"] = True 
 
         # Move the monster to the 'dead' collection
         monsters_dead.append(monsters_overall_data[monster_id])
@@ -177,7 +201,6 @@ def receive_monster_death():
     else:
         # Handle the case where the monster ID doesn't exist in the overall data
         return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
-    
 
 @bp.route('/reset', methods=['POST'], strict_slashes=False)
 def reset_current_game_monsters():
