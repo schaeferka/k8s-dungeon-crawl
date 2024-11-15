@@ -60,7 +60,7 @@ static int baseTileHeight = -1;     // height (px) of tiles in the smallest text
 
 int windowWidth = -1;               // the SDL window's width (in "screen units", not pixels)
 int windowHeight = -1;              // the SDL window's height (in "screen units", not pixels)
-boolean fullScreen = false;         // true if the window should be full-screen, else false
+boolean fullScreen = true;         // true if the window should be full-screen, else false
 boolean softwareRendering = false;  // true if hardware acceleration is disabled (by choice or by force)
 
 

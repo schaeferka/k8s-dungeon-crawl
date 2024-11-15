@@ -24,6 +24,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
+#include "portal-monster.h"
 
 
 /* Combat rules:
@@ -1738,6 +1739,11 @@ void killCreature(creature *decedent, boolean administrativeDeath) {
     if (decedent->leader) {
         checkForContinuedLeadership(decedent->leader);
     }
+    
+    // K8S: Notify the portal of the updates and death
+    decedent->isDead = true;
+    update_monsters(rogue.depthLevel-1);
+    send_monster_death_to_portal(decedent);
 }
 
 void buildHitList(const creature **hitList, const creature *attacker, creature *defender, const boolean sweep) {

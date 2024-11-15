@@ -1,3 +1,7 @@
+#ifndef DATADIR
+#define DATADIR "." 
+#endif
+
 #include <math.h>
 #include <limits.h>
 #include "platform.h"
@@ -353,4 +357,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-

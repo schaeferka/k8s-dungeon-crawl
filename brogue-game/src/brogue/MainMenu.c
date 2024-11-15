@@ -30,8 +30,19 @@
 #include <pthread.h>   // For threading
 #include <unistd.h>    // For sleep
 #include <stdio.h>
-// K8S: Include the metrics-sender header file
-#include "metrics-sender.h"
+// K8S: Include the portal header files
+#include "portal-player.h"
+#include "portal-monster.h"
+#include "portal-gamestate.h"
+#include "portal-items.h"
+#include "portal-gamestats.h"
+#include "MainMenu.h"
+
+
+#include <time.h>    // For nanosleep if usleep is not available
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L  // Enables nanosleep support in strict C
+#endif
 
 #define MENU_FLAME_PRECISION_FACTOR     10
 #define MENU_FLAME_RISE_SPEED           50
@@ -44,14 +55,73 @@
 
 #define MENU_FLAME_DENOMINATOR          (100 + MENU_FLAME_RISE_SPEED + MENU_FLAME_SPREAD_SPEED)
 
-// K8S: Function that calls update_metrics every second
+
+// K8S: Define a flag to track if the thread has been started
+static int metrics_thread_started = 0;
+
+void sleep_for_microseconds(int microseconds) {
+    struct timespec ts;
+    ts.tv_sec = microseconds / 100000;
+    ts.tv_nsec = (microseconds % 100000) * 1000;
+    nanosleep(&ts, NULL);
+}
+
+// Initialize the mutex
+pthread_mutex_t metrics_thread_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static pthread_t metrics_thread;
+
+void start_metrics_thread_if_needed() {
+    pthread_mutex_lock(&metrics_thread_mutex);
+    if (!metrics_thread_started) {
+        if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
+            fprintf(stderr, "Error creating metrics update thread.\n");
+        } else {
+            metrics_thread_started = 1;
+            printf("Metrics thread started\n");
+        }
+    }
+    pthread_mutex_unlock(&metrics_thread_mutex);
+}
+// K8S: Function that calls update_metrics every 0.10 seconds
+
 void *metrics_update_loop(void *arg) {
     while (1) {
-        update_metrics();
-        sleep(.25);
+        // Lock the mutex before checking gameHasEnded
+        pthread_mutex_lock(&metrics_thread_mutex);
+        if (rogue.gameHasEnded) {
+            pthread_mutex_unlock(&metrics_thread_mutex);
+            break;  // Exit the loop if the game has ended
+        }
+        pthread_mutex_unlock(&metrics_thread_mutex);
+        
+        // Perform the metrics updates
+        update_player();
+        update_monsters();
+        update_items();
+        update_gamestate();
+        update_gamestats();
+        sleep_for_microseconds(10000); // Sleep for 0.10 seconds
     }
+    
+    // Reset metrics_thread_started to allow thread restart in new game
+    pthread_mutex_lock(&metrics_thread_mutex);
+    metrics_thread_started = 0;
+    pthread_mutex_unlock(&metrics_thread_mutex);
+    
     return NULL;
 }
+
+// Cancel the thread in game cleanup code
+void cleanup_game_resources() {
+    MONSTIE_COUNT = 0;
+    rogue.gameHasEnded = true;
+    pthread_cancel(metrics_thread);
+    pthread_join(metrics_thread, NULL);  // Ensure cleanup
+    metrics_thread_started = 0;
+    initialize_monsters_new_game();
+}
+
 
 static void drawMenuFlames(signed short flames[COLS][(ROWS + MENU_FLAME_ROW_PADDING)][3], unsigned char mask[COLS][ROWS]) {
     short i, j, versionStringLength, gameModeStringLength;
@@ -542,6 +612,7 @@ static void titleMenu() {
 
     // Initialize the main menu with buttons stacked on top of the quit button
     windowpos quitButtonPosition = {COLS - 20, ROWS - 3};
+
     initializeMainMenu(&mainMenu, mainButtons, quitButtonPosition, &mainShadowBuf);
 
     // Display the title and flames
@@ -873,33 +944,10 @@ boolean dialogChooseFile(char *path, const char *suffix, const char *prompt) {
     }
 }
 
-typedef struct gameStats {
-    int games;
-    int escaped;
-    int mastered;
-    int won;
-    float winRate;
-    int deepestLevel;
-    int cumulativeLevels;
-    int highestScore;
-    unsigned long cumulativeScore;
-    int mostGold;
-    unsigned long cumulativeGold;
-    int mostLumenstones;
-    int cumulativeLumenstones;
-    int fewestTurnsWin; // zero means never won
-    unsigned long cumulativeTurns;
-    int longestWinStreak;
-    int longestMasteryStreak;
-    int currentWinStreak;
-    int currentMasteryStreak;
-} gameStats;
-
 /// @brief Updates the given stats to include a run 
 /// @param run The run to add
 /// @param stats The stats to update
-static void addRuntoGameStats(rogueRun *run, gameStats *stats) {
-
+void addRuntoGameStats(rogueRun *run, gameStats *stats) {
     stats->games++;
     stats->cumulativeScore += run->score;
     stats->cumulativeGold += run->gold;
@@ -1137,6 +1185,7 @@ void mainBrogueJunction() {
         rogue.gameHasEnded = false;
         rogue.playbackFastForward = false;
         rogue.playbackMode = false;
+        
         switch (rogue.nextGame) {
             case NG_NOTHING:
                 // Run the main menu to get a decision out of the player.
@@ -1187,21 +1236,24 @@ void mainBrogueJunction() {
                 }
 
                 rogue.nextGame = NG_NOTHING;
-                initializeRogue(rogue.nextGameSeed);
 
-                // K8S: Create a thread to run the metrics update loop
-                pthread_t metrics_thread;
-                if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
-                    fprintf(stderr, "Error creating metrics update thread.\n");
-                }
+                initializeRogue(rogue.nextGameSeed);
+            
+                // K8S: Create a detached thread to run the metrics update loop
+                start_metrics_thread_if_needed();
 
                 startLevel(rogue.depthLevel, 1); // descending into level 1
-
+                update_player();
+                update_monsters();
+                update_gamestate();
+                update_items();
                 mainInputLoop();
                 if(serverMode) {
                     rogue.nextGame = NG_QUIT;
                 }
+
                 freeEverything();
+                
                 break;
             case NG_OPEN_GAME:
                 rogue.nextGame = NG_NOTHING;
@@ -1303,6 +1355,4 @@ void mainBrogueJunction() {
                 break;
         }
     } while (rogue.nextGame != NG_QUIT);
-
-
 }

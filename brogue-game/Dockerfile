@@ -63,21 +63,15 @@ RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
 # Build Brogue application and metrics server
 RUN make
 
-# Confirm that metrics_server was created and move it to /app if needed
-#RUN if [ -f "bin/metrics_server" ]; then cp bin/metrics_server /app/metrics_server; fi
-
-# Set up VNC
-ARG VNC_PASSWORD=password
-RUN mkdir ~/.vnc \
-    && x11vnc -storepasswd $VNC_PASSWORD ~/.vnc/passwd
-
 # Expose the VNC, noVNC, and metrics HTTP ports
 EXPOSE 15900 16080 18000
 
 # Set environment variables to center the Brogue window
-ENV SDL_VIDEO_WINDOW_POS=center
-ENV SDL_VIDEO_CENTERED=1
+ENV SDL_VIDEO_WINDOW_POS=0,0
+ENV SDL_VIDEO_CENTERED=0
 ENV SDL_VIDEO_FULLSCREEN_DISPLAY=1
+ENV SDL_WINDOW_WIDTH=800
+ENV SDL_WINDOW_HEIGHT=600
 
 # Set up the X virtual framebuffer (Xvfb) in the background, start XFCE, x11vnc, Brogue, noVNC, and the metrics server
 CMD bash -c "Xvfb :1 -screen 0 1280x960x24 & \
@@ -85,7 +79,7 @@ CMD bash -c "Xvfb :1 -screen 0 1280x960x24 & \
              DISPLAY=:1 xfce4-session & \
              export SDL_VIDEODRIVER=dummy; \
              DISPLAY=:1 xset r on & \
-             DISPLAY=:1 x11vnc -display :1 -usepw -forever -o /var/log/x11vnc.log & \
+            DISPLAY=:1 x11vnc -display :1 -nopw -forever -o /var/log/x11vnc.log & \
              /opt/noVNC/utils/novnc_proxy --vnc localhost:5900 --listen 16080 & \
              DISPLAY=:1 /app/brogue -G & \
              wait"

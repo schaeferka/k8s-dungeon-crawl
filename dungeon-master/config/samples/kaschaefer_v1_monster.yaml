@@ -1,0 +1,9 @@
+apiVersion: kaschaefer.com/v1
+kind: Monster
+metadata:
+  labels:
+    app.kubernetes.io/name: dungeon-master
+    app.kubernetes.io/managed-by: kustomize
+  name: monster-sample
+spec:
+  # TODO(user): Add fields here

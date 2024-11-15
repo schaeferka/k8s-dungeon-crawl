@@ -27,8 +27,13 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
-
+#include "portal-monster.h"
+#include <pthread.h>
 #include <time.h>
+#include "MainMenu.h"
+#include "portal-gamestats.h"
+
+int MONSTIE_COUNT = 0;
 
 int rogueMain() {
     previousGameSeed = 0;
@@ -65,7 +70,6 @@ boolean fileExists(const char *pathname) {
 // Player specifies a file; if all goes well, put it into path and return true.
 // Otherwise, return false.
 boolean chooseFile(char *path, char *prompt, char *defaultName, char *suffix) {
-
     if (getInputTextString(path,
                            prompt,
                            min(DCOLS-25, BROGUE_FILENAME_MAX - strlen(suffix)),
@@ -184,6 +188,9 @@ void initializeGameVariant() {
 // Either way, previousGameSeed is set to the seed we use.
 // None of this seed stuff is applicable if we're playing a recording.
 void initializeRogue(uint64_t seed) {
+    // K8S: Initialize the monster count
+    MONSTIE_COUNT = 0;
+
     short i, j, k;
     item *theItem;
     boolean playingback, playbackFF, playbackPaused, wizard, easy, displayStealthRangeMode;
@@ -204,7 +211,7 @@ void initializeRogue(uint64_t seed) {
     if (rogue.meteredItems != NULL) {
         free(rogue.meteredItems);
     }
-
+    
     memset((void *) &rogue, 0, sizeof( playerCharacter )); // the flood
     rogue.playbackMode = playingback;
     rogue.playbackPaused = playbackPaused;
@@ -353,7 +360,6 @@ void initializeRogue(uint64_t seed) {
     fillGrid(rogue.mapToSafeTerrain, 0);
 
     // initialize the player
-
     memset(&player, '\0', sizeof(creature));
     player.info = monsterCatalog[0];
     setPlayerDisplayChar();
@@ -410,6 +416,7 @@ void initializeRogue(uint64_t seed) {
     rogue.clairvoyance = rogue.regenerationBonus
     = rogue.stealthBonus = rogue.transference = rogue.wisdomBonus = rogue.reaping = 0;
     rogue.lightMultiplier = 1;
+
 
     theItem = generateItem(FOOD, RATION);
     theItem = addItemToPack(theItem);
@@ -525,6 +532,7 @@ void initializeRogue(uint64_t seed) {
     }
     clearMessageArchive();
     blackOutScreen();
+    initialize_monsters_new_game();
     welcome();
 }
 
@@ -801,6 +809,8 @@ void startLevel(short oldLevelNumber, short stairDirection) {
 
     if (!levels[rogue.depthLevel-1].visited) {
         levels[rogue.depthLevel-1].visited = true;
+        // K8S: Send monsters for the level to the portal
+        update_monsters(rogue.depthLevel-1);
         if (rogue.depthLevel == gameConst->amuletLevel) {
             messageWithColor(levelFeelings[0].message, levelFeelings[0].color, 0);
         } else if (rogue.depthLevel == gameConst->deepestLevel) {
@@ -928,7 +938,7 @@ static void freeGlobalDynamicGrid(short ***grid) {
     }
 }
 
-void freeCreature(creature *monst) {
+void freeCreature(creature *monst) {   
     freeGlobalDynamicGrid(&(monst->mapToMe));
     freeGlobalDynamicGrid(&(monst->safetyMap));
     if (monst->carriedItem) {
@@ -975,9 +985,55 @@ void removeDeadMonsters() {
     removeDeadMonstersFromList(dormantMonsters);
 }
 
+// K8S: Free the levelData levels
+void free_levels() {
+    if (levels == NULL) {
+        return;  // Nothing to free
+    }
+
+    for (int i = 0; i < gameConst->deepestLevel; i++) {
+        // Free any items list for the level
+        struct item *item = levels[i].items;
+        while (item) {
+            struct item *nextItem = item->nextItem;
+            free(item);
+            item = nextItem;
+        }
+        levels[i].items = NULL;
+
+        // Free any monster lists
+        freeCreatureList(&levels[i].monsters);
+        freeCreatureList(&levels[i].dormantMonsters);
+
+        // Free the scentMap if it was allocated
+        if (levels[i].scentMap) {
+            for (int x = 0; x < DCOLS; x++) {
+                free(levels[i].scentMap[x]);
+            }
+            free(levels[i].scentMap);
+            levels[i].scentMap = NULL;
+        }
+    }
+
+    // Free the levels array itself if it was dynamically allocated
+    free(levels);
+    levels = NULL;
+}
+
+// K8S: Initialize the levelData levels
+void initialize_levels() {
+    //free_levels();  // Ensure it's empty before reallocation
+    levels = malloc(sizeof(levelData) * gameConst->deepestLevel);
+    memset(levels, 0, sizeof(levelData) * gameConst->deepestLevel);  // Zero-initialize all entries
+}
+
+
 void freeEverything() {
     short i;
     item *theItem, *theItem2;
+
+    cleanup_game_resources();
+    end_of_game_monster_cleanup();
 
 #ifdef AUDIT_RNG
     fclose(RNGLogFile);
@@ -989,7 +1045,7 @@ void freeEverything() {
     freeGlobalDynamicGrid(&rogue.mapToShore);
     freeGlobalDynamicGrid(&rogue.mapToSafeTerrain);
 
-    for (i=0; i<gameConst->deepestLevel+1; i++) {
+    for (i = 0; i < gameConst->deepestLevel + 1; i++) {
         freeCreatureList(&levels[i].monsters);
         freeCreatureList(&levels[i].dormantMonsters);
 
@@ -998,6 +1054,7 @@ void freeEverything() {
             deleteItem(theItem);
         }
         levels[i].items = NULL;
+
         if (levels[i].scentMap) {
             freeGrid(levels[i].scentMap);
             levels[i].scentMap = NULL;
@@ -1011,18 +1068,26 @@ void freeEverything() {
         deleteItem(theItem);
     }
     floorItems = NULL;
+
     for (theItem = packItems; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     packItems = NULL;
+
     for (theItem = monsterItemsHopper; theItem != NULL; theItem = theItem2) {
         theItem2 = theItem->nextItem;
         deleteItem(theItem);
     }
     monsterItemsHopper = NULL;
-    for (i=0; i<MAX_WAYPOINT_COUNT; i++) {
-        freeGrid(rogue.wpDistance[i]);
+    
+    for (i = 0; i < MAX_WAYPOINT_COUNT; i++) {
+        if (rogue.wpDistance[i]) {  // Only free if wpDistance[i] is non-NULL
+            freeGrid(rogue.wpDistance[i]);
+            rogue.wpDistance[i] = NULL;  // Reset pointer after freeing
+        } else {
+            printf("freeEverything: wpDistance[%d] is NULL, skipping\n", i);
+        }
     }
 
     deleteAllFlares();
@@ -1035,6 +1100,10 @@ void freeEverything() {
     levels = NULL;
 
     free(rogue.featRecord);
+
+    // K8S: Reset the monster cache and MONSTIE_COUNT for new game
+    memset(monsterCache, 0, sizeof(monsterCache));  // Reset all entries in the monster cache
+    MONSTIE_COUNT = 0;  // Reset monster ID counter
 
     // Clean up CURL globally before exiting the program
     curl_global_cleanup();
@@ -1127,6 +1196,7 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
     }
     rogue.highScoreSaved = true;
 
+
     if (rogue.quit) {
         blackOutScreen();
     } else {
@@ -1208,8 +1278,13 @@ void gameOver(char *killedBy, boolean useCustomPhrasing) {
         saveRunHistory(rogue.quit ? "Quit" : "Died", rogue.quit ? "-" : killedBy, (int) theEntry.score, numGems);
     }
 
-    rogue.gameHasEnded = true;
+    
+    pthread_mutex_lock(&metrics_thread_mutex);
+    rogue.gameHasEnded = true;  // Signal the metrics thread to exit
+    pthread_mutex_unlock(&metrics_thread_mutex);
+    
     rogue.gameExitStatusCode = EXIT_STATUS_SUCCESS;
+    
 }
 
 void victory(boolean superVictory) {
@@ -1374,7 +1449,9 @@ void victory(boolean superVictory) {
         saveRunHistory(victoryVerb, "-", (int) theEntry.score, gemCount);
     }
 
-    rogue.gameHasEnded = true;
+    pthread_mutex_lock(&metrics_thread_mutex);
+    rogue.gameHasEnded = true;  // Signal the metrics thread to exit
+    pthread_mutex_unlock(&metrics_thread_mutex);
     rogue.gameExitStatusCode = EXIT_STATUS_SUCCESS;
 }
 
