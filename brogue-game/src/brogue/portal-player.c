@@ -7,7 +7,7 @@
 #include "Globals.h"
 #include "portal-player.h"
 
-#define PLAYER_PORTAL_URL "http://portal-service.portal:5000/player"
+#define PLAYER_PORTAL_URL "http://portal-service.portal:5000/player/update"
 
 // Function to send player information to the portal
 void update_player(void) {
@@ -48,14 +48,14 @@ void send_player_metrics_to_portal(const PlayerMetrics *metrics) {
             "{\"gold\": %d, \"depthLevel\": %d, \"deepestLevel\": %d, "
             "\"currentHP\": %d, \"maxHP\": %d, \"strength\": %d, "
             "\"playerTurnNumber\": %d, \"xpxpThisTurn\": %d, \"stealthRange\": %d, "
-            "\"disturbed\": %s, \"regenPerTurn\": %d, \"weaknessAmount\": %d, \"poisonAmount\": %d, "
+            "\"disturbed\": %d, \"regenPerTurn\": %d, \"weaknessAmount\": %d, \"poisonAmount\": %d, "
             "\"clairvoyance\": %d, \"stealthBonus\": %d, \"regenerationBonus\": %d, "
             "\"lightMultiplier\": %d, \"awarenessBonus\": %d, \"transference\": %d, "
             "\"wisdomBonus\": %d, \"reaping\": %d}",
             metrics->gold, metrics->depthLevel, metrics->deepestLevel,
             metrics->currentHP, metrics->maxHP, metrics->strength,
             metrics->playerTurnNumber, metrics->xpxpThisTurn, metrics->stealthRange,
-            metrics->disturbed ? "true" : "false",
+            metrics->disturbed ? 1 : 0,  // Ensure this is a boolean value (1 or 0, not "true" or "false")
             metrics->regenPerTurn, metrics->weaknessAmount, metrics->poisonAmount,
             metrics->clairvoyance, metrics->stealthBonus, metrics->regenerationBonus,
             metrics->lightMultiplier, metrics->awarenessBonus, metrics->transference,
@@ -81,6 +81,6 @@ void send_player_metrics_to_portal(const PlayerMetrics *metrics) {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
     } else {
-        fprintf(stderr, "CURL initialization failed for sending player metrics.\n");
+        fprintf(stderr, "CURL initialization failed for sending player data.\n");
     }
 }

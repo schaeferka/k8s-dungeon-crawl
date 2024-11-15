@@ -2,8 +2,7 @@
 
 # Set variables
 PROJECT_NAME="dungeon-master"
-IMAGE_NAME="dungeon-master:latest"
-REGISTRY="<your-registry>" # Replace with your container registry (e.g., docker.io/username)
+IMAGE_NAME="dungeon-master:latest"  # Use local image tag
 NAMESPACE="dungeon-master"
 CRD_FILE="config/crd/bases/kaschaefer.com_monsters.yaml"
 
@@ -42,13 +41,13 @@ fi
 # Step 4: Ensure namespace exists
 check_namespace "$NAMESPACE"
 
-# Step 5: Build and push controller image
-echo "Building and pushing controller image..."
-make docker-build docker-push IMG="$REGISTRY/$IMAGE_NAME"
+# Step 5: Build the local controller image
+echo "Building local controller image..."
+make docker-build IMG="$IMAGE_NAME"  # Using the local image tag
 
-# Step 6: Deploy the controller
-echo "Deploying the controller..."
-make deploy IMG="$REGISTRY/$IMAGE_NAME"
+# Step 6: Deploy the controller using the local image
+echo "Deploying the controller with the local image..."
+make deploy IMG="$IMAGE_NAME"  # Using the local image tag
 
 # Step 7: Verify controller deployment
 echo "Verifying controller deployment..."

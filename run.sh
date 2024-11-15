@@ -31,13 +31,13 @@ PROMETHEUS_NAMESPACE_FILE="$PROMETHEUS_DIR/k8s/prometheus-namespace.yaml"
 GRAFANA_NAMESPACE_FILE="$GRAFANA_DIR/k8s/grafana-namespace.yaml"
 DEPLOYMENT_FILES_BROGUE=("$BROGUE_DIR/k8s/brogue-deployment.yaml" "$BROGUE_DIR/k8s/brogue-service.yaml" "$BROGUE_DIR/k8s/brogue-clusterroles.yaml" "$BROGUE_DIR/k8s/brogue-clusterrolebindings.yaml" "$BROGUE_DIR/k8s/brogue-serviceaccount.yaml")
 DEPLOYMENT_FILES_PORTAL=("$PORTAL_DIR/k8s/portal-deployment.yaml" "$PORTAL_DIR/k8s/portal-service.yaml" "$PORTAL_DIR/k8s/portal-clusterrole.yaml" "$PORTAL_DIR/k8s/portal-clusterrolebinding.yaml" "$PORTAL_DIR/k8s/portal-serviceaccount.yaml")    
-DEPLOYMENT_FILES_DM=("$DM_DIR/k8s/monster-crd.yaml" "$DM_DIR/k8s/goblin.yaml")
+DEPLOYMENT_FILES_DM=()
 DEPLOYMENT_FILES_PROMETHEUS=("$PROMETHEUS_DIR/k8s/prometheus-deploy.yaml" "$PROMETHEUS_DIR/k8s/prometheus-service.yaml" "$PROMETHEUS_DIR/k8s/prometheus-config.yaml")
 DEPLOYMENT_FILES_GRAFANA=("$GRAFANA_DIR/k8s/grafana-datasources-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-provisioning-config.yaml" "$GRAFANA_DIR/k8s/grafana-deploy.yaml" "$GRAFANA_DIR/k8s/grafana-service.yaml")
 LOCAL_PORT_16080=8090  # noVNC server port for Brogue
 LOCAL_PORT_15900=5910  # VNC server port for Brogue
 LOCAL_PORT_18000=8010  # Metrics server port for Brogue
-LOCAL_PORT_5000=5001   # Portal server port
+LOCAL_PORT_5000=5000   # Portal server port
 LOCAL_PORT_3000=3000   # Grafana server port
 LOCAL_PORT_9090=9090   # Prometheus server port
 
@@ -287,4 +287,4 @@ echo " - For metrics, connect to: http://localhost:$LOCAL_PORT_18000/metrics"
 echo " - For Prometheus, connect to: http://localhost:$LOCAL_PORT_9090"
 echo " - For Grafana, connect to: http://localhost:$LOCAL_PORT_3000"
 echo
-echo "To access the Portal, connect to: http://localhost:$LOCAL_PORT_5000/metrics"
+echo "To access the Portal, connect to: http://localhost:$LOCAL_PORT_5000"

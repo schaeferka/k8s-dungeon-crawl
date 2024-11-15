@@ -10,8 +10,8 @@
 #include "Globals.h"
 #include "portal-items.h"
 
-#define ITEM_PORTAL_URL "http://portal-service.portal:5000/items"
-#define PACK_PORTAL_URL "http://portal-service.portal:5000/pack"
+#define ITEM_PORTAL_URL "http://portal-service.portal:5000/items/update"
+#define PACK_PORTAL_URL "http://portal-service.portal:5000/pack/update"
 #define BUFFER_SIZE 8192 
 
 void extract_inventory_json(char *buffer, size_t buffer_size);

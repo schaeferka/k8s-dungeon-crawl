@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Monster Tracker{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <h1 class="text-3xl font-bold text-gray-800 text-center">Monster Tracker</h1>
+
+    <!-- Filter Section -->
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold text-gray-700">Filters</h2>
+        <div class="flex flex-wrap gap-4 mt-2">
+            <div class="flex flex-col">
+                <label for="monster-type-filter" class="text-sm font-medium text-gray-600">Monster Type</label>
+                <input type="text" id="monster-type-filter" class="border border-gray-300 rounded px-3 py-1">
+            </div>
+            <div class="flex flex-col">
+                <label for="depth-filter" class="text-sm font-medium text-gray-600">Depth</label>
+                <input type="number" id="depth-filter" class="border border-gray-300 rounded px-3 py-1">
+            </div>
+            <button id="apply-filters" class="px-4 py-2 bg-blue-800 text-white rounded hover:bg-blue-900 transition">
+                Apply Filters
+            </button>
+            <button id="reset-filters" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition">
+                Reset Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Current Game Monsters -->
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-700">Current Game Monsters</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2">Portal Name</th>
+                        <th class="border px-4 py-2">Current HP</th>
+                        <th class="border px-4 py-2">Max HP</th>
+                        <th class="border px-4 py-2">Depth</th>
+                        <th class="border px-4 py-2">Defense</th>
+                        <th class="border px-4 py-2">Accuracy</th>
+                        <th class="border px-4 py-2">Damage</th>
+                        <th class="border px-4 py-2">Turns Regen</th>
+                        <th class="border px-4 py-2">Movement Speed</th>
+                        <th class="border px-4 py-2">Attack Speed</th>
+                        <th class="border px-4 py-2">ID</th>
+                        <th class="border px-4 py-2">Type</th>
+                    </tr>
+                </thead>
+                <tbody id="current-monsters-body">
+                    <!-- JavaScript will populate this area -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Dead Monsters -->
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-700 mt-6">Dead Monsters</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2">Portal Name</th>
+                        <th class="border px-4 py-2">Depth</th>
+                        <th class="border px-4 py-2">HP (at death)</th>
+                        <th class="border px-4 py-2">ID</th>
+                    </tr>
+                </thead>
+                <tbody id="dead-monsters-body">
+                    <!-- JavaScript will populate this area -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Overall Monsters -->
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-700 mt-6">Overall Monsters (All Games)</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2">Portal Name</th>
+                        <th class="border px-4 py-2">Current HP</th>
+                        <th class="border px-4 py-2">Max HP</th>
+                        <th class="border px-4 py-2">Depth</th>
+                        <th class="border px-4 py-2">Defense</th>
+                        <th class="border px-4 py-2">Accuracy</th>
+                        <th class="border px-4 py-2">Damage</th>
+                        <th class="border px-4 py-2">Movement Speed</th>
+                        <th class="border px-4 py-2">Attack Speed</th>
+                        <th class="border px-4 py-2">ID</th>
+                        <th class="border px-4 py-2">Type</th>
+                    </tr>
+                </thead>
+                <tbody id="overall-monsters-body">
+                    <!-- JavaScript will populate this area -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/monsters.js') }}"></script>
+{% endblock %}

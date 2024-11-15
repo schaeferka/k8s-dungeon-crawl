@@ -9,8 +9,8 @@
 #include "Globals.h"
 #include "portal-gamestate.h"
 
-#define GAMESTATE_PORTAL_URL "http://portal-service.portal:5000/gamestate"
-#define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats"
+#define GAMESTATE_PORTAL_URL "http://portal-service.portal:5000/gamestate/update"
+#define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats/update"
 
 // Function to send game state information to the portal
 void update_gamestate(void) {

@@ -9,8 +9,8 @@
 #include "GlobalsBase.h"
 #include "Globals.h"
 
-#define MONSTER_PORTAL_URL "http://portal-service.portal:5000/monsters"
-#define MONSTER_DEATH_URL "http://portal-service.portal:5000/monster/death"
+#define MONSTER_PORTAL_URL "http://portal-service.portal:5000/monsters/update"
+#define MONSTER_DEATH_URL "http://portal-service.portal:5000/monsters/death"
 #define RESET_URL "http://portal-service.portal:5000/monsters/reset"
 
 MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
@@ -111,11 +111,11 @@ void update_monsters() {
                     has_changes = true;
 
                     offset += snprintf(monster_json + offset, sizeof(monster_json) - offset,
-                        "{ \"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"dead\": %s, \"level\": %d, "
+                        "{ \"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"dead\": %d, \"depth\": %d, "
                         "\"position\": {\"x\": %d, \"y\": %d}, \"attackSpeed\": %d, \"movementSpeed\": %d, \"accuracy\": %d, \"defense\": %d, "
                         "\"damageMin\": %d, \"damageMax\": %d, \"turnsBetweenRegen\": %ld }",
                         monst->id, monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP,
-                        monst->isDead ? "true" : "false", monst->spawnDepth,
+                        monst->isDead ? 1 : 0, monst->spawnDepth,
                         monst->loc.x, monst->loc.y, monst->attackSpeed, monst->movementSpeed, monst->info.accuracy,
                         monst->info.defense, monst->info.damage.lowerBound, monst->info.damage.upperBound,
                         monst->info.turnsBetweenRegen);
@@ -138,14 +138,14 @@ void send_monster_death_to_portal(creature *monst) {
     CURL *curl = curl_easy_init();
     if (!rogue.gameHasEnded && curl) {
         snprintf(death_data, sizeof(death_data),
-            "{\"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"level\": %d, "
+            "{\"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"depth\": %d, "
             "\"position\": {\"x\": %d, \"y\": %d}, \"attackSpeed\": %d, \"movementSpeed\": %d, \"accuracy\": %d, \"defense\": %d, "
-            "\"damageMin\": %d, \"damageMax\": %d, \"turnsBetweenRegen\": %ld, \"isDead\": %s}",
+            "\"damageMin\": %d, \"damageMax\": %d, \"turnsBetweenRegen\": %ld, \"isDead\": %d}",
             monst->id, monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP,
             monst->spawnDepth, monst->loc.x, monst->loc.y, monst->attackSpeed, monst->movementSpeed,
             monst->info.accuracy, monst->info.defense, monst->info.damage.lowerBound,
             monst->info.damage.upperBound, monst->info.turnsBetweenRegen,
-            monst->isDead ? "true" : "false");
+            monst->isDead ? 1 : 0);
 
         curl_easy_setopt(curl, CURLOPT_URL, MONSTER_DEATH_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, death_data);
@@ -168,7 +168,7 @@ void send_monsters_to_portal(const char *endpoint, const char *data) {
         CURL *curl = curl_easy_init();
         if (curl) {
             char url[256];
-            snprintf(url, sizeof(url), "http://portal-service.portal:5000%s", endpoint);
+            snprintf(url, sizeof(url), MONSTER_PORTAL_URL);
             struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
 
             curl_easy_setopt(curl, CURLOPT_URL, url);

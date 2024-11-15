@@ -11,7 +11,7 @@
 #include "platform.h"
 #include "MainMenu.h"
 
-#define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats"
+#define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats/update"
 
 // Function to send game stat metrics to the portal
 void extractGameStatsJSON(const gameStats *stats, char *buffer, size_t buffer_size) {

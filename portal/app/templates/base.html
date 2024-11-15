@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}K8s Dungeon Crawl Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Kubernetes-powered Dungeon Crawl Dashboard to monitor game stats, player info, and monster events.">
+    <meta name="keywords" content="Kubernetes, Dungeon Crawl, Game Metrics, Player Info, Monsters">
+    <meta property="og:title" content="K8s Dungeon Crawl Dashboard">
+    <meta property="og:description" content="Track your Dungeon Crawl adventure with real-time game metrics, player details, and monster events.">
+    <meta property="og:image" content="{{ url_for('static', filename='og-image.png') }}">
+    <meta property="og:url" content="{{ request.url }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+    <header class="bg-blue-900 text-white p-4">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-3xl font-bold">K8s Dungeon Crawl</h1>
+            <nav aria-label="Main navigation" class="space-x-4">
+                <a href="/" 
+                   class="hover:underline {% if request.path == '/' %}font-bold underline{% endif %}" 
+                   aria-current="{% if request.path == '/' %}page{% endif %}">Home</a>
+                <a href="/monsters" 
+                   class="hover:underline {% if request.path == '/monsters' %}font-bold underline{% endif %}" 
+                   aria-current="{% if request.path == '/monsters' %}page{% endif %}">Monsters</a>
+                <a href="/player" 
+                   class="hover:underline {% if request.path == '/player' %}font-bold underline{% endif %}" 
+                   aria-current="{% if request.path == '/player' %}page{% endif %}">Player</a>
+                <a href="/game" 
+                   class="hover:underline {% if request.path == '/game' %}font-bold underline{% endif %}" 
+                   aria-current="{% if request.path == '/game' %}page{% endif %}">Game Info</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto my-8 flex-grow">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-blue-900 text-white p-4 text-center">
+        <p>&copy; 2024 K8s Dungeon Crawl</p>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
