@@ -1,4 +1,3 @@
-# app/models/game.py
 from pydantic import BaseModel
 from typing import Optional
 from app.models.gamestate import GameState

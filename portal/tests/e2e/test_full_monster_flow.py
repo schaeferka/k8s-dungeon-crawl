@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask
 from app import create_app
-from app.routes.monsters import monsters_data  # Assuming you're using in-memory storage
+from app.routes.monsters import monsters_data 
 
 @pytest.fixture
 def app():
@@ -17,7 +17,7 @@ def client(app):
 @pytest.fixture(autouse=True)
 def reset_monsters_data():
     """Reset the in-memory monsters data before each test."""
-    monsters_data.clear()  # Assuming monsters_data is the in-memory data structure
+    monsters_data.clear() 
 
 def test_monster_creation_flow(client):
     # Create a new monster via the POST route

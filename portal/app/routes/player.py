@@ -52,7 +52,7 @@ def receive_player():
         return jsonify({"error": "No JSON payload received"}), 400
 
     try:
-        player = Player(**data)  # Assuming Player is the model you're using
+        player = Player(**data)
         player_data.update(data)
         current_app.logger.info("Successfully processed player data: %s", data)
         return jsonify({"status": "success", "received": player.dict()}), 200

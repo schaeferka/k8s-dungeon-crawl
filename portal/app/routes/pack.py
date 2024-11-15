@@ -17,7 +17,6 @@ def receive_pack():
     if "pack" not in data:
         return jsonify({"error": "Missing 'pack' field in data"}), 400
 
-    # Optional: Validate structure of each item in the pack
     for item in data.get("pack", []):
         if not all(k in item for k in ["category", "name", "quantity", "inventoryLetter"]):
             return jsonify({"error": "Item missing required fields"}), 400

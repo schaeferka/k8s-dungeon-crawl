@@ -27,7 +27,7 @@ last_monster_death = Gauge(
     'Timestamp of the last monster death'
 )
 
-# In-memory storage for monsters (or use a database in real applications)
+# In-memory storage for monsters data
 monsters_data = {}  # Using a dictionary instead of a list
 monsters_overall_data = {}  # Using a dictionary for overall monsters
 monsters_dead = []  # List for dead monsters

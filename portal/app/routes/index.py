@@ -1,4 +1,3 @@
-# In portal/app/routes/index.py
 from flask import Blueprint, render_template
 
 # Register index routes under the Blueprint
