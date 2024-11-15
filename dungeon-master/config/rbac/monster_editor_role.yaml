@@ -1,0 +1,27 @@
+# permissions for end users to edit monsters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: dungeon-master
+    app.kubernetes.io/managed-by: kustomize
+  name: monster-editor-role
+rules:
+- apiGroups:
+  - kaschaefer.com
+  resources:
+  - monsters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kaschaefer.com
+  resources:
+  - monsters/status
+  verbs:
+  - get

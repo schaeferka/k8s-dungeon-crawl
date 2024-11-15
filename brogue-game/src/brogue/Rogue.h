@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <time.h>
 #include "PlatformDefines.h"
+#include <pthread.h>
 
 // unicode: comment this line to revert to ASCII
 #define USE_UNICODE
@@ -129,6 +130,9 @@ typedef long long fixpt;
 // Maximum string size supported by various functions like printTextBox, wrapText,
 // printStringWithWrapping, and breakUpLongWordsIn
 #define TEXT_MAX_LENGTH (COLS * ROWS * 2)
+
+// K8S: For creating unique monster ids
+extern int MONSTIE_COUNT;
 
 // Returns the sign of the input:
 // - if (x == 0)  ===> returns 0
@@ -805,7 +809,7 @@ enum potionKind {
     POTION_LICHEN,
 };
 
-enum weaponKind {
+extern enum weaponKind {
     DAGGER,
     SWORD,
     BROADSWORD,
@@ -2256,6 +2260,13 @@ typedef struct monsterClass {
 } monsterClass;
 
 typedef struct creature {
+    // K8S: Needed for unique identification of creatures.
+    int id;
+    char portalName[50];
+    // K8S: Needed for identifying if creature created by portal
+    boolean isPortalCreated;
+    // K8s: Needed for identifying if creature is dead
+    boolean isDead;
     creatureType info;
     pos loc;
     short depth;
@@ -2570,6 +2581,9 @@ typedef struct levelData {
     pos playerExitedVia;
     unsigned long awaySince;
 } levelData;
+
+// K8S: For sending data to the portal
+extern levelData *levels;
 
 enum machineFeatureFlags {
     MF_GENERATE_ITEM                = Fl(0),    // feature entails generating an item (overridden if the machine is adopting an item)
@@ -3050,6 +3064,9 @@ extern "C" {
     void freeCreatureList(creatureList *list);
     void removeDeadMonsters(void);
     void freeEverything(void);
+    void free_levels();
+    void initialize_levels();
+    void free_pack_items();
     boolean randomMatchingLocation(pos *loc, short dungeonType, short liquidType, short terrainType);
     enum dungeonLayers highestPriorityLayer(short x, short y, boolean skipGas);
     enum dungeonLayers layerWithTMFlag(short x, short y, unsigned long flag);

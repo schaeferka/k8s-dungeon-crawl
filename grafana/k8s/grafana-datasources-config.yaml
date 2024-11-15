@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: grafana
+  labels:
+    grafana_datasource: "1"
+data:
+  prometheus-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: dungeon-crawl-prom-ds
+        type: prometheus
+        access: proxy
+        url: http://prometheus-service.prometheus.svc.cluster.local:9090
+        isDefault: true
+        jsonData:
+          timeInterval: "1s"
+  infinity-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Infinity
+        uid: dungeon-crawl-infinity-ds
+        type: yesoreyeram-infinity-datasource
+        access: proxy
+        jsonData:
+          timeInterval: "1s" 

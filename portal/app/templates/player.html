@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Player Information{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <h1 class="text-3xl font-bold text-gray-800 text-center">Player Information</h1>
+
+    <!-- Player Information Sections -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- First Column: Player Stats and Modifiers -->
+        <div class="space-y-6">
+            <div class="p-6 border rounded-lg bg-white shadow">
+                <h2 class="text-xl font-semibold text-gray-700 text-center">Player Stats</h2>
+                <div id="player-stats" class="mt-4">
+                    <!-- JavaScript will populate this area -->
+                </div>
+            </div>
+            <div class="p-6 border rounded-lg bg-white shadow">
+                <h2 class="text-xl font-semibold text-gray-700 text-center">Modifiers</h2>
+                <div id="modifiers" class="mt-4">
+                    <!-- JavaScript will populate this area -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Column: Equipped Items -->
+        <div class="p-6 border rounded-lg bg-white shadow">
+            <h2 class="text-xl font-semibold text-gray-700 text-center">Equipped Items</h2>
+            <div id="items" class="mt-4">
+                <!-- JavaScript will populate this area -->
+            </div>
+        </div>
+
+        <!-- Third Column: Inventory -->
+        <div class="p-6 border rounded-lg bg-white shadow">
+            <h2 class="text-xl font-semibold text-gray-700 text-center">Inventory</h2>
+            <div id="inventory-items" class="mt-4">
+                <!-- JavaScript will populate this area -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+{% endblock %}

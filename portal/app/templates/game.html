@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Game State Information{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-semibold text-gray-800 text-center">Game State Information</h1>
+
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Left column: Current Game State -->
+        <section class="bg-white p-6 rounded shadow" id="current-game-state" aria-labelledby="game-state-title">
+            <h2 id="game-state-title" class="text-xl font-semibold text-gray-700 text-center mb-4">Current Game State</h2>
+            <div id="game-state-info" class="text-gray-600 text-center">
+                <p><strong>Reward Rooms Generated:</strong> {{ game_state.reward_rooms_generated or 'N/A' }}</p>
+                <p><strong>Monster Spawn Fuse:</strong> {{ game_state.monster_spawn_fuse or 'N/A' }}</p>
+                <p><strong>Gold Generated:</strong> {{ game_state.gold_generated or 'N/A' }}</p>
+                <p><strong>Absolute Turn Number:</strong> {{ game_state.absolute_turn_number or 'N/A' }}</p>
+                <p><strong>Milliseconds Since Launch:</strong> {{ game_state.milliseconds_since_launch or 'N/A' }}</p>
+                <p><strong>XP/XP This Turn:</strong> {{ game_state.xpxp_this_turn or 'N/A' }}</p>
+                <p><strong>Game Has Ended:</strong> {{ game_state.game_has_ended or 'N/A' }}</p>
+            </div>
+        </section>
+
+        <!-- Right column: Game Stats -->
+        <section class="bg-white p-6 rounded shadow" id="game-stats" aria-labelledby="game-stats-title">
+            <h2 id="game-stats-title" class="text-xl font-semibold text-gray-700 text-center mb-4">Game Stats</h2>
+            <div id="game-stats-info" class="text-gray-600 text-center">
+                <p><strong>Games Played:</strong> {{ game_stats.games_played }}</p>
+                <p><strong>Games Escaped:</strong> {{ game_stats.games_escaped }}</p>
+                <p><strong>Games Mastered:</strong> {{ game_stats.games_mastered }}</p>
+                <p><strong>Games Won:</strong> {{ game_stats.games_won }}</p>
+                <p><strong>Win Rate:</strong> {{ game_stats.win_rate or 'N/A' }}%</p>
+                <p><strong>Deepest Level:</strong> {{ game_stats.deepest_level or 'N/A' }}</p>
+                <p><strong>Highest Score:</strong> {{ game_stats.highest_score or 'N/A' }}</p>
+                <p><strong>Cumulative Score:</strong> {{ game_stats.cumulative_score or 'N/A' }}</p>
+                <p><strong>Most Gold:</strong> {{ game_stats.most_gold or 'N/A' }}</p>
+                <p><strong>Cumulative Gold:</strong> {{ game_stats.cumulative_gold or 'N/A' }}</p>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

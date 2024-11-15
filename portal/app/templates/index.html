@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}K8s Dungeon Crawl Landing Page{% endblock %}
+
+{% block content %}
+<div class="text-center mt-16">
+    <h1 class="text-4xl font-bold text-gray-800 mb-12">Welcome to K8s Dungeon Crawl</h1>
+
+    <!-- Main sections -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+        <a href="/monsters" class="block px-6 py-4 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition text-center shadow-lg">
+            <h2 class="text-xl font-semibold mb-2">Monsters</h2>
+            <p>View and manage all the monsters in the game.</p>
+        </a>
+        <a href="/player" class="block px-6 py-4 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition text-center shadow-lg">
+            <h2 class="text-xl font-semibold mb-2">Player</h2>
+            <p>Track the player’s progress and stats.</p>
+        </a>
+        <a href="/game" class="block px-6 py-4 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition text-center shadow-lg">
+            <h2 class="text-xl font-semibold mb-2">Game Info</h2>
+            <p>Explore current game state and stats.</p>
+        </a>
+    </div>
+
+    <!-- Endpoint links -->
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">API Endpoints</h2>
+        <ul class="list-disc list-inside text-left text-gray-700">
+            <li><a href="/metrics" class="text-blue-600 hover:underline">/metrics</a> - View Prometheus metrics</li>
+            <li><a href="/player/data" class="text-blue-600 hover:underline">/player/data</a> - Get player data</li>
+            <li><a href="/pack/data" class="text-blue-600 hover:underline">/pack/data</a> - Get player pack data</li>
+            <li><a href="/items/data" class="text-blue-600 hover:underline">/items/data</a> - Get item data</li>
+            <li><a href="/gamestate/data" class="text-blue-600 hover:underline">/gamestate/data</a> - Get current game state</li>
+            <li><a href="/gamestats/data" class="text-blue-600 hover:underline">/gamestats/data</a> - Get game stats</li>
+            <li><a href="/monsters/data" class="text-blue-600 hover:underline">/monsters/data</a> - Get current monsters</li>
+            <li><a href="/monsters/count" class="text-blue-600 hover:underline">/monsters/count</a> - Get monster count</li>
+            <li><a href="/monsters/overall" class="text-blue-600 hover:underline">/monsters/overall</a> - Get all monsters (overall)</li>
+            <li><a href="/monsters/dead" class="text-blue-600 hover:underline">/monsters/dead</a> - Get dead monsters</li>
+            <li><a href="/monsters/timestamps" class="text-blue-600 hover:underline">/monsters/timestamps</a> - Get monster creation and death timestamps</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

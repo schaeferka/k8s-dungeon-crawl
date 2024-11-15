@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: brogue-service
-  namespace: monsties
+  namespace: brogue
 spec:
   selector:
     app: brogue
