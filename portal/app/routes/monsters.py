@@ -126,17 +126,23 @@ def create():
 
             # Update or add the monster in `monsters_overall_data`
             monsters_overall_data[monster_id] = {**monsters_overall_data.get(monster_id, {}), **monster}
-
-        # Create the Monster custom resource in Kubernetes when a new monster is added
-        try:
-            k8s_service.create_monster_resource(
-                name=monster["name"],
-                namespace="monsters",  # Specify the correct namespace here
-                monster_data=monster
-            )
-        except Exception as e:
-            current_app.logger.error(f"Failed to create Monster resource for {monster_id}: {e}")
             
+            # Create the Monster custom resource in Kubernetes when a new monster is added
+            try:
+                current_app.logger.info("Creating Monster resource for monster ID: %s", monster_id)
+                # Call the function to create the Monster resource
+                k8s_service.create_monster_resource(
+                    name=monster["name"],
+                    namespace="dungeon-master-system", 
+                    monster_data=monster
+                )
+                current_app.logger.info(f"Monster resource created for {monster_id}.")
+            except Exception as e:
+                current_app.logger.error(f"Failed to create Monster resource for {monster_id}: {e}")
+                return jsonify({"error": "Failed to create Monster resource", "message": str(e)}), 500
+        else:
+            current_app.logger.info(f"Monster {monster_id} already exists, skipping creation.")
+
         # Ensure `monsters_data` has the latest data for active monsters
         if not monster.get("isDead", False):
             monsters_data[monster_id] = monster

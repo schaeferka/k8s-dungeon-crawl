@@ -19,7 +19,7 @@ def receive_items():
     as well as Prometheus metrics.
     """
     data = request.json
-    current_app.logger.info("Received item metrics data: %s", data)
+    # current_app.logger.info("Received item metrics data: %s", data)
     
     if not data:
         return jsonify({"error": "No JSON payload received"}), 400

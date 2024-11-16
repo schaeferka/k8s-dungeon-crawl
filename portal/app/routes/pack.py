@@ -25,7 +25,7 @@ def receive_pack():
     # Store or update the pack data
     pack_data.update(data)
 
-    current_app.logger.info("Received and updated pack data: %s", data)
+    # current_app.logger.info("Received and updated pack data: %s", data)
     
     return jsonify({"status": "success", "received": data}), 200
 

@@ -2,8 +2,8 @@
 
 # Set variables
 PROJECT_NAME="dungeon-master"
-IMAGE_NAME="dungeon-master:latest"  # Use local image tag
-NAMESPACE="dungeon-master"
+IMAGE_NAME="controller:latest"  # Use local image tag
+NAMESPACE="dungeon-master-system"
 CRD_FILE="config/crd/bases/kaschaefer.com_monsters.yaml"
 
 # Function to check if a namespace exists
@@ -45,18 +45,37 @@ check_namespace "$NAMESPACE"
 echo "Building local controller image..."
 make docker-build IMG="$IMAGE_NAME"  # Using the local image tag
 
+echo "Local controller image built: $IMAGE_NAME"
+echo "Loading the local image into the cluster..."
+k3d image import controller:latest -c k3d-k3s-default
+echo "Local image loaded into the cluster."
+
 # Step 6: Deploy the controller using the local image
 echo "Deploying the controller with the local image..."
 make deploy IMG="$IMAGE_NAME"  # Using the local image tag
 
 # Step 7: Verify controller deployment
 echo "Verifying controller deployment..."
+
+# Check if the controller pod exists
 if kubectl get pods -n "$NAMESPACE" | grep -q "controller-manager"; then
-  echo "Controller successfully deployed."
+  echo "Controller pod found. Waiting for it to be ready..."
+
+  # Wait for the controller pod to be in Running and Ready state
+  kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=60s
+
+  # Check if the kubectl wait command was successful
+  if [ $? -eq 0 ]; then
+    echo "Controller pod is ready."
+  else
+    echo "Controller pod did not become ready within the timeout period."
+    exit 1
+  fi
 else
-  echo "Controller deployment failed. Check logs for more details."
+  echo "Controller pod not found. Check the deployment."
   exit 1
 fi
+
 
 # Step 8: Create an example Monster resource
 EXAMPLE_MONSTER="example-monster.yaml"
