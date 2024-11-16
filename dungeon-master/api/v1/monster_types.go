@@ -38,7 +38,7 @@ type MonsterSpec struct {
 	MaxHP int `json:"maxHP,omitempty"`
 
 	// Level of the monster.
-	Level int `json:"level,omitempty"`
+	Depth int `json:"depth,omitempty"`
 }
 
 // MonsterStatus defines the observed state of Monster.

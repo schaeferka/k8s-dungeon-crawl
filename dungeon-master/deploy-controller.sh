@@ -96,7 +96,7 @@ spec:
   name: Goblin
   type: goblin
   id: 10001
-  maxhp: 100
+  maxHP: 100
 EOF
 
 echo "Creating example Monster resource..."

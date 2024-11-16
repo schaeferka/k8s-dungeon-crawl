@@ -39,14 +39,14 @@ spec:
           spec:
             description: MonsterSpec defines the desired state of Monster.
             properties:
+              depth:
+                description: Level of the monster.
+                type: integer
               hp:
                 description: Health of the monster.
                 type: integer
               id:
                 description: Unique identifier for the monster.
-                type: integer
-              level:
-                description: Level of the monster.
                 type: integer
               maxHP:
                 description: Maximum health of the monster.

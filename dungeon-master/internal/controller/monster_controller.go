@@ -76,10 +76,10 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					<p>Type: %s</p>
 					<p>CurrentHP: %d</p>
 					<p>MaxHP: %d</p>
-					<p>Level: %d</p>
+					<p>Depth: %d</p>
 				</body>
 				</html>
-			`, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Level),
+			`, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth),
 		},
 	}
 
