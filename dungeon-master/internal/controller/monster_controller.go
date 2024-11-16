@@ -61,27 +61,51 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// Create or update ConfigMap with Monster data
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("monster-%s", monster.Name),
-			Namespace: "monsters",
-		},
-		Data: map[string]string{
-			"index.html": fmt.Sprintf(`
-				<html>
-				<head><title>Monster Info</title></head>
-				<body>
-					<h1>Monster: %s</h1>
-					<p>ID: %d</p>
-					<p>Type: %s</p>
-					<p>CurrentHP: %d</p>
-					<p>MaxHP: %d</p>
-					<p>Depth: %d</p>
-				</body>
-				</html>
-			`, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth),
-		},
-	}
+	// Update the ConfigMap with monster-specific content
+cm := &corev1.ConfigMap{
+    ObjectMeta: metav1.ObjectMeta{
+        Name:      fmt.Sprintf("monster-%s", monster.Name),
+        Namespace: "monsters",
+    },
+    Data: map[string]string{
+		"index.html": fmt.Sprintf(`
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>Monster Info: %s</title>
+				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+			</head>
+			<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+				<header class="bg-blue-900 text-white p-4">
+					<div class="container mx-auto flex items-center justify-between">
+						<h1 class="text-3xl font-bold">K8s Dungeon Crawl</h1>
+					</div>
+				</header>
+
+				<main class="container mx-auto my-8 flex-grow">
+					<div class="bg-white p-6 rounded-lg shadow-lg">
+						<h2 class="text-2xl font-bold text-blue-900 mb-4">Monster: %s</h2>
+						<ul class="list-disc pl-6 space-y-2">
+							<li><strong>ID:</strong> %s</li>
+							<li><strong>Type:</strong> %s</li>
+							<li><strong>CurrentHP:</strong> %s</li>
+							<li><strong>MaxHP:</strong> %s</li>
+							<li><strong>Depth:</strong> %s</li>
+						</ul>
+					</div>
+				</main>
+
+				<footer class="bg-blue-900 text-white p-4 text-center">
+					<p>&copy; 2024 K8s Dungeon Crawl</p>
+				</footer>
+			</body>
+			</html>
+		`, monster.Name, monster.Name, fmt.Sprintf("%d", monster.Spec.ID), monster.Spec.Type, fmt.Sprintf("%d", monster.Spec.CurrentHP), fmt.Sprintf("%d", monster.Spec.MaxHP), fmt.Sprintf("%d", monster.Spec.Depth)),
+    },
+}
+	
 
 	// Create or Update the ConfigMap
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {

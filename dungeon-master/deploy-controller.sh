@@ -97,6 +97,8 @@ spec:
   type: goblin
   id: 10001
   maxHP: 100
+  currentHP: 22
+  depth: 1
 EOF
 
 echo "Creating example Monster resource..."
