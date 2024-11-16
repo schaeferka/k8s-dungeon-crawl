@@ -18,13 +18,17 @@ package controller
 
 import (
 	"context"
-
+	"fmt"
+	kaschaeferv1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	kaschaeferv1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 )
 
 // MonsterReconciler reconciles a Monster object
@@ -49,8 +53,147 @@ type MonsterReconciler struct {
 func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the Monster object
+	var monster kaschaeferv1.Monster
+	if err := r.Get(context.Background(), req.NamespacedName, &monster); err != nil {
+		// Handle error fetching the resource
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
+	// Create or update ConfigMap with Monster data
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("monster-%s", monster.Name),
+			Namespace: "monsters",
+		},
+		Data: map[string]string{
+			"index.html": fmt.Sprintf(`
+				<html>
+				<head><title>Monster Info</title></head>
+				<body>
+					<h1>Monster: %s</h1>
+					<p>ID: %d</p>
+					<p>Type: %s</p>
+					<p>CurrentHP: %d</p>
+					<p>MaxHP: %d</p>
+					<p>Level: %d</p>
+				</body>
+				</html>
+			`, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Level),
+		},
+	}
+
+	// Create or Update the ConfigMap
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var existingCM corev1.ConfigMap
+		err := r.Get(context.Background(), client.ObjectKey{
+			Namespace: "monsters",
+			Name:      fmt.Sprintf("monster-%s", monster.Name),
+		}, &existingCM)
+
+		if err != nil && client.IgnoreNotFound(err) != nil {
+			// If error is not due to not found, return
+			return err
+		}
+
+		if err == nil {
+			// If the ConfigMap exists, update it
+			existingCM.Data = cm.Data
+			return r.Update(context.Background(), &existingCM)
+		}
+
+		// Create new ConfigMap if not found
+		return r.Create(context.Background(), cm)
+	})
+
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Create Nginx Deployment in the 'monsters' namespace when a Monster is created
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("nginx-%s", monster.Name),
+			Namespace: "monsters",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: pointer.Int32Ptr(1), // Set to 1 replica
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": fmt.Sprintf("nginx-%s", monster.Name),
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"app": fmt.Sprintf("nginx-%s", monster.Name),
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "nginx",
+							Image: "nginx:latest", // Use the latest Nginx image
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 80, // Expose port 80 for HTTP
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "monster-data",
+									MountPath: "/usr/share/nginx/html/index.html", // Nginx serves the content from here
+									SubPath:   "index.html",                       // Only mount the specific file, not the whole config map
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "monster-data",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: fmt.Sprintf("monster-%s", monster.Name),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create or Update the Nginx Deployment
+	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		// Check if the deployment already exists
+		var existingDeployment appsv1.Deployment
+		err := r.Get(context.Background(), client.ObjectKey{
+			Namespace: "monsters",
+			Name:      fmt.Sprintf("nginx-%s", monster.Name),
+		}, &existingDeployment)
+
+		if err != nil && client.IgnoreNotFound(err) != nil {
+			// If error is not due to not found, return
+			return err
+		}
+
+		if err == nil {
+			// If the deployment exists, update it
+			existingDeployment.Spec = deployment.Spec
+			return r.Update(context.Background(), &existingDeployment)
+		}
+
+		// Create new Deployment if not found
+		return r.Create(context.Background(), deployment)
+	})
+
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Return success
 	return ctrl.Result{}, nil
 }
 
@@ -58,6 +201,6 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *MonsterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kaschaeferv1.Monster{}).
-		Named("monster").
+		Owns(&corev1.ConfigMap{}). // Watch for ConfigMap changes as well
 		Complete(r)
 }

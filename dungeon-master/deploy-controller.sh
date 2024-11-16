@@ -4,6 +4,7 @@
 PROJECT_NAME="dungeon-master"
 IMAGE_NAME="controller:latest"  # Use local image tag
 NAMESPACE="dungeon-master-system"
+MONSTERS_NAMESPACE="monsters"
 CRD_FILE="config/crd/bases/kaschaefer.com_monsters.yaml"
 
 # Function to check if a namespace exists
@@ -15,6 +16,11 @@ check_namespace() {
     kubectl create namespace "$1"
   fi
 }
+
+kubectl create configmap nginx-config-map --from-file=nginx.conf
+kubectl apply -f config/rbac/configmap_role_binding.yaml
+kubectl apply -f config/rbac/configmap_role.yaml
+
 
 # Step 1: Generate CRD manifest
 echo "Generating CRD manifest..."
@@ -40,6 +46,7 @@ fi
 
 # Step 4: Ensure namespace exists
 check_namespace "$NAMESPACE"
+check_namespace "$MONSTERS_NAMESPACE"
 
 # Step 5: Build the local controller image
 echo "Building local controller image..."
@@ -89,7 +96,7 @@ spec:
   name: Goblin
   type: goblin
   id: 10001
-  health: 100
+  maxhp: 100
 EOF
 
 echo "Creating example Monster resource..."

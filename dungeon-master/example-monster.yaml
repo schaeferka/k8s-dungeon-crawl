@@ -7,4 +7,4 @@ spec:
   name: Goblin
   type: goblin
   id: 10001
-  health: 100
+  maxHP: 100
