@@ -1,19 +1,3 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
@@ -26,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/pointer"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -44,41 +29,29 @@ type MonsterReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Monster object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.1/pkg/reconcile
 func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	// Fetch the Monster object
 	var monster kaschaeferv1.Monster
 	if err := r.Get(context.Background(), req.NamespacedName, &monster); err != nil {
-		// Handle error fetching the resource
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Check if the monster is being deleted
 	if monster.ObjectMeta.DeletionTimestamp != nil {
-		// If the monster is being deleted, handle the finalizer cleanup
 		if containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
-			// Cleanup the associated resources (e.g., deployments)
 			err := r.handleFinalizerForMonster(&monster)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
-
-			// Remove the finalizer and allow the resource to be deleted
 			controllerutil.RemoveFinalizer(&monster, "kaschaefer.com/cleanup")
 			err = r.Update(context.Background(), &monster)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
 		}
-		return ctrl.Result{}, nil // No need to do further processing if deleting
+		return ctrl.Result{}, nil
 	}
 
 	// Add the finalizer if not already present
@@ -91,6 +64,30 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// Create or update ConfigMap with Monster data
+	err := r.createOrUpdateConfigMap(monster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Create or Update the Nginx Deployment
+	err = r.createOrUpdateDeployment(monster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Create or Update the Service
+	err = r.createOrUpdateService(monster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Return success
+	return ctrl.Result{}, nil
+}
+
+// createOrUpdateConfigMap ensures the ConfigMap is created or updated
+func (r *MonsterReconciler) createOrUpdateConfigMap(monster kaschaeferv1.Monster) error {
+	// Create or update the ConfigMap for the monster
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("monster-%s", monster.Name),
@@ -155,10 +152,11 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.Create(context.Background(), cm)
 	})
 
-	if err != nil {
-		return ctrl.Result{}, err
-	}
+	return err
+}
 
+// createOrUpdateDeployment ensures the Nginx Deployment is created or updated
+func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monster) error {
 	// Create or Update the Nginx Deployment
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -166,7 +164,7 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			Namespace: "monsters",
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: pointer.Int32Ptr(1),
+			Replicas: pointer.Int32Ptr(1), // Set to 1 replica
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": fmt.Sprintf("nginx-%s", monster.Name),
@@ -182,7 +180,7 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					Containers: []corev1.Container{
 						{
 							Name:  "nginx",
-							Image: "nginx:latest",
+							Image: "nginx:latest", // Use the latest Nginx image
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 80,
@@ -191,8 +189,8 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "monster-data",
-									MountPath: "/usr/share/nginx/html/index.html",
-									SubPath:   "index.html",
+									MountPath: "/usr/share/nginx/html/index.html", // Nginx serves the content from here
+									SubPath:   "index.html",                       // Only mount the specific file, not the whole config map
 								},
 							},
 						},
@@ -211,10 +209,19 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					},
 				},
 			},
+			// Add rolling update strategy to ensure pods are updated when ConfigMap changes
+			Strategy: appsv1.DeploymentStrategy{
+				Type: appsv1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &appsv1.RollingUpdateDeployment{
+					MaxUnavailable: &intstr.IntOrString{IntVal: 1},
+					MaxSurge:       &intstr.IntOrString{IntVal: 1},
+				},
+			},
 		},
 	}
 
-	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+	// Apply or update the deployment
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		var existingDeployment appsv1.Deployment
 		err := r.Get(context.Background(), client.ObjectKey{
 			Namespace: "monsters",
@@ -222,23 +229,59 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}, &existingDeployment)
 
 		if err != nil && client.IgnoreNotFound(err) != nil {
+			// Handle error if the deployment doesn't exist
 			return err
 		}
 
 		if err == nil {
+			// If the deployment exists, update it
 			existingDeployment.Spec = deployment.Spec
+			// Trigger a rolling update of the deployment
 			return r.Update(context.Background(), &existingDeployment)
 		}
 
+		// Create new deployment if not found
 		return r.Create(context.Background(), deployment)
 	})
 
-	if err != nil {
-		return ctrl.Result{}, err
-	}
+	return err
+}
 
-	// Return success
-	return ctrl.Result{}, nil
+// createOrUpdateService ensures the Nginx Service is created or updated for each monster.
+func (r *MonsterReconciler) createOrUpdateService(monster kaschaeferv1.Monster) error {
+    service := &corev1.Service{
+        ObjectMeta: metav1.ObjectMeta{
+            Name:      fmt.Sprintf("nginx-%s", monster.Name), // Service name based on the monster name
+            Namespace: "monsters",
+        },
+        Spec: corev1.ServiceSpec{
+            Selector: map[string]string{
+                "app": fmt.Sprintf("nginx-%s", monster.Name), // Ensure that the service selects the Nginx pods
+            },
+            Ports: []corev1.ServicePort{
+                {
+                    Protocol:   "TCP",
+                    Port:       80,               // Port exposed by the service
+                    TargetPort: intstr.IntOrString{IntVal: 80}, // Port the Nginx container listens on
+                },
+            },
+            Type: corev1.ServiceTypeClusterIP, // Internal service
+        },
+    }
+
+    // Create or update the service
+    err := r.Get(context.Background(), client.ObjectKey{Namespace: "monsters", Name: service.Name}, service)
+    if err != nil && client.IgnoreNotFound(err) != nil {
+        return err
+    }
+
+    if err == nil {
+        // If the service exists, update it
+        return r.Update(context.Background(), service)
+    }
+
+    // Create new service if not found
+    return r.Create(context.Background(), service)
 }
 
 // containsString checks if a string is present in a slice of strings

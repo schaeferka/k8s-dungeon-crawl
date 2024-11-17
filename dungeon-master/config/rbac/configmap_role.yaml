@@ -9,3 +9,9 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "services", "namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["", "apps"]
+    resources: ["services"]  # Add services resource
+    verbs: ["list", "watch"]  # Allow listing and watching services

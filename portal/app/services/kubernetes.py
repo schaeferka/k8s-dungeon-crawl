@@ -42,15 +42,16 @@ class KubernetesService:
             current_app.logger.error(f"Failed to create Monster resource: {e}")
             raise Exception(f"Failed to create Monster resource: {e}") from e
 
-    def update_monster_resource(self, name: str, namespace: str, updates: dict):
+    
+    def update_monster_resource(self, name: str, namespace: str, monster_data: dict):
         """
         Update an existing Monster custom resource.
         :param name: Name of the Monster resource.
         :param namespace: Kubernetes namespace containing the resource.
-        :param updates: Dictionary containing the fields to update in the spec.
+        :param monster_data: Dictionary containing the fields to update in the spec.
         """
         try:
-            # Fetch the current resource
+            # Fetch the current resource from Kubernetes
             current_resource = self.api.get_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -59,10 +60,14 @@ class KubernetesService:
                 name=name,
             )
 
-            # Apply updates to the spec
-            current_resource["spec"].update(updates)
+            # Ensure we are updating only the "spec" portion of the resource
+            if "spec" not in current_resource:
+                raise ValueError(f"Monster resource {name} does not have a 'spec' field")
 
-            # Replace the resource
+            # Update the fields in the spec of the resource with the new monster data
+            current_resource["spec"].update(monster_data)  # Only updates fields within "spec"
+
+            # Replace the resource with the updated data
             self.api.replace_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -71,10 +76,16 @@ class KubernetesService:
                 name=name,
                 body=current_resource,
             )
+            
             current_app.logger.info(f"Updated Monster resource: {name}")
+
         except client.exceptions.ApiException as e:
             current_app.logger.error(f"Failed to update Monster resource: {e}")
             raise e
+        except ValueError as e:
+            current_app.logger.error(f"Invalid resource structure: {e}")
+            raise e
+
 
     def delete_monster_resource(self, name: str, namespace: str):
         """

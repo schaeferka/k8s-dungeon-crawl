@@ -24,4 +24,11 @@ resources:
 # if you do not want those helpers be installed with your Project.
 - monster_editor_role.yaml
 - monster_viewer_role.yaml
+# Configmap 
+- configmap_role.yaml
+- configmap_role_binding.yaml
+
+patchesStrategicMerge:
+# We are patching the manager role to allow the manager to list and watch services
+  - ./overlays/patch-manager-role.yaml
 
