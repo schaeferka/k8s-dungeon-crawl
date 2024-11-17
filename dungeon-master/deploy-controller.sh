@@ -97,7 +97,7 @@ spec:
   type: goblin
   id: 10001
   maxHP: 100
-  currentHP: 22
+  hp: 22
   depth: 1
 EOF
 
