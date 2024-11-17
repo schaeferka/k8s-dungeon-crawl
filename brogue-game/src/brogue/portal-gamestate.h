@@ -20,6 +20,8 @@ typedef struct {
     int milliseconds;
     int monsterSpawnFuse;
     int turns;
+    int currentDepth;
+    int deepestLevel;
 } GameStateMetrics;
 
 // Function declarations

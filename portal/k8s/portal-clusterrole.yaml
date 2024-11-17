@@ -9,4 +9,6 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     verbs: ["get", "list", "watch"]
-  # Add additional rules as needed for future functionality
+  - apiGroups: ["kaschaefer.com"]
+    resources: ["monsters"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"] 

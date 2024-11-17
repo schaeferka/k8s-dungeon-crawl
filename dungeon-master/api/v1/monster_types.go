@@ -32,7 +32,13 @@ type MonsterSpec struct {
 	ID int `json:"id,omitempty"`
 
 	// Health of the monster.
-	Health int `json:"health,omitempty"`
+	CurrentHP int `json:"hp,omitempty"`
+
+	// Maximum health of the monster.
+	MaxHP int `json:"maxHP,omitempty"`
+
+	// Level of the monster.
+	Depth int `json:"depth,omitempty"`
 }
 
 // MonsterStatus defines the observed state of Monster.

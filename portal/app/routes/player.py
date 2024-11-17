@@ -46,7 +46,7 @@ def receive_player():
     data = request.json  # Expecting JSON format
 
     # Log the received data to verify the format
-    current_app.logger.info("Received player data: %s", data)
+    # current_app.logger.info("Received player data: %s", data)
 
     if not data:
         return jsonify({"error": "No JSON payload received"}), 400
@@ -54,7 +54,7 @@ def receive_player():
     try:
         player = Player(**data)  # Assuming Player is the model you're using
         player_data.update(data)
-        current_app.logger.info("Successfully processed player data: %s", data)
+        # current_app.logger.info("Successfully processed player data: %s", data)
         return jsonify({"status": "success", "received": player.dict()}), 200
     except Exception as e:
         # Log the error if there's a problem with the player data

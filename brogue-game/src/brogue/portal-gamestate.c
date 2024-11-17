@@ -27,6 +27,8 @@ void update_gamestate(void) {
         .milliseconds = rogue.milliseconds,
         .monsterSpawnFuse = rogue.monsterSpawnFuse,
         .turns = rogue.absoluteTurnNumber,
+        .currentDepth = rogue.depthLevel,
+        .deepestLevel = rogue.deepestLevel
     };
     send_gamestate_metrics_to_portal(&gamestate);
 }
@@ -37,10 +39,10 @@ void send_gamestate_metrics_to_portal(const GameStateMetrics *gamestate) {
     if (curl) {
         char post_data[1024];
         snprintf(post_data, sizeof(post_data),
-            "{\"wizard\": %s, \"rewardRoomsGenerated\": %d, \"goldGenerated\": %d, "
+            "{\"wizard\": %s, \"rewardRoomsGenerated\": %d, \"goldGenerated\": %d, \"currentDepth\": %d, \"deepestLevel\": %d, "
             "\"gameInProgress\": %s, \"gameHasEnded\": %s, \"easyMode\": %s, \"seed\": %d, \"RNG\": %d, "
             "\"absoluteTurnNumber\": %d, \"milliseconds\": %d, \"monsterSpawnFuse\": %d, \"xpxpThisTurn\": %d}",
-            gamestate->wizard ? "true" : "false", gamestate->rewardRoomsGenerated, gamestate->goldGenerated,
+            gamestate->wizard ? "true" : "false", gamestate->rewardRoomsGenerated, gamestate->goldGenerated, gamestate->currentDepth, gamestate->deepestLevel,
             gamestate->gameInProgress ? "true" : "false", gamestate->gameHasEnded ? "true" : "false",
             gamestate->easyMode ? "true" : "false", gamestate->seed, gamestate->RNG,
             gamestate->absoluteTurnNumber, gamestate->milliseconds, gamestate->monsterSpawnFuse,

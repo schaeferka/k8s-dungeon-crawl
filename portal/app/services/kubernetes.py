@@ -33,6 +33,7 @@ class KubernetesService:
         }
 
         try:
+            # Attempt to create the custom object in Kubernetes
             self.api.create_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -40,10 +41,10 @@ class KubernetesService:
                 plural="monsters",
                 body=monster_manifest,
             )
-            logger.info(f"Created Monster resource: {name}")
+            logging.info(f"Created Monster resource: {name}")
         except client.exceptions.ApiException as e:
-            logger.error(f"Failed to create Monster resource: {e}")
-            raise e
+            logging.error(f"Failed to create Monster resource: {e}")
+            raise Exception(f"Failed to create Monster resource: {e}") from e
 
     def update_monster_resource(self, name: str, namespace: str, updates: dict):
         """

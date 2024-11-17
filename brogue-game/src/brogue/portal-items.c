@@ -262,7 +262,7 @@ void send_items_to_portal(const ItemMetrics *items) {
                 "\"weapon\": {"
                     "\"category\": \"%s\", "
                     "\"kind\": \"%s\", "
-                    "\"damage\": \"%d-%d\", "
+                    "\"damage\": {\"min\": %d, \"max\": %d}, "
                     "\"enchant1\": \"%s\", "
                     "\"enchant2\": \"%s\", "
                     "\"charges\": %d, "
@@ -329,6 +329,7 @@ void send_items_to_portal(const ItemMetrics *items) {
                 rogue.ringRight ? rogue.ringRight->quantity : 1
             );
 
+
             curl_easy_setopt(curl, CURLOPT_URL, ITEM_PORTAL_URL);
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
 
@@ -339,7 +340,7 @@ void send_items_to_portal(const ItemMetrics *items) {
             if (res != CURLE_OK) {
                 fprintf(stderr, "Failed to send items: %s\n", curl_easy_strerror(res));
             } else {
-                printf("Successfully sent items to portal.\n");
+                printf("Successfully sent equipped items to portal: %s\n", post_data);
             }
 
             curl_slist_free_all(headers);

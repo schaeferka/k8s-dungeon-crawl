@@ -1,0 +1,10 @@
+apiVersion: kaschaefer.com/v1
+kind: Monster
+metadata:
+  name: goblin
+  namespace: dungeon-master-system
+spec:
+  name: Goblin
+  type: goblin
+  id: 10001
+  maxHP: 100
