@@ -1,9 +1,5 @@
 from kubernetes import client, config
-import logging
-
-# Configure logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from flask import current_app
 
 class KubernetesService:
     def __init__(self):
@@ -41,9 +37,9 @@ class KubernetesService:
                 plural="monsters",
                 body=monster_manifest,
             )
-            logging.info(f"Created Monster resource: {name}")
+            current_app.logger.info(f"Created Monster resource: {name}")
         except client.exceptions.ApiException as e:
-            logging.error(f"Failed to create Monster resource: {e}")
+            current_app.logger.error(f"Failed to create Monster resource: {e}")
             raise Exception(f"Failed to create Monster resource: {e}") from e
 
     def update_monster_resource(self, name: str, namespace: str, updates: dict):
@@ -75,9 +71,9 @@ class KubernetesService:
                 name=name,
                 body=current_resource,
             )
-            logger.info(f"Updated Monster resource: {name}")
+            current_app.logger.info(f"Updated Monster resource: {name}")
         except client.exceptions.ApiException as e:
-            logger.error(f"Failed to update Monster resource: {e}")
+            current_app.logger.error(f"Failed to update Monster resource: {e}")
             raise e
 
     def delete_monster_resource(self, name: str, namespace: str):
@@ -87,6 +83,7 @@ class KubernetesService:
         :param namespace: Kubernetes namespace containing the resource.
         """
         try:
+            # Attempt to delete the custom resource
             self.api.delete_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -94,10 +91,16 @@ class KubernetesService:
                 plural="monsters",
                 name=name,
             )
-            logger.info(f"Deleted Monster resource: {name}")
+            current_app.logger.info(f"Successfully deleted Monster resource: {name} in namespace {namespace}")
         except client.exceptions.ApiException as e:
-            logger.error(f"Failed to delete Monster resource: {e}")
+            current_app.logger.error(f"Failed to delete Monster resource {name} in namespace {namespace}: {e}")
+            # Re-raise the exception to propagate it back
             raise e
+        except Exception as e:
+            # Catch any other exceptions to avoid the process crashing unexpectedly
+            current_app.logger.error(f"Unexpected error while deleting Monster resource {name}: {e}")
+            raise e
+
 
     def list_monsters_in_namespace(self, namespace: str):
         """
@@ -114,7 +117,7 @@ class KubernetesService:
             )
             return monsters.get("items", [])
         except client.exceptions.ApiException as e:
-            logger.error(f"Failed to list Monster resources: {e}")
+            current_app.logger.error(f"Failed to list Monster resources: {e}")
             return []
 
     def get_monster(self, name: str, namespace: str):
@@ -134,7 +137,7 @@ class KubernetesService:
             )
         except client.exceptions.ApiException as e:
             if e.status == 404:
-                logger.warning(f"Monster resource not found: {name}")
+                current_app.logger.warning(f"Monster resource not found: {name}")
                 return None
-            logger.error(f"Failed to retrieve Monster resource: {e}")
+            current_app.logger.error(f"Failed to retrieve Monster resource: {e}")
             raise e

@@ -184,7 +184,7 @@ def receive_monster_death():
         monster_lifespan_histogram.observe(lifespan)
 
     # Update the monster's stats to reflect its death
-    current_app.logger.info(f"Marking monster {monster_id} as dead.")
+    current_app.logger.info(f"Marking monster {monster['name']} as dead.")
     monster["hp"] = 0
     monster["isDead"] = True
 
@@ -200,8 +200,8 @@ def receive_monster_death():
     # Delete the Monster custom resource in Kubernetes when the monster dies
     try:
         k8s_service.delete_monster_resource(
-            name=monster_id,
-            namespace="default"  # Specify the correct namespace here
+            name=monster['name'],
+            namespace="dungeon-master-system"
         )
     except Exception as e:
         current_app.logger.error(f"Failed to delete Monster resource for {monster_id}: {e}")
