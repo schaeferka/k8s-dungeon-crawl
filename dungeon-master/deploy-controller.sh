@@ -17,7 +17,7 @@ check_namespace() {
   fi
 }
 
-kubectl create configmap nginx-config-map --from-file=nginx.conf
+# kubectl create configmap nginx-config-map --from-file=nginx.conf
 kubectl apply -f config/rbac/configmap_role_binding.yaml
 kubectl apply -f config/rbac/configmap_role.yaml
 
@@ -83,8 +83,9 @@ else
   exit 1
 fi
 
+tmux new-session -d -s traefik_port_forward "kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 
-# Step 8: Create an example Monster resource
+# Step 9: Create an example Monster resource
 EXAMPLE_MONSTER="example-monster.yaml"
 cat <<EOF > "$EXAMPLE_MONSTER"
 apiVersion: kaschaefer.com/v1
@@ -104,7 +105,7 @@ EOF
 echo "Creating example Monster resource..."
 kubectl apply -f "$EXAMPLE_MONSTER"
 
-# Step 9: Verify Monster resource
+# Step 10: Verify Monster resource
 echo "Verifying Monster resource..."
 if kubectl get monsters -n "$NAMESPACE" | grep -q "goblin"; then
   echo "Monster resource successfully created."

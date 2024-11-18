@@ -11,10 +11,13 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/pointer"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	networkingv1 "k8s.io/api/networking/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
 // MonsterReconciler reconciles a Monster object
@@ -69,14 +72,20 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
+	// Create or Update the Service for the monster
+	err = r.createOrUpdateService(monster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	// Create or Update the Nginx Deployment
 	err = r.createOrUpdateDeployment(monster)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create or Update the Service
-	err = r.createOrUpdateService(monster)
+	// Create or Update the Ingress for the monster
+	err = r.createOrUpdateIngress(monster)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -87,52 +96,101 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 // createOrUpdateConfigMap ensures the ConfigMap is created or updated
 func (r *MonsterReconciler) createOrUpdateConfigMap(monster kaschaeferv1.Monster) error {
-	// Create or update the ConfigMap for the monster
+	// Generate the index.html content for the monster
+	indexHTML := fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Monster Info: %s</title>
+			    <script>
+					// Refresh the page after 1/2 second
+					setTimeout(function(){
+    					window.location.href = window.location.href;  // Reload the page at the current path
+					}, 500); 
+				</script>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+		</head>
+		<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+			<header class="bg-blue-900 text-white p-4">
+				<div class="container mx-auto flex items-center justify-between">
+					<h1 class="text-3xl font-bold">K8s Dungeon Crawl</h1>
+				</div>
+			</header>
+
+			<main class="container mx-auto my-8 flex-grow">
+				<div class="bg-white p-6 rounded-lg shadow-lg">
+					<h2 class="text-2xl font-bold text-blue-900 mb-4">Monster: %s</h2>
+					<ul class="list-disc pl-6 space-y-2">
+						<li><strong>ID:</strong> %s</li>
+						<li><strong>Type:</strong> %s</li>
+						<li><strong>CurrentHP:</strong> %s</li>
+						<li><strong>MaxHP:</strong> %s</li>
+						<li><strong>Depth:</strong> %s</li>
+					</ul>
+				</div>
+			</main>
+
+			<footer class="bg-blue-900 text-white p-4 text-center">
+				<p>&copy; 2024 K8s Dungeon Crawl</p>
+			</footer>
+		</body>
+		</html>
+	`, monster.Name, monster.Name, fmt.Sprintf("%d", monster.Spec.ID), monster.Spec.Type, fmt.Sprintf("%d", monster.Spec.CurrentHP), fmt.Sprintf("%d", monster.Spec.MaxHP), fmt.Sprintf("%d", monster.Spec.Depth))
+
+	// Generate the nginx.conf content for the monster
+	nginxConf := fmt.Sprintf(`
+    worker_processes  auto;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        access_log  /var/log/nginx/access.log;
+
+        sendfile        on;
+        keepalive_timeout  65;
+
+        include /etc/nginx/conf.d/*.conf;
+
+        server {
+            listen       8000;  # Listen on port 8000 for Traefik's web entrypoint (no SSL)
+            server_name  "nginx-%s"; 
+
+            # Default location block, serving the index.html from the root
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html;
+            }
+
+            # Location block for handling the monster-specific path
+            location /%s {
+                root   /usr/share/nginx/html;
+                index  index.html;
+                try_files $uri $uri/ /index.html;  # Ensure fallback to index.html
+            }
+        }
+    }
+`, monster.Name, monster.Name)
+
+	// Create or Update the ConfigMap for the monster
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("monster-%s", monster.Name),
 			Namespace: "monsters",
 		},
 		Data: map[string]string{
-			"index.html": fmt.Sprintf(`
-				<!DOCTYPE html>
-				<html lang="en">
-				<head>
-					<meta charset="UTF-8">
-					<meta name="viewport" content="width=device-width, initial-scale=1.0">
-					<title>Monster Info: %s</title>
-					<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-				</head>
-				<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
-					<header class="bg-blue-900 text-white p-4">
-						<div class="container mx-auto flex items-center justify-between">
-							<h1 class="text-3xl font-bold">K8s Dungeon Crawl</h1>
-						</div>
-					</header>
-
-					<main class="container mx-auto my-8 flex-grow">
-						<div class="bg-white p-6 rounded-lg shadow-lg">
-							<h2 class="text-2xl font-bold text-blue-900 mb-4">Monster: %s</h2>
-							<ul class="list-disc pl-6 space-y-2">
-								<li><strong>ID:</strong> %s</li>
-								<li><strong>Type:</strong> %s</li>
-								<li><strong>CurrentHP:</strong> %s</li>
-								<li><strong>MaxHP:</strong> %s</li>
-								<li><strong>Depth:</strong> %s</li>
-							</ul>
-						</div>
-					</main>
-
-					<footer class="bg-blue-900 text-white p-4 text-center">
-						<p>&copy; 2024 K8s Dungeon Crawl</p>
-					</footer>
-				</body>
-				</html>
-			`, monster.Name, monster.Name, fmt.Sprintf("%d", monster.Spec.ID), monster.Spec.Type, fmt.Sprintf("%d", monster.Spec.CurrentHP), fmt.Sprintf("%d", monster.Spec.MaxHP), fmt.Sprintf("%d", monster.Spec.Depth)),
+			"index.html": indexHTML,
+			"nginx.conf": nginxConf,
 		},
 	}
 
-	// Create or Update the ConfigMap
+	// Retry creating or updating the ConfigMap
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		var existingCM corev1.ConfigMap
 		err := r.Get(context.Background(), client.ObjectKey{
@@ -145,23 +203,157 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(monster kaschaeferv1.Monster
 		}
 
 		if err == nil {
+			// If the ConfigMap exists, update it
 			existingCM.Data = cm.Data
 			return r.Update(context.Background(), &existingCM)
 		}
 
+		// Create new ConfigMap if not found
 		return r.Create(context.Background(), cm)
 	})
 
 	return err
 }
 
+
+// createOrUpdateService creates or updates the service for the monster's Nginx deployment
+func (r *MonsterReconciler) createOrUpdateService(monster kaschaeferv1.Monster) error {
+	// Define the service for the monster
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("nginx-%s", monster.Name),
+			Namespace: "monsters",
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app": fmt.Sprintf("nginx-%s", monster.Name),
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name:	   "http",
+					Port:       8000,
+					TargetPort: intstr.FromInt(8000),
+				},
+			},
+			Type: corev1.ServiceTypeClusterIP, // Use ClusterIP for internal access
+		},
+	}
+
+	// Retry creating or updating the service
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var existingService corev1.Service
+		err := r.Get(context.Background(), client.ObjectKey{
+			Namespace: "monsters",
+			Name:      fmt.Sprintf("nginx-%s", monster.Name),
+		}, &existingService)
+
+		if err != nil && client.IgnoreNotFound(err) != nil {
+			return err
+		}
+
+		if err == nil {
+			// If the service exists, update it
+			existingService.Spec = service.Spec
+			return r.Update(context.Background(), &existingService)
+		}
+
+		// Create new service if not found
+		return r.Create(context.Background(), service)
+	})
+
+	return err
+}
+
+// createOrUpdateIngress creates or updates the Ingress for the monster's page
+func (r *MonsterReconciler) createOrUpdateIngress(monster kaschaeferv1.Monster) error {
+	// Define the Ingress resource for the monster
+		// Define the Ingress resource for the monster
+		ingress := &networkingv1.Ingress{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("nginx-%s-ingress", monster.Name),
+				Namespace: "monsters",
+			},
+			Spec: networkingv1.IngressSpec{
+				IngressClassName: pointer.String("traefik"), // Ingress class for Traefik
+				Rules: []networkingv1.IngressRule{
+					{
+						Host: "localhost", // Access the service via localhost
+						IngressRuleValue: networkingv1.IngressRuleValue{
+							HTTP: &networkingv1.HTTPIngressRuleValue{
+								Paths: []networkingv1.HTTPIngressPath{
+									{
+										Path:     fmt.Sprintf("/%s", monster.Name), // Dynamic path for each monster
+										PathType: func() *networkingv1.PathType {   // Use prefix path matching
+											pt := networkingv1.PathTypePrefix
+											return &pt
+										}(),
+										Backend: networkingv1.IngressBackend{
+											Service: &networkingv1.IngressServiceBackend{
+												Name: fmt.Sprintf("nginx-%s", monster.Name), // Service name should match the monster
+												Port: networkingv1.ServiceBackendPort{
+													Number: 8000, // Port of the nginx service
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+	// Retry creating or updating the Ingress
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var existingIngress networkingv1.Ingress
+		err := r.Get(context.Background(), client.ObjectKey{
+			Namespace: "monsters",
+			Name:      fmt.Sprintf("nginx-%s-ingress", monster.Name),
+		}, &existingIngress)
+
+		if err != nil && client.IgnoreNotFound(err) != nil {
+			return err
+		}
+
+		if err == nil {
+			// If the Ingress exists, update it
+			existingIngress.Spec = ingress.Spec
+			return r.Update(context.Background(), &existingIngress)
+		}
+
+		// Create new Ingress if not found
+		return r.Create(context.Background(), ingress)
+	})
+
+	return err
+}
+
+
+
 // createOrUpdateDeployment ensures the Nginx Deployment is created or updated
 func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monster) error {
+	// Fetch the existing ConfigMap to generate a hash for triggering rolling update
+	var cm corev1.ConfigMap
+	err := r.Get(context.Background(), client.ObjectKey{
+		Namespace: "monsters",
+		Name:      fmt.Sprintf("monster-%s", monster.Name),
+	}, &cm)
+	if err != nil {
+		return err
+	}
+
+	// Generate a hash for the ConfigMap data to trigger the deployment update when the config changes
+	cmHash := fmt.Sprintf("%x", hashData(cm.Data)) // Assuming `hashData` is a function to compute the hash
+
 	// Create or Update the Nginx Deployment
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("nginx-%s", monster.Name),
 			Namespace: "monsters",
+			Annotations: map[string]string{
+				"configHash": cmHash, // Add a hash of the ConfigMap to trigger rolling update
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: pointer.Int32Ptr(1), // Set to 1 replica
@@ -175,6 +367,9 @@ func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monste
 					Labels: map[string]string{
 						"app": fmt.Sprintf("nginx-%s", monster.Name),
 					},
+					Annotations: map[string]string{
+						"configHash": cmHash, // Ensure the pod template also has this annotation
+					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -183,7 +378,7 @@ func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monste
 							Image: "nginx:latest", // Use the latest Nginx image
 							Ports: []corev1.ContainerPort{
 								{
-									ContainerPort: 80,
+									ContainerPort: 8000,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -192,12 +387,27 @@ func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monste
 									MountPath: "/usr/share/nginx/html/index.html", // Nginx serves the content from here
 									SubPath:   "index.html",                       // Only mount the specific file, not the whole config map
 								},
+								{
+									Name:      "nginx-config",
+									MountPath: "/etc/nginx/nginx.conf", // Mount the nginx.conf
+									SubPath:   "nginx.conf",             // Only mount the specific nginx config
+								},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						{
 							Name: "monster-data",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: fmt.Sprintf("monster-%s", monster.Name),
+									},
+								},
+							},
+						},
+						{
+							Name: "nginx-config",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
@@ -221,7 +431,7 @@ func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monste
 	}
 
 	// Apply or update the deployment
-	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		var existingDeployment appsv1.Deployment
 		err := r.Get(context.Background(), client.ObjectKey{
 			Namespace: "monsters",
@@ -245,43 +455,6 @@ func (r *MonsterReconciler) createOrUpdateDeployment(monster kaschaeferv1.Monste
 	})
 
 	return err
-}
-
-// createOrUpdateService ensures the Nginx Service is created or updated for each monster.
-func (r *MonsterReconciler) createOrUpdateService(monster kaschaeferv1.Monster) error {
-    service := &corev1.Service{
-        ObjectMeta: metav1.ObjectMeta{
-            Name:      fmt.Sprintf("nginx-%s", monster.Name), // Service name based on the monster name
-            Namespace: "monsters",
-        },
-        Spec: corev1.ServiceSpec{
-            Selector: map[string]string{
-                "app": fmt.Sprintf("nginx-%s", monster.Name), // Ensure that the service selects the Nginx pods
-            },
-            Ports: []corev1.ServicePort{
-                {
-                    Protocol:   "TCP",
-                    Port:       80,               // Port exposed by the service
-                    TargetPort: intstr.IntOrString{IntVal: 80}, // Port the Nginx container listens on
-                },
-            },
-            Type: corev1.ServiceTypeClusterIP, // Internal service
-        },
-    }
-
-    // Create or update the service
-    err := r.Get(context.Background(), client.ObjectKey{Namespace: "monsters", Name: service.Name}, service)
-    if err != nil && client.IgnoreNotFound(err) != nil {
-        return err
-    }
-
-    if err == nil {
-        // If the service exists, update it
-        return r.Update(context.Background(), service)
-    }
-
-    // Create new service if not found
-    return r.Create(context.Background(), service)
 }
 
 // containsString checks if a string is present in a slice of strings
@@ -350,6 +523,19 @@ func (r *MonsterReconciler) deleteDeployment(name, namespace string) error {
 	}
 
 	return nil
+}
+
+// hashData calculates the hash of the ConfigMap's data and returns it as a string.
+func hashData(data map[string]string) string {
+	// Combine all the keys and values in the ConfigMap into a single string
+	hashInput := ""
+	for key, value := range data {
+		hashInput += fmt.Sprintf("%s=%s", key, value)
+	}
+
+	// Generate a SHA-256 hash of the concatenated string
+	hash := sha256.Sum256([]byte(hashInput))
+	return hex.EncodeToString(hash[:])
 }
 
 // SetupWithManager sets up the controller with the Manager.
