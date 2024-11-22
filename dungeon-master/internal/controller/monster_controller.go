@@ -104,12 +104,6 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(monster kaschaeferv1.Monster
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>Monster Info: %s</title>
-			    <script>
-					// Refresh the page after 1/2 second
-					setTimeout(function(){
-    					window.location.href = window.location.href;  // Reload the page at the current path
-					}, 500); 
-				</script>
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 		</head>
 		<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
