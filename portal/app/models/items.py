@@ -13,8 +13,8 @@ class Item(BaseModel):
     quantity: int
     inscription: Optional[str] = "None"  
     damage: Optional[Damage] = None  
-    armor: Optional[int] = None 
-    charges: Optional[int] = None
+    armor: Optional[int] = 0 
+    charges: Optional[int] = 0
     timesEnchanted: Optional[int] = None
     strengthRequired: Optional[int] = None
     inventoryLetter: Optional[str] = " " 
