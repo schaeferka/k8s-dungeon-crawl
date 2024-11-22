@@ -5,6 +5,7 @@ from app.services.kubernetes import KubernetesService
 from datetime import datetime
 from time import time
 
+
 bp = Blueprint('monsters', __name__)
 
 k8s_service = KubernetesService()
@@ -29,9 +30,9 @@ last_monster_death = Gauge(
 )
 
 # In-memory storage for monsters (or use a database in real applications)
-monsters_data = {}  # Using a dictionary instead of a list
-monsters_overall_data = {}  # Using a dictionary for overall monsters
-monsters_dead = []  # List for dead monsters
+monsters_data = {}  # Using a dictionary for live monsters in current game
+monsters_all_data = {}  # Using a dictionary for all monsters in current game
+monsters_dead = []  # List for dead monsters in current game
 
 @bp.route('/', methods=['GET'])
 def monsters():
@@ -57,13 +58,13 @@ def get_monster_count():
     count = len(monsters_data)
     return jsonify({"monster_count": count})
 
-# Route for getting all monsters (overall, same as /)
-@bp.route('/overall', methods=['GET'])
+# Route for getting all monsters
+@bp.route('/all', methods=['GET'])
 def get_all_monsters():
     """
     Returns all the monsters.
     """
-    return jsonify(list(monsters_overall_data.values()))  # Convert dict to list
+    return jsonify(list(monsters_all_data.values()))  # Convert dict to list
 
 # Route for getting only dead monsters
 @bp.route('/dead', methods=['GET'])
@@ -81,7 +82,7 @@ def get_monster_timestamps():
     """
     try:
         timestamps = []
-        for monster in monsters_overall_data.values():
+        for monster in monsters_all_data.values():
             # Ensure each monster has the required fields
             if "name" in monster and "spawnTimestamp" in monster and "deathTimestamp" in monster:
                 timestamps.append({
@@ -119,7 +120,7 @@ def create():
         # Record the creation time if this is a new monster
         monster["spawnTimestamp"] = int(time())  # Current timestamp in seconds
 
-        if monster_id not in monsters_overall_data:
+        if monster_id not in monsters_all_data:
             # Handle new monster creation
             return_value = handle_new_monster(monster)
             if return_value:
@@ -135,12 +136,19 @@ def create():
 
 def handle_new_monster(monster):
     monster_id = monster["id"]
-    # Add the monster to overall monsters
-    monster_count.inc()
-    current_app.logger.info("Added new monster to overall monsters: %s", monster)
+    
+    # Add a new field with the hyperlink for the monster's name
+    monster_name = monster["name"]
+    if not monster_name:
+        monster_name = "unknown-monster"  # Fallback name if empty
 
-    # Update or add the monster in `monsters_overall_data`
-    monsters_overall_data[monster_id] = {**monsters_overall_data.get(monster_id, {}), **monster}
+    
+    # Add the monster to all monsters
+    monster_count.inc()
+    current_app.logger.info("Added new monster to all monsters: %s", monster)
+
+    # Update or add the monster in `monsters_all_data`
+    monsters_all_data[monster_id] = {**monsters_all_data.get(monster_id, {}), **monster}
     
     # Create the Monster custom resource in Kubernetes when a new monster is added
     try:
@@ -197,17 +205,17 @@ def receive_monster_death():
 
     current_app.logger.info("Received death notification for monster ID: %s", monster_id)
 
-    # Check if the monster exists in the overall data
-    if monster_id not in monsters_overall_data:
+    # Check if the monster exists in the all monster data
+    if monster_id not in monsters_all_data:
         return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
 
     # Handle monster death if it hasn't been marked as dead already
-    if monsters_overall_data[monster_id].get("isDead", False):
+    if monsters_all_data[monster_id].get("isDead", False):
         current_app.logger.info(f"Monster ID {monster_id} is already dead.")
         return jsonify({"error": f"Monster {monster_id} is already dead."}), 400
 
     # Calculate lifespan
-    monster = monsters_overall_data[monster_id]
+    monster = monsters_all_data[monster_id]
     creation_time = monster.get("creation_time")
     if creation_time:
         lifespan = time.time() - creation_time
@@ -219,7 +227,7 @@ def receive_monster_death():
     monster["isDead"] = True
 
     # Move the monster to the 'dead' collection
-    monsters_dead.append(monsters_overall_data[monster_id])
+    monsters_dead.append(monsters_all_data[monster_id])
 
     # Increment the monster death count in Prometheus
     monster_death_count.inc()
