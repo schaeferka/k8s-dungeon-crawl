@@ -173,13 +173,18 @@ function updateTables(liveMonsters, deadMonsters, allMonsters) {
     allMonsters.forEach(monster => {
         const row = document.createElement('tr');
 
+        // Apply a red background if the monster is dead
+        if (monster.isDead) {
+            row.classList.add('bg-red-200'); // Tailwind class for light red background
+        }
+
         const nameCell = document.createElement('td');
         nameCell.classList.add('text-center');
         nameCell.textContent = monster.name || '';
 
         const hpCell = document.createElement('td');
         hpCell.classList.add('text-center');
-        hpCell.textContent = monster.hp || '';
+        hpCell.textContent = monster.isDead ? '0' : monster.hp || '';  // Set to 0 if dead, else show HP
 
         const maxHpCell = document.createElement('td');
         maxHpCell.classList.add('text-center');
