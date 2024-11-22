@@ -5,6 +5,7 @@ from app.services.kubernetes import KubernetesService
 from datetime import datetime
 from time import time
 
+
 bp = Blueprint('monsters', __name__)
 
 k8s_service = KubernetesService()
@@ -29,9 +30,9 @@ last_monster_death = Gauge(
 )
 
 # In-memory storage for monsters (or use a database in real applications)
-monsters_data = {}  # Using a dictionary instead of a list
-monsters_overall_data = {}  # Using a dictionary for overall monsters
-monsters_dead = []  # List for dead monsters
+monsters_data = {}  # Using a dictionary for live monsters in current game
+monsters_all_data = {}  # Using a dictionary for all monsters in current game
+monsters_dead = []  # List for dead monsters in current game
 
 @bp.route('/', methods=['GET'])
 def monsters():
@@ -57,13 +58,13 @@ def get_monster_count():
     count = len(monsters_data)
     return jsonify({"monster_count": count})
 
-# Route for getting all monsters (overall, same as /)
-@bp.route('/overall', methods=['GET'])
+# Route for getting all monsters
+@bp.route('/all', methods=['GET'])
 def get_all_monsters():
     """
     Returns all the monsters.
     """
-    return jsonify(list(monsters_overall_data.values()))  # Convert dict to list
+    return jsonify(list(monsters_all_data.values()))  # Convert dict to list
 
 # Route for getting only dead monsters
 @bp.route('/dead', methods=['GET'])
@@ -81,7 +82,7 @@ def get_monster_timestamps():
     """
     try:
         timestamps = []
-        for monster in monsters_overall_data.values():
+        for monster in monsters_all_data.values():
             # Ensure each monster has the required fields
             if "name" in monster and "spawnTimestamp" in monster and "deathTimestamp" in monster:
                 timestamps.append({
@@ -118,39 +119,76 @@ def create():
 
         # Record the creation time if this is a new monster
         monster["spawnTimestamp"] = int(time())  # Current timestamp in seconds
-        
-        if monster_id not in monsters_data:
-            # Add the monster to overall monsters
-            monster_count.inc()
-            current_app.logger.info("Added new monster to overall monsters: %s", monster)
 
-            # Update or add the monster in `monsters_overall_data`
-            monsters_overall_data[monster_id] = {**monsters_overall_data.get(monster_id, {}), **monster}
-            
-            # Create the Monster custom resource in Kubernetes when a new monster is added
-            try:
-                current_app.logger.info("Creating Monster resource for monster ID: %s", monster_id)
-                # Call the function to create the Monster resource
-                k8s_service.create_monster_resource(
-                    name=monster["name"],
-                    namespace="dungeon-master-system", 
-                    monster_data=monster
-                )
-                current_app.logger.info(f"Monster resource created for {monster_id}.")
-            except Exception as e:
-                current_app.logger.error(f"Failed to create Monster resource for {monster_id}: {e}")
-                return jsonify({"error": "Failed to create Monster resource", "message": str(e)}), 500
+        if monster_id not in monsters_all_data:
+            # Handle new monster creation
+            return_value = handle_new_monster(monster)
+            if return_value:
+                return return_value  # Return if there's an error in creating the monster
         else:
-            current_app.logger.info(f"Monster {monster_id} already exists, skipping creation.")
+            # Handle updating existing monster
+            handle_existing_monster(monster, monster_id)
 
-        # Ensure `monsters_data` has the latest data for active monsters
-        if not monster.get("isDead", False):
-            monsters_data[monster_id] = monster
-        else:
-            # If the monster is dead, add it to the dead list
-            monsters_dead.append(monster)
+        # Update the monster status in active monsters or dead list
+        update_monster_status(monster, monster_id)
 
     return jsonify({"status": "success", "received": data}), 200
+
+def handle_new_monster(monster):
+    monster_id = monster["id"]
+    
+    # Add a new field with the hyperlink for the monster's name
+    monster_name = monster["name"]
+    if not monster_name:
+        monster_name = "unknown-monster"  # Fallback name if empty
+
+    
+    # Add the monster to all monsters
+    monster_count.inc()
+    current_app.logger.info("Added new monster to all monsters: %s", monster)
+
+    # Update or add the monster in `monsters_all_data`
+    monsters_all_data[monster_id] = {**monsters_all_data.get(monster_id, {}), **monster}
+    
+    # Create the Monster custom resource in Kubernetes when a new monster is added
+    try:
+        current_app.logger.info("Creating Monster resource for monster ID: %s", monster_id)
+        k8s_service.create_monster_resource(
+            name=monster["name"],
+            namespace="dungeon-master-system", 
+            monster_data=monster
+        )
+        current_app.logger.info(f"Monster resource created for {monster_id}.")
+    except Exception as e:
+        current_app.logger.error(f"Failed to create Monster resource for {monster_id}: {e}")
+        return jsonify({"error": "Failed to create Monster resource", "message": str(e)}), 500
+
+    return None  # No error, continue
+
+def handle_existing_monster(monster, monster_id):
+    if not monster.get("isDead", False):
+        try:
+            current_app.logger.info(f"Updating Monster resource for monster ID: {monster_id}")
+            k8s_service.update_monster_resource(
+                name=monster["name"],
+                namespace="dungeon-master-system", 
+                monster_data=monster
+            )
+            current_app.logger.info(f"Monster resource updated for {monster_id}.")
+        except Exception as e:
+            current_app.logger.error(f"Failed to update Monster resource for {monster_id}: {e}")
+            return jsonify({"error": "Failed to update Monster resource", "message": str(e)}), 500
+    else:
+        current_app.logger.info(f"Monster {monster_id} is dead, skipping update.")
+        
+        
+def update_monster_status(monster, monster_id):
+    if not monster.get("isDead", False):
+        monsters_data[monster_id] = monster
+    else:
+        # If the monster is dead, add it to the dead list
+        monsters_dead.append(monster)
+
 
 
 @bp.route("/death", methods=["POST"], strict_slashes=False)
@@ -167,46 +205,49 @@ def receive_monster_death():
 
     current_app.logger.info("Received death notification for monster ID: %s", monster_id)
 
-    # Check if the monster exists in the overall data
-    if monster_id in monsters_overall_data:
-        # Calculate lifespan if the monster exists in the overall data
-        creation_time = monsters_overall_data[monster_id].get("creation_time")
-        if creation_time:
-            lifespan = time.time() - creation_time
-            monster_lifespan_histogram.observe(lifespan)
-
-        # Record the last monster death time
-        last_monster_death.set_to_current_time()
-
-        # Update the monster's stats to reflect its death
-        monsters_data[monster_id]["hp"] = 0
-        monsters_data[monster_id]["isDead"] = True
-        monsters_overall_data[monster_id]["hp"] = 0
-        monsters_overall_data[monster_id]["isDead"] = True 
-
-        # Move the monster to the 'dead' collection
-        monsters_dead.append(monsters_overall_data[monster_id])
-
-        # Increment the monster death count in Prometheus
-        monster_death_count.inc()
-
-        # Optionally, remove from active monsters list if no longer relevant
-        monsters_data.pop(monster_id, None)
-        
-        # Delete the Monster custom resource in Kubernetes when the monster dies
-        try:
-            k8s_service.delete_monster_resource(
-                name=monster_id,
-                namespace="default"  # Specify the correct namespace here
-            )
-        except Exception as e:
-            current_app.logger.error(f"Failed to delete Monster resource for {monster_id}: {e}")
-
-        # Return a success response with the monster ID
-        return jsonify({"status": "success", "id": monster_id}), 200
-    else:
-        # Handle the case where the monster ID doesn't exist in the overall data
+    # Check if the monster exists in the all monster data
+    if monster_id not in monsters_all_data:
         return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
+
+    # Handle monster death if it hasn't been marked as dead already
+    if monsters_all_data[monster_id].get("isDead", False):
+        current_app.logger.info(f"Monster ID {monster_id} is already dead.")
+        return jsonify({"error": f"Monster {monster_id} is already dead."}), 400
+
+    # Calculate lifespan
+    monster = monsters_all_data[monster_id]
+    creation_time = monster.get("creation_time")
+    if creation_time:
+        lifespan = time.time() - creation_time
+        monster_lifespan_histogram.observe(lifespan)
+
+    # Update the monster's stats to reflect its death
+    current_app.logger.info(f"Marking monster {monster['name']} as dead.")
+    monster["hp"] = 0
+    monster["isDead"] = True
+
+    # Move the monster to the 'dead' collection
+    monsters_dead.append(monsters_all_data[monster_id])
+
+    # Increment the monster death count in Prometheus
+    monster_death_count.inc()
+
+    # Optionally, remove from active monsters list if no longer relevant
+    monsters_data.pop(monster_id, None)
+
+    # Delete the Monster custom resource in Kubernetes when the monster dies
+    try:
+        k8s_service.delete_monster_resource(
+            name=monster['name'],
+            namespace="dungeon-master-system"
+        )
+    except Exception as e:
+        current_app.logger.error(f"Failed to delete Monster resource for {monster_id}: {e}")
+        return jsonify({"error": f"Failed to delete Monster resource: {monster_id}"}), 500
+
+    # Return a success response with the monster ID
+    return jsonify({"status": "success", "id": monster_id}), 200
+
 
 @bp.route('/reset', methods=['POST'], strict_slashes=False)
 def reset_current_game_monsters():
