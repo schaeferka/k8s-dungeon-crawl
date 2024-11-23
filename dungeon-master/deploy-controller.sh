@@ -5,6 +5,7 @@ PROJECT_NAME="dungeon-master"
 IMAGE_NAME="controller:latest"  # Use local image tag
 NAMESPACE="dungeon-master-system"
 MONSTERS_NAMESPACE="monsters"
+MONSTIES_NAMESPACE="monsties"
 CRD_FILE="config/crd/bases/kaschaefer.com_monsters.yaml"
 
 # Function to check if a namespace exists
@@ -47,6 +48,7 @@ fi
 # Step 4: Ensure namespace exists
 check_namespace "$NAMESPACE"
 check_namespace "$MONSTERS_NAMESPACE"
+check_namespace "$MONSTIES_NAMESPACE"
 
 # Step 5: Build the local controller image
 echo "Building local controller image..."
@@ -86,33 +88,33 @@ fi
 tmux new-session -d -s traefik_port_forward "kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 
 # Step 9: Create an example Monster resource
-EXAMPLE_MONSTER="example-monster.yaml"
-cat <<EOF > "$EXAMPLE_MONSTER"
-apiVersion: kaschaefer.com/v1
-kind: Monster
-metadata:
-  name: goblin
-  namespace: $NAMESPACE
-spec:
-  name: Goblin
-  type: goblin
-  id: 10001
-  maxHP: 100
-  hp: 22
-  depth: 1
-EOF
+#EXAMPLE_MONSTER="example-monster.yaml"
+#cat <<EOF > "$EXAMPLE_MONSTER"
+#apiVersion: kaschaefer.com/v1
+#kind: Monster
+#metadata:
+#  name: goblin
+#  namespace: $NAMESPACE
+#spec:
+#  name: Goblin
+#  type: goblin
+#  id: 10001
+#  maxHP: 100
+#  hp: 22
+#  depth: 1
+#EOF
 
-echo "Creating example Monster resource..."
-kubectl apply -f "$EXAMPLE_MONSTER"
+#echo "Creating example Monster resource..."
+#kubectl apply -f "$EXAMPLE_MONSTER"
 
 # Step 10: Verify Monster resource
-echo "Verifying Monster resource..."
-if kubectl get monsters -n "$NAMESPACE" | grep -q "goblin"; then
-  echo "Monster resource successfully created."
-else
-  echo "Monster resource creation failed. Check logs for more details."
-  exit 1
-fi
+#echo "Verifying Monster resource..."
+#if kubectl get monsters -n "$NAMESPACE" | grep -q "goblin"; then
+#  echo "Monster resource successfully created."
+#else
+#  echo "Monster resource creation failed. Check logs for more details."
+#  exit 1
+#fi
 
 # Finish
 echo "CRD and Controller deployment complete!"

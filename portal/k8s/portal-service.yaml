@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: portal-service
   namespace: portal
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5000"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: portal
@@ -11,3 +15,4 @@ spec:
     - name: metrics
       port: 5000
       targetPort: 5000
+
