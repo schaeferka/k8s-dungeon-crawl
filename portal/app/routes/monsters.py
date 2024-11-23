@@ -47,16 +47,34 @@ def get_monsters():
     """
     Returns the list of all monsters.
     """
-    return jsonify(list(monsters_data.values()))  # Convert dict to list
+    return jsonify(list(monsters_data.values()))
 
-# Route for getting the count of all monsters
+# Route for getting the count of live monsters
 @bp.route('/count', methods=['GET'])
 def get_monster_count():
     """
-    Returns the total count of monsters.
+    Returns the count of live monsters.
     """
     count = len(monsters_data)
     return jsonify({"monster_count": count})
+
+# Route for getting the count of dead monsters
+@bp.route('/dead-count', methods=['GET'])
+def get_dead_monster_count():
+    """
+    Returns the count of dead monsters.
+    """
+    count = len(monsters_dead)
+    return jsonify({"dead_monster_count": count})
+
+# Route for getting the count of monsties
+@bp.route('/monsties-count', methods=['GET'])
+def get_monsties_count():
+    """
+    Returns the count of monsties.
+    """
+    count = 0
+    return jsonify({"monsties_count": count})
 
 # Route for getting all monsters
 @bp.route('/all', methods=['GET'])

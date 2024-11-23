@@ -31,6 +31,60 @@ bonus_wisdom = Gauge('brogue_wisdom_bonus', 'Wisdom ring bonus')
 bonus_reaping = Gauge('brogue_reaping_bonus', 'Reaping ring bonus')
 
 
+# Route for getting current player hp
+@bp.route('/hp', methods=['GET'], strict_slashes=False)
+def get_hp():
+    """
+    Returns the current player hp.
+    """
+    hp = player_data['currentHP']
+    return jsonify({"hp": hp})
+
+# Route for getting current player gold
+@bp.route('/gold', methods=['GET'], strict_slashes=False)
+def get_gold():
+    """
+    Returns the current player gold.
+    """
+    gold = player_data['gold']
+    return jsonify({"gold": gold})
+
+# Route for getting current player depth
+@bp.route('/depth', methods=['GET'], strict_slashes=False)
+def get_depth():
+    """
+    Returns the current player depth.
+    """
+    depth = player_data['depthLevel']
+    return jsonify({"current_depth": depth})
+
+# Route for getting current player deepest level
+@bp.route('/deepest-level', methods=['GET'], strict_slashes=False)
+def get_deepest_level():
+    """
+    Returns the current player deepest level.
+    """
+    depth = player_data['deepestLevel']
+    return jsonify({"deepest_level": depth})
+
+# Route for getting current player max hp
+@bp.route('/max-hp', methods=['GET'], strict_slashes=False)
+def get_max_hp():
+    """
+    Returns the current player max hp.
+    """
+    hp = player_data['maxHP']
+    return jsonify({"max_hp": hp})
+
+# Route for getting current player strength
+@bp.route('/strength', methods=['GET'], strict_slashes=False)
+def get_strength():
+    """
+    Returns the current player strength.
+    """
+    strength = player_data['strength']
+    return jsonify({"strength": strength})
+
 @bp.route('/', methods=['GET'], strict_slashes=False)
 def player():
     """

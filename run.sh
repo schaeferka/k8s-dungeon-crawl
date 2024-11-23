@@ -32,7 +32,7 @@ GRAFANA_NAMESPACE_FILE="$GRAFANA_DIR/k8s/grafana-namespace.yaml"
 DEPLOYMENT_FILES_BROGUE=("$BROGUE_DIR/k8s/brogue-deployment.yaml" "$BROGUE_DIR/k8s/brogue-service.yaml" "$BROGUE_DIR/k8s/brogue-clusterroles.yaml" "$BROGUE_DIR/k8s/brogue-clusterrolebindings.yaml" "$BROGUE_DIR/k8s/brogue-serviceaccount.yaml")
 DEPLOYMENT_FILES_PORTAL=("$PORTAL_DIR/k8s/portal-deployment.yaml" "$PORTAL_DIR/k8s/portal-service.yaml" "$PORTAL_DIR/k8s/portal-clusterrole.yaml" "$PORTAL_DIR/k8s/portal-clusterrolebinding.yaml" "$PORTAL_DIR/k8s/portal-serviceaccount.yaml")    
 DEPLOYMENT_FILES_DM=()
-DEPLOYMENT_FILES_PROMETHEUS=("$PROMETHEUS_DIR/k8s/prometheus-deploy.yaml" "$PROMETHEUS_DIR/k8s/prometheus-service.yaml" "$PROMETHEUS_DIR/k8s/prometheus-config.yaml")
+DEPLOYMENT_FILES_PROMETHEUS=("$PROMETHEUS_DIR/k8s/prometheus-rbac.yaml" "$PROMETHEUS_DIR/k8s/prometheus-deploy.yaml" "$PROMETHEUS_DIR/k8s/prometheus-service.yaml" "$PROMETHEUS_DIR/k8s/prometheus-config.yaml")
 DEPLOYMENT_FILES_GRAFANA=("$GRAFANA_DIR/k8s/grafana-datasources-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-config.yaml" "$GRAFANA_DIR/k8s/grafana-dashboard-provisioning-config.yaml" "$GRAFANA_DIR/k8s/grafana-deploy.yaml" "$GRAFANA_DIR/k8s/grafana-service.yaml")
 LOCAL_PORT_16080=8090  # noVNC server port for Brogue
 LOCAL_PORT_15900=5910  # VNC server port for Brogue
@@ -154,7 +154,7 @@ done
 echo "Portal pod $PORTAL_POD_NAME is ready."
 
 
-# Step 7: Reset the Prometheus deployment if prom in command line
+# Step 7: Reset the Prometheus deployment if "prom" argument is passed in command line
 if [[ " $@ " =~ " prom " ]]; then
     echo "Prometheus argument detected. Resetting Prometheus deployment..."
 
@@ -169,13 +169,6 @@ if [[ " $@ " =~ " prom " ]]; then
         fi
     done
 
-    # Reset the Prometheus namespace
-    echo "Deleting existing Kubernetes resources for Prometheus..."
-    for file in "${DEPLOYMENT_FILES_PROMETHEUS[@]}"; do
-        kubectl delete -f "$file" --ignore-not-found
-    done
-    kubectl delete -f "$PROMETHEUS_NAMESPACE_FILE" --ignore-not-found
-
     # Apply the Prometheus namespace YAML file
     echo "Applying Prometheus namespace file..."
     kubectl apply -f "$PROMETHEUS_NAMESPACE_FILE"
@@ -189,27 +182,53 @@ if [[ " $@ " =~ " prom " ]]; then
     done
     echo "Namespace $PROMETHEUS_NAMESPACE is ready."
 
-    echo "Applying Prometheus Kubernetes resources..."
-    for file in "${DEPLOYMENT_FILES_PROMETHEUS[@]}"; do
-        kubectl apply -f "$file"
-    done
+    # Add Prometheus Helm repository
+    echo "Adding Prometheus community Helm chart repository..."
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    if [[ $? -ne 0 ]]; then
+        echo "Error adding Prometheus Helm repository."
+        exit 1
+    fi
 
-    # Wait for Prometheus pod to be created and ready
+    # Update Helm repositories
+    echo "Updating Helm repositories..."
+    helm repo update
+    if [[ $? -ne 0 ]]; then
+        echo "Error updating Helm repositories."
+        exit 1
+    fi
+
+    # Install Prometheus using Helm
+    echo "Installing Prometheus..."
+    helm install prometheus ./prometheus --namespace prometheus -f ./prometheus/values.yaml
+
+    if [[ $? -ne 0 ]]; then
+        echo "Error installing Prometheus."
+        exit 1
+    fi
+
+    # Wait for prometheus-server pod to be created and ready
+    echo
     echo "Waiting for Prometheus pod to be created..."
-    until kubectl get pods -n $PROMETHEUS_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
-        echo "Waiting for Prometheus pod to be created..."
-        sleep 2
-    done
+    
+    # Find the pod name with the prefix 'prometheus-server'
+    PROMETHEUS_POD_NAME=$(kubectl get pods -n $PROMETHEUS_NAMESPACE -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E '^prometheus-server' | head -n 1)
 
-    PROMETHEUS_POD_NAME=$(kubectl get pods -n $PROMETHEUS_NAMESPACE -l app=prometheus -o jsonpath="{.items[0].metadata.name}")
+    if [ -z "$PROMETHEUS_POD_NAME" ]; then
+        echo "No Prometheus pod found matching the prefix 'prometheus-server'."
+        exit 1
+    fi
+
     echo "Prometheus pod $PROMETHEUS_POD_NAME created. Waiting for it to be ready..."
-
+    
     until [[ $(kubectl get pod $PROMETHEUS_POD_NAME -n $PROMETHEUS_NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
         echo "Waiting for Prometheus pod $PROMETHEUS_POD_NAME to be ready..."
-        sleep 2
+        sleep 5
     done
+
     echo "Prometheus pod $PROMETHEUS_POD_NAME is ready."
 fi
+
 
 # Step 8: Reset the Grafana deployment if grafana in command line
 if [[ " $@ " =~ " grafana " ]]; then
@@ -269,11 +288,62 @@ fi
 
 # Step 9: Start port forwarding in a new tmux session
 echo "Starting port forwarding in a tmux session..."
-tmux new-session -d -s brogue_port_forward "kubectl port-forward service/brogue-service -n $BROGUE_NAMESPACE $LOCAL_PORT_16080:16080 $LOCAL_PORT_15900:15900 $LOCAL_PORT_18000:18000 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-tmux new-session -d -s portal_port_forward "kubectl port-forward service/portal-service -n $PORTAL_NAMESPACE $LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-service -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-tmux new-session -d -s grafana_port_forward "kubectl port-forward service/grafana-service -n $GRAFANA_NAMESPACE $LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 
+# Prometheus Port Forwarding
+echo "Starting port forwarding for Prometheus..."
+tmux has-session -t prometheus_port_forward 2>/dev/null
+if [ $? != 0 ]; then
+    tmux new-session -d -s prometheus_port_forward "kubectl port-forward $PROMETHEUS_POD_NAME -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+else
+    tmux send-keys -t prometheus_port_forward "kubectl port-forward $PROMETHEUS_POD_NAME -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+fi
+
+# Kube-State-Metrics Port Forwarding
+#echo "Starting port forwarding for kube-state-metrics..."
+#tmux has-session -t kube_state_metrics_port_forward 2>/dev/null
+#if [ $? != 0 ]; then
+#  tmux new-session -d -s kube_state_metrics_port_forward "kubectl port-forward service/kube-state-metrics -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_8080:8080 > kube-state-metrics-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+#else
+#  tmux send-keys -t kube_state_metrics_port_forward "kubectl port-forward service/kube-state-metrics -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_8080:8080 > kube-state-metrics-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+#fi
+
+# Node-Exporter Port Forwarding
+#echo "Starting port forwarding for node-exporter..."
+#tmux has-session -t node_exporter_port_forward 2>/dev/null
+#if [ $? != 0 ]; then
+#  tmux new-session -d -s node_exporter_port_forward "kubectl port-forward service/node-exporter -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9100:9100 > node-exporter-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+#else
+#  tmux send-keys -t node_exporter_port_forward "kubectl port-forward service/node-exporter -n $PROMETHEUS_NAMESPACE $LOCAL_PORT_9100:9100 > node-exporter-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+#fi
+
+# Brogue Service Port Forwarding
+echo "Starting port forwarding for Brogue..."
+tmux has-session -t brogue_port_forward 2>/dev/null
+if [ $? != 0 ]; then
+  tmux new-session -d -s brogue_port_forward "kubectl port-forward service/brogue-service -n $BROGUE_NAMESPACE $LOCAL_PORT_16080:16080 $LOCAL_PORT_15900:15900 $LOCAL_PORT_18000:18000 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+else
+  tmux send-keys -t brogue_port_forward "kubectl port-forward service/brogue-service -n $BROGUE_NAMESPACE $LOCAL_PORT_16080:16080 $LOCAL_PORT_15900:15900 $LOCAL_PORT_18000:18000 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+fi
+
+# Portal Service Port Forwarding
+echo "Starting port forwarding for Portal..."
+tmux has-session -t portal_port_forward 2>/dev/null
+if [ $? != 0 ]; then
+  tmux new-session -d -s portal_port_forward "kubectl port-forward service/portal-service -n $PORTAL_NAMESPACE $LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+else
+  tmux send-keys -t portal_port_forward "kubectl port-forward service/portal-service -n $PORTAL_NAMESPACE $LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+fi
+
+# Grafana Service Port Forwarding
+echo "Starting port forwarding for Grafana..."
+tmux has-session -t grafana_port_forward 2>/dev/null
+if [ $? != 0 ]; then
+  tmux new-session -d -s grafana_port_forward "kubectl port-forward service/grafana-service -n $GRAFANA_NAMESPACE $LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+else
+  tmux send-keys -t grafana_port_forward "kubectl port-forward service/grafana-service -n $GRAFANA_NAMESPACE $LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+fi
+
+echo "Port forwarding started for all services in tmux."
 
 # Inform the user about tmux sessions
 echo "Port forwarding started in tmux sessions named 'brogue_port_forward' and 'portal_port_forward'."

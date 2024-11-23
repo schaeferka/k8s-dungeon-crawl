@@ -13,6 +13,6 @@ data:
         type: file
         disableDeletion: false
         editable: true
-        updateIntervalSeconds: 10
+        updateIntervalSeconds: 1
         options:
           path: /var/lib/grafana/dashboards
