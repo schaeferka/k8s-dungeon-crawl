@@ -25,6 +25,7 @@
 #include "GlobalsBase.h"
 #include "Globals.h"
 #include "./portal/portal_monster.h"
+#include "./portal/portal.h"
 
 
 /* Combat rules:
@@ -1741,9 +1742,9 @@ void killCreature(creature *decedent, boolean administrativeDeath) {
     }
     
     // K8S: Notify the portal of the updates and death
-    decedent->isDead = true;
-    update_monsters();
-    send_monster_death_to_portal(decedent);
+    //decedent->isDead = true;
+    //update_monsters();
+    report_monster_death(decedent);
 }
 
 void buildHitList(const creature **hitList, const creature *attacker, creature *defender, const boolean sweep) {

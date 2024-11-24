@@ -3,6 +3,10 @@
 #include "portal_urls.h" 
 #include "portal.h"       
 
+// Debug macro for logging
+#define DEBUG_LOG(fmt, ...) \
+    printf("[DEBUG] [%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+
 /** 
  * @brief Cache for storing monster data for comparison and change detection.
  */
@@ -40,6 +44,7 @@ void reset_monster_cache(void) {
 void monster_cleanup(void) {
     // Free any dynamically allocated memory or perform cleanup tasks here
     // This function is called when the game is exiting or restarting
+    printf("Monster cleanup complete.\n");
 }
 
 /**
@@ -177,41 +182,43 @@ void update_monsters() {
 }
 
 /**
- * @brief Sends the monster death data to the portal.
+ * @brief Sends the monster death event to the portal.
  *
- * This function generates the JSON string representing a monster's death and
- * sends it to the portal using the generic `send_data_to_portal` function.
+ * This function generates the JSON string for a monster death event and sends
+ * it to the portal.
  *
  * @param monst The monster that has died.
  */
-void send_monster_death_to_portal(creature *monst) {
-    char monster_data[512];
-    generate_monster_json(monst, monster_data, sizeof(monster_data));
+extern void report_monster_death(creature *monst) {
+    DEBUG_LOG("Entering report_monster_death function for monster: %s", monst->portalName);
+    
+    // Log the monster's current state before marking as dead
+    DEBUG_LOG("Monster ID: %d, Name: %s, Current HP: %d, Max HP: %d", 
+               monst->id, monst->portalName, monst->currentHP, monst->info.maxHP);
 
-    // Send the death data using the generic function from portal.c
-    send_data_to_portal(get_monster_death_url(), monster_data);
-}
+    printf("Monster %s has died!\n", monst->portalName);
 
-/**
- * @brief Sends the monster data to the portal.
- *
- * This function sends a batch of monster data (in JSON format) to the portal.
- * 
- * @param data The JSON string containing the monster data to be sent.
- */
-void send_monsters_to_portal(const char *data) {
-    // Send the data using the generic function from portal.c
-    send_data_to_portal(get_monster_update_url(), data);
-}
+    // Set the monster's death status
+    monst->isDead = true;
+    DEBUG_LOG("Marked monster %s as dead", monst->portalName);
 
-/**
- * @brief Sends a reset command to the portal.
- *
- * This function generates and sends a request to reset the monster data on the portal.
- */
-void send_monster_reset_to_portal() {
-    // Send the reset command using the generic function from portal.c
-    send_data_to_portal(get_monster_reset_url(), NULL);
+    printf("Monster %s has been marked as dead.\n", monst->portalName);
+    
+    // Update monsters and log the event
+    update_monsters();
+    DEBUG_LOG("Updated monster list after marking %s as dead", monst->portalName);
+
+    printf("Monster data has been updated after death.\n");
+
+    // Prepare the JSON data to be sent
+    char death_data[512];
+    snprintf(death_data, sizeof(death_data),
+        "{\"id\": \"%d\"}", monst->id);  // Send the id as part of the JSON object
+
+
+    // Send the monster death notification to the portal
+    send_monster_death_to_portal(death_data);
+    DEBUG_LOG("Sent death notification for monster %s to the portal", monst->portalName);
 }
 
 /**

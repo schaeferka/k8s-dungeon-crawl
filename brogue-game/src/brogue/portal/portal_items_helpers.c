@@ -8,10 +8,17 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal_items.h"
+#include "portal_items_helpers.h"
 
-// Convert item category to a descriptive string
-const char* getCategoryName(unsigned short category) {
+/**
+ * @brief Convert item category to a descriptive string.
+ *
+ * This function maps an item category to a human-readable string.
+ *
+ * @param category The category of the item.
+ * @return A string representing the item category.
+ */
+const char* get_item_category(unsigned short category) {
     switch (category) {
         case FOOD: return "Food";
         case WEAPON: return "Weapon";
@@ -30,8 +37,53 @@ const char* getCategoryName(unsigned short category) {
     }
 }
 
-// Convert weapon kind to a descriptive string
-const char* getWeaponKindName(short kind) {
+/**
+ * @brief Convert item kind to a descriptive string.
+ *
+ * This function maps an item kind (weapon, armor, etc.) to a human-readable string.
+ *
+ * @param category The item category (weapon, armor, etc.).
+ * @param kind The kind of the item.
+ * @return A string representing the item kind.
+ */
+const char* get_item_kind(unsigned short category, short kind) {
+    switch (category) {
+        case WEAPON:
+            return get_weapon_kind(kind);
+        case ARMOR:
+            return get_armor_kind(kind);
+        case RING:
+            return get_ring_kind(kind);
+        case POTION:
+            return get_potion_kind(kind);
+        case SCROLL:
+            return get_scroll_kind(kind);
+        case STAFF:
+            return get_staff_kind(kind);
+        case WAND:
+            return get_wand_kind(kind);
+        case CHARM:
+            return get_charm_kind(kind);
+        case FOOD:
+        case GOLD:
+        case AMULET:
+        case GEM:
+        case KEY:
+            return "Unknown";  // Handle specific cases or default to "Unknown"
+        default:
+            return "Unknown";
+    }
+}
+
+/**
+ * @brief Convert weapon kind to a descriptive string.
+ *
+ * This function maps a weapon kind to a human-readable string.
+ *
+ * @param kind The kind of the weapon.
+ * @return A string representing the weapon kind.
+ */
+const char* get_weapon_kind(short kind) {
     switch (kind) {
         case DAGGER: return "Dagger";
         case SWORD: return "Sword";
@@ -52,23 +104,38 @@ const char* getWeaponKindName(short kind) {
     }
 }
 
-const char* getWeaponEnchantName(short enchant) {
+/**
+ * @brief Convert weapon enchantment kind to a descriptive string.
+ *
+ * This function maps a weapon enchantment kind to a human-readable string.
+ *
+ * @param enchant The kind of the weapon enchantment.
+ * @return A string representing the weapon enchantment kind.
+ */
+const char* get_weapon_enchantment(short enchant) {
     switch (enchant) {
         case W_SLAYING: return "Slaying";
         case W_FORCE: return "Force";
-        case W_CONFUSION: return "Confusion";
-        case W_SLOWING: return "Slowing";
-        case W_MULTIPLICITY: return "Multiplicity";
         case W_PARALYSIS: return "Paralysis";
-        case W_QUIETUS: return "Quietus";
+        case W_CONFUSION: return "Confusion";
         case W_SPEED: return "Speed";
+        case W_MULTIPLICITY: return "Multiplicity";
         case W_MERCY: return "Mercy";
         case W_PLENTY: return "Plenty";
-        default: return "Unknown";
+        case W_QUIETUS: return "Quietus";
+        case W_SLOWING: return "Slowing";
     }
 }
 
-const char* getArmorKindName(short kind) {
+/**
+ * @brief Convert armor kind to a descriptive string.
+ *
+ * This function maps an armor kind to a human-readable string.
+ *
+ * @param kind The kind of the armor.
+ * @return A string representing the armor kind.
+ */
+const char* get_armor_kind(short kind) {
     switch (kind) {
         case LEATHER_ARMOR: return "Leather Armor";
         case SCALE_MAIL: return "Scale Mail";
@@ -80,7 +147,15 @@ const char* getArmorKindName(short kind) {
     }
 }
 
-const char* getArmorEnchantName(short enchant) {
+/**
+ * @brief Convert armor enchantment kind to a descriptive string.
+ *
+ * This function maps an armor enchantment kind to a human-readable string.
+ *
+ * @param enchant The kind of the armor enchantment.
+ * @return A string representing the armor enchantment kind.
+ */
+const char* get_armor_enchantment(short enchant) {
     switch (enchant) {
         case A_MULTIPLICITY: return "Multiplicity";
         case A_MUTUALITY: return "Mutuality";
@@ -97,7 +172,15 @@ const char* getArmorEnchantName(short enchant) {
     }
 }
 
-const char* getPotionKindName(short kind) {
+/**
+ * @brief Convert potion kind to a descriptive string.
+ *
+ * This function maps a potion kind to a human-readable string.
+ *
+ * @param kind The kind of the potion.
+ * @return A string representing the potion kind.
+ */
+const char* get_potion_kind(short kind) {
     switch (kind) {
         case POTION_LIFE: return "Life";
         case POTION_STRENGTH: return "Strength";
@@ -119,7 +202,15 @@ const char* getPotionKindName(short kind) {
     }
 }
 
-const char* getWandKindName(short kind) {
+/**
+ * @brief Convert wand kind to a descriptive string.
+ *
+ * This function maps a wand kind to a human-readable string.
+ *
+ * @param kind The kind of the wand.
+ * @return A string representing the wand kind.
+ */
+const char* get_wand_kind(short kind) {
     switch (kind) {
         case WAND_TELEPORT: return "Teleport";
         case WAND_SLOW: return "Slow";
@@ -134,7 +225,15 @@ const char* getWandKindName(short kind) {
     }
 }
 
-const char* getStaffKindName(short kind) {
+/**
+ * @brief Convert staff kind to a descriptive string.
+ *
+ * This function maps a staff kind to a human-readable string.
+ *
+ * @param kind The kind of the staff.
+ * @return A string representing the staff kind.
+ */
+const char* get_staff_kind(short kind) {
     switch (kind) {
         case STAFF_LIGHTNING: return "Lightning";
         case STAFF_FIRE: return "Fire";
@@ -152,7 +251,15 @@ const char* getStaffKindName(short kind) {
     }
 }
 
-const char* getRingKindName(short kind) {
+/**
+ * @brief Convert ring kind to a descriptive string.
+ *
+ * This function maps a ring kind to a human-readable string.
+ *
+ * @param kind The kind of the ring.
+ * @return A string representing the ring kind.
+ */
+const char* get_ring_kind(short kind) {
     switch (kind) {
         case RING_CLAIRVOYANCE: return "Clairvoyance";
         case RING_STEALTH: return "Stealth";
@@ -166,7 +273,15 @@ const char* getRingKindName(short kind) {
     }
 }
 
-const char* getCharmKindName(short kind) {
+/**
+ * @brief Convert charm kind to a descriptive string.
+ *
+ * This function maps a charm kind to a human-readable string.
+ *
+ * @param kind The kind of the charm.
+ * @return A string representing the charm kind.
+ */
+const char* get_charm_kind(short kind) {
     switch (kind) {
         case CHARM_HEALTH: return "Health";
         case CHARM_PROTECTION: return "Protection";
@@ -184,7 +299,15 @@ const char* getCharmKindName(short kind) {
     }
 }
 
-const char* getScrollKindName(short kind) {
+/**
+ * @brief Convert scroll kind to a descriptive string.
+ *
+ * This function maps a scroll kind to a human-readable string.
+ *
+ * @param kind The kind of the scroll.
+ * @return A string representing the scroll kind.
+ */
+const char* get_scroll_kind(short kind) {
     switch (kind) {
         case SCROLL_ENCHANTING: return "Enchanting";
         case SCROLL_IDENTIFY: return "Identify";
@@ -204,6 +327,16 @@ const char* getScrollKindName(short kind) {
     }
 }
 
+/**
+ * @brief Escapes a string for JSON.
+ *
+ * This function escapes a string for use in a JSON string.
+ *
+ * @param src The string to escape
+ * @param dest The destination buffer
+ * @param dest_size The size of the destination buffer
+ * @return A string representing escapped data that can be used in JSON.
+ */
 void escape_json_string(const char *src, char *dest, size_t dest_size) {
     size_t j = 0;
     for (size_t i = 0; src[i] != '\0' && j < dest_size - 1; i++) {
@@ -214,85 +347,5 @@ void escape_json_string(const char *src, char *dest, size_t dest_size) {
         }
         dest[j++] = src[i];
     }
-    dest[j] = '\0'; // Null-terminate the destination
+    dest[j] = '\0'; // Null-terminate the destination string
 }
-
-// Function to extract item details and build JSON for the player's inventory
-void extract_inventory_json(char *buffer, size_t buffer_size) {
-    if (!rogue.gameHasEnded) {
-    item *currentItem = packItems;
-    size_t offset = 0;
-
-    offset += snprintf(buffer + offset, buffer_size - offset, "[");
-
-    while (currentItem && offset < buffer_size - 1) {
-        const char *itemName = "Unknown";
-        const char *itemDescription = "No description available";
-        const char *categoryName = getCategoryName(currentItem->category);
-        char *kindName = "Unknown";
-
-       switch (currentItem->category) {
-            case WEAPON:
-                kindName = getWeaponKindName(currentItem->kind);
-                break;
-            case ARMOR:
-                kindName = getArmorKindName(currentItem->kind);
-                break;
-            case RING:
-                kindName = getRingKindName(currentItem->kind);
-                break;
-            case FOOD:
-                kindName = "Unknown" ? kindName = "Some Food" : kindName;
-                break;
-            case POTION:
-                kindName = getPotionKindName(currentItem->kind);
-                break;
-            case SCROLL:
-                kindName = getScrollKindName(currentItem->kind);
-                break;
-            case STAFF:
-                kindName = getStaffKindName(currentItem->kind);
-                break;
-            case WAND:
-                kindName = getWandKindName(currentItem->kind);
-                break;
-            case CHARM:
-                kindName = getCharmKindName(currentItem->kind);
-                break;
-            case GOLD:
-                kindName = "Gold";
-                break;
-            case AMULET:
-                kindName = "Amulet";
-                break;
-            case GEM:
-                kindName = "Gem";
-                break;
-            case KEY:
-                kindName = "Key";
-                break;
-        }
-
-        // Format item details as JSON
-        if (currentItem->inventoryLetter) {
-                        offset += snprintf(buffer + offset, buffer_size - offset,
-                       "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
-                       "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d }, "
-                       "\"inventoryLetter\": \"%c\" }",
-                       categoryName, kindName, itemDescription,
-                       currentItem->quantity, currentItem->armor,
-                       currentItem->damage.lowerBound, currentItem->damage.upperBound,
-                       currentItem->inventoryLetter);
-       
-        if (currentItem->nextItem && offset < buffer_size - 2) {
-            offset += snprintf(buffer + offset, buffer_size - offset, ", ");
-        }
-         }
-
-        currentItem = currentItem->nextItem;
-    }
-    snprintf(buffer + offset, buffer_size - offset, "]");
-
-    printf("Inventory JSON: %s\n", buffer);
-    }
-} 

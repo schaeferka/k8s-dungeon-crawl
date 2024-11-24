@@ -61,7 +61,7 @@ RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
     echo '<?xml version="1.0" encoding="UTF-8"?><channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="use_compositing" type="bool" value="false"/></property></channel>' > /root/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
 
 # Build Brogue application and metrics server
-RUN make
+RUN make clean && make
 
 # Expose the VNC, noVNC, and metrics HTTP ports
 EXPOSE 15900 16080 18000

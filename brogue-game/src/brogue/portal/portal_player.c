@@ -1,10 +1,7 @@
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include "Rogue.h"
 #include "GlobalsBase.h"
 #include "portal_player.h"
-#include "portal.h"  // Include portal functions
+#include "portal.h" 
+#include "portal_urls.h"
 
 /** 
  * @brief Cache for storing player data for comparison and change detection.
@@ -66,23 +63,11 @@ void update_player(void) {
         char *player_json = generate_player_json(&player_data);
 
         // Send the updated player data to the portal using the generic send function
-        send_player_data_to_portal(player_json);
+        send_player_to_portal(player_json);
 
         // Free the allocated JSON string after sending
         free(player_json);
     }
-}
-
-/**
- * @brief Sends the player data to the portal.
- *
- * This function sends player data (in JSON format) to the portal.
- * 
- * @param data The JSON string containing the player data to be sent.
- */
-void send_player_data_to_portal(const char *player_data) {
-    // Send the data using the generic function from portal.c
-    send_data_to_portal(get_player_update_url(), player_data);
 }
 
 /**

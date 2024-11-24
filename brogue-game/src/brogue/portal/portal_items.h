@@ -1,9 +1,8 @@
-// portal-items.h
-
 #ifndef PORTAL_ITEMS_H
 #define PORTAL_ITEMS_H
 
 #include "Rogue.h"
+#include "portal.h"
 
 typedef struct {
     item weapon;
@@ -31,11 +30,41 @@ typedef struct {
 } PackItem;
 extern PackItem packItem;
 
-// Function declarations
+/**
+ * @brief Updates all items and sends them to the portal if necessary.
+ */
 extern void update_items(void);
-void send_equipped_items_to_portal(const EquippedItems *items);
-void send_pack_items_to_portal(void);
 
-void create_pack_items_json(char *buffer, size_t buffer_size);
+/**
+ * @brief Updates equipped items and sends them to the portal if necessary.
+ */
+extern void update_equipped_items(void);
+
+/**
+ * @brief Generates the JSON string for the equipped items.
+ *
+ * @param items The equipped items to be serialized into JSON.
+ * @param buffer The buffer to store the resulting JSON string.
+ * @param size The size of the buffer.
+ */
+extern void generate_equipped_items_json(const EquippedItems *items, char *buffer, size_t size);
+
+/**
+ * @brief Creates the JSON string for the player's inventory (pack items).
+ *
+ * @param buffer The buffer to store the resulting JSON string.
+ * @param buffer_size The size of the buffer.
+ */
+extern void generate_pack_items_json(char *buffer, size_t buffer_size);
+
+/**
+ * @brief Sends the pack items to the portal.
+ */
+extern void send_pack_items_to_portal(void);
+
+/**
+ * @brief Sends the equipped items data to the portal.
+ */
+extern void send_equipped_items_to_portal(void);
 
 #endif // PORTAL_ITEMS_H

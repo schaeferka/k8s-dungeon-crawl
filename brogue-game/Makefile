@@ -8,7 +8,8 @@ libs := -lm -lmicrohttpd -L$(shell brew --prefix curl)/lib -lcurl
 
 cppflags := -DDATADIR=$(DATADIR)
 
-sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c)
+sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c) \
+	$(wildcard src/brogue/portal/*.c) 
 objects :=
 
 ifeq ($(SYSTEM),WINDOWS)

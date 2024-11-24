@@ -1,5 +1,3 @@
-// portal-items.c
-
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,258 +8,277 @@
 #include "Globals.h"
 #include "portal_items.h"
 #include "portal_items_helpers.h"
+#include "portal.h"
+#include "portal_urls.h"
 
-#define ITEM_PORTAL_URL "http://portal-service.portal:5000/items/update"
-#define PACK_PORTAL_URL "http://portal-service.portal:5000/pack/update"
-#define BUFFER_SIZE 8192 
+#define BUFFER_SIZE 8192
+#define PACK_CAPACITY 26
 
-// Function to send item information to the portal
-void update_equipped_items(void) {
-    EquippedItems items = {
-        .weapon = (rogue.weapon != NULL) ? *rogue.weapon : (item){0},
-        .armor = (rogue.armor != NULL) ? *rogue.armor : (item){0},
-        .ringLeft = (rogue.ringLeft != NULL) ? *rogue.ringLeft : (item){0},
-        .ringRight = (rogue.ringRight != NULL) ? *rogue.ringRight : (item){0},
-    };
-    
-    send_equipped_items_to_portal(&items);
+// Declare previous pack items
+static item previous_pack_items[PACK_CAPACITY] = {0};
+
+// Declare previous equipped items
+static EquippedItems previous_equipped_items = {0};
+
+/**
+ * @brief Initiate the updating of all items
+ * 
+ * This function is responsible for updating all player items.
+ */
+void update_items(void) {
+    send_equipped_items_to_portal();
     send_pack_items_to_portal();
 }
 
-void send_equipped_items_to_portal(const EquippedItems *items) {
-    if (!rogue.gameHasEnded) {
-        CURL *curl = curl_easy_init();
-        if (curl) {
-            char weaponInscriptionEscaped[256];
-            char armorInscriptionEscaped[256];
+/** 
+ * @brief Check if the equipped items have changed since the last update.
+ *
+ * This function compares the current equipped items with the previously sent ones
+ * to detect changes.
+ *
+ * @return `true` if there are changes, `false` otherwise.
+ */
+static bool is_equipped_items_changed(void) {
+    // Compare equipped items with previously sent items
+    return (memcmp(&rogue.weapon, &previous_equipped_items.weapon, sizeof(item)) != 0 ||
+            memcmp(&rogue.armor, &previous_equipped_items.armor, sizeof(item)) != 0 ||
+            memcmp(&rogue.ringLeft, &previous_equipped_items.ringLeft, sizeof(item)) != 0 ||
+            memcmp(&rogue.ringRight, &previous_equipped_items.ringRight, sizeof(item)) != 0);
+}
 
-            // Escape inscriptions
-            if (rogue.weapon && rogue.weapon->inscription[0]) {
-                escape_json_string(rogue.weapon->inscription, weaponInscriptionEscaped, sizeof(weaponInscriptionEscaped));
-            } else {
-                strcpy(weaponInscriptionEscaped, "None");
-            }
+/**
+ * @brief Updates equipped items and sends them to the portal if necessary.
+ *
+ * This function checks if the equipped items have changed, generates the JSON string,
+ * and sends the data to the portal if necessary.
+ */
+void send_equipped_items_to_portal(void) {
+    if (!rogue.gameHasEnded && is_equipped_items_changed()) {
+        EquippedItems items = {
+            .weapon = (rogue.weapon != NULL) ? *rogue.weapon : (item){0},
+            .armor = (rogue.armor != NULL) ? *rogue.armor : (item){0},
+            .ringLeft = (rogue.ringLeft != NULL) ? *rogue.ringLeft : (item){0},
+            .ringRight = (rogue.ringRight != NULL) ? *rogue.ringRight : (item){0},
+        };
+        
+        // Generate and send equipped items JSON
+        char equipped_json[BUFFER_SIZE];
+        generate_equipped_items_json(&items, equipped_json, sizeof(equipped_json));
+        send_items_to_portal(equipped_json);
 
-            if (rogue.armor && rogue.armor->inscription[0]) {
-                escape_json_string(rogue.armor->inscription, armorInscriptionEscaped, sizeof(armorInscriptionEscaped));
-            } else {
-                strcpy(armorInscriptionEscaped, "None");
-            }
-
-            char post_data[2048];
-            snprintf(post_data, sizeof(post_data),
-                "{"
-                "\"weapon\": {"
-                    "\"category\": \"%s\", "
-                    "\"kind\": \"%s\", "
-                    "\"damage\": {\"min\": %d, \"max\": %d}, "
-                    "\"enchant1\": \"%s\", "
-                    "\"enchant2\": \"%s\", "
-                    "\"charges\": %d, "
-                    "\"timesEnchanted\": %d, "
-                    "\"strengthRequired\": %d, "
-                    "\"inventoryLetter\": \"%c\", "
-                    "\"inscription\": \"%s\", "
-                    "\"quantity\": %d"
-                "}, "
-                "\"armor\": {"
-                    "\"category\": \"%s\", "
-                    "\"kind\": \"%s\", "
-                    "\"armor\": %d, "
-                    "\"enchant1\": \"%s\", "
-                    "\"charges\": %d, "
-                    "\"timesEnchanted\": %d, "
-                    "\"strengthRequired\": %d, "
-                    "\"inventoryLetter\": \"%c\", "
-                    "\"inscription\": \"%s\", "
-                    "\"quantity\": %d"
-                "}, "
-                "\"ringLeft\": {"
-                    "\"category\": \"%s\", "
-                    "\"kind\": \"%s\", "
-                    "\"quantity\": %d"
-                "}, "
-                "\"ringRight\": {"
-                    "\"category\": \"%s\", "
-                    "\"kind\": \"%s\", "
-                    "\"quantity\": %d"
-                "}"
-                "}",
-                // Weapon data
-                getCategoryName(rogue.weapon ? rogue.weapon->category : 0), 
-                getWeaponKindName(rogue.weapon ? rogue.weapon->kind : 0),
-                rogue.weapon ? rogue.weapon->damage.lowerBound : 0,
-                rogue.weapon ? rogue.weapon->damage.upperBound : 0,
-                getWeaponEnchantName(rogue.weapon ? rogue.weapon->enchant1 : 0),
-                getWeaponEnchantName(rogue.weapon ? rogue.weapon->enchant2 : 0),
-                rogue.weapon ? rogue.weapon->charges : 0,
-                rogue.weapon ? rogue.weapon->timesEnchanted : 0,
-                rogue.weapon ? rogue.weapon->strengthRequired : 0,
-                rogue.weapon ? rogue.weapon->inventoryLetter : ' ',
-                weaponInscriptionEscaped,
-                rogue.weapon ? rogue.weapon->quantity : 1,
-                // Armor data
-                getCategoryName(rogue.armor ? rogue.armor->category : 0), 
-                getArmorKindName(rogue.armor ? rogue.armor->kind : 0),
-                rogue.armor ? rogue.armor->armor : 0,
-                getArmorEnchantName(rogue.armor ? rogue.armor->enchant1 : 0),
-                rogue.armor ? rogue.armor->charges : 0,
-                rogue.armor ? rogue.armor->timesEnchanted : 0,
-                rogue.armor ? rogue.armor->strengthRequired : 0,
-                rogue.armor ? rogue.armor->inventoryLetter : ' ',
-                armorInscriptionEscaped,
-                rogue.armor ? rogue.armor->quantity : 1,
-                // RingLeft data
-                getCategoryName(rogue.ringLeft ? rogue.ringLeft->category : 0), 
-                getRingKindName(rogue.ringLeft ? rogue.ringLeft->kind : 0),
-                rogue.ringLeft ? rogue.ringLeft->quantity : 1,
-                // RingRight data
-                getCategoryName(rogue.ringRight ? rogue.ringRight->category : 0), 
-                getRingKindName(rogue.ringRight ? rogue.ringRight->kind : 0),
-                rogue.ringRight ? rogue.ringRight->quantity : 1
-            );
-
-
-            curl_easy_setopt(curl, CURLOPT_URL, ITEM_PORTAL_URL);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
-
-            struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK) {
-                fprintf(stderr, "Failed to send items: %s\n", curl_easy_strerror(res));
-            } else {
-                printf("Successfully sent equipped items to portal: %s\n", post_data);
-            }
-
-            curl_slist_free_all(headers);
-            curl_easy_cleanup(curl);
-        } else {
-            fprintf(stderr, "CURL initialization failed.\n");
-        }
+        // Update previous equipped items
+        previous_equipped_items = items;
     }
 }
 
+/**
+ * @brief Generates the JSON string for the equipped items.
+ *
+ * This function generates a JSON string based on the equipped items data.
+ *
+ * @param items The equipped items to be serialized into JSON.
+ * @param buffer The buffer to store the resulting JSON string.
+ * @param size The size of the buffer.
+ */
+void generate_equipped_items_json(const EquippedItems *items, char *buffer, size_t size) {
+    // Ensure the buffer is large enough
+    snprintf(buffer, size,
+        "{"
+        "\"weapon\": {"
+            "\"category\": \"%s\", "
+            "\"kind\": \"%s\", "
+            "\"damage\": {\"min\": %d, \"max\": %d}, "
+            "\"enchant1\": \"%s\", "
+            "\"enchant2\": \"%s\", "
+            "\"charges\": %d, "
+            "\"timesEnchanted\": %d, "
+            "\"strengthRequired\": %d, "
+            "\"inventoryLetter\": \"%c\", "
+            "\"inscription\": \"%s\", "
+            "\"quantity\": %d"
+        "}, "
+        "\"armor\": {"
+            "\"category\": \"%s\", "
+            "\"kind\": \"%s\", "
+            "\"armor\": %d, "
+            "\"enchant1\": \"%s\", "
+            "\"charges\": %d, "
+            "\"timesEnchanted\": %d, "
+            "\"strengthRequired\": %d, "
+            "\"inventoryLetter\": \"%c\", "
+            "\"inscription\": \"%s\", "
+            "\"quantity\": %d"
+        "}, "
+        "\"ringLeft\": {"
+            "\"category\": \"%s\", "
+            "\"kind\": \"%s\", "
+            "\"quantity\": %d"
+        "}, "
+        "\"ringRight\": {"
+            "\"category\": \"%s\", "
+            "\"kind\": \"%s\", "
+            "\"quantity\": %d"
+        "}"
+        "}",
+        // Weapon data
+        get_item_category(items->weapon.category),
+        get_weapon_kind(items->weapon.kind),
+        items->weapon.damage.lowerBound,
+        items->weapon.damage.upperBound,
+        get_weapon_enchantment(items->weapon.enchant1),
+        get_weapon_enchantment(items->weapon.enchant2),
+        items->weapon.charges,
+        items->weapon.timesEnchanted,
+        items->weapon.strengthRequired,
+        items->weapon.inventoryLetter,
+        items->weapon.inscription,
+        items->weapon.quantity,
+        // Armor data
+        get_item_category(items->armor.category),
+        get_armor_kind(items->armor.kind),
+        items->armor.armor,
+        get_armor_enchantment(items->armor.enchant1),
+        items->armor.charges,
+        items->armor.timesEnchanted,
+        items->armor.strengthRequired,
+        items->armor.inventoryLetter,
+        items->armor.inscription,
+        items->armor.quantity,
+        // RingLeft data
+        get_item_category(items->ringLeft.category),
+        get_ring_kind(items->ringLeft.kind),
+        items->ringLeft.quantity,
+        // RingRight data
+        get_item_category(items->ringRight.category),
+        get_ring_kind(items->ringRight.kind),
+        items->ringRight.quantity
+    );
+}
 
-void send_pack_items_to_portal() {
-    if (!rogue.gameHasEnded) {
-        CURL *curl = curl_easy_init();
-        if (curl) {
-            char post_data[BUFFER_SIZE];
-            snprintf(post_data, sizeof(post_data), "{\"pack\":");
+/**
+ * @brief Check if the pack items have changed since the last update.
+ *
+ * This function compares the current pack items with the previously sent ones
+ * to detect changes.
+ *
+ * @return `true` if there are changes, `false` otherwise.
+ */
+static bool is_pack_items_changed(void) {
+    // Compare pack items with previously sent items
+    return (memcmp(packItems, previous_pack_items, sizeof(item)) != 0);
+}
 
-            // Extract inventory JSON and append it to post_data
-            extract_inventory_json(post_data + strlen(post_data), sizeof(post_data) - strlen(post_data));
+/**
+ * @brief Sends the pack items to the portal.
+ *
+ * This function generates the JSON string for the pack items and sends it to the portal.
+ */
+void send_pack_items_to_portal(void) {
+    if (!rogue.gameHasEnded && is_pack_items_changed()) {
+        char post_data[BUFFER_SIZE];
+        snprintf(post_data, sizeof(post_data), "{\"pack\":");
 
-            // Close JSON object
-            strncat(post_data, "}", sizeof(post_data) - strlen(post_data) - 1);
+        // Generate and append the inventory JSON
+        generate_pack_items_json(post_data + strlen(post_data), sizeof(post_data) - strlen(post_data));
 
-            // Configure CURL options
-            curl_easy_setopt(curl, CURLOPT_URL, PACK_PORTAL_URL);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
+        // Close JSON object
+        strncat(post_data, "}", sizeof(post_data) - strlen(post_data) - 1);
 
-            struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        // Send data to portal using the new portal function
+        send_pack_to_portal(post_data);
 
-            // Send data and check for errors
-            printf("Sending pack data to portal...\n");
-            printf("Data: %s\n", post_data);
-
-            CURLcode res = curl_easy_perform(curl);
-            if (res != CURLE_OK) {
-                fprintf(stderr, "Failed to send pack data: %s\n", curl_easy_strerror(res));
-            } else {
-                printf("Successfully sent pack data to portal.\n");
-            }
-
-            // Clean up
-            curl_slist_free_all(headers);
-            curl_easy_cleanup(curl);
-        } else {
-            fprintf(stderr, "CURL initialization failed.\n");
-        }
+        // Update previous pack items
+        memcpy(previous_pack_items, packItems, sizeof(packItems));
     }
 }
 
-// Function to extract item details and build JSON for the player's inventory
-void create_pack_items_json(char *buffer, size_t buffer_size) {
+/**
+ * @brief Extracts item details and builds JSON for the player's inventory.
+ *
+ * This function iterates over the player's inventory and generates a JSON string 
+ * representing all items in the inventory.
+ *
+ * @param buffer A buffer to store the generated JSON string.
+ * @param buffer_size The size of the buffer.
+ */
+void generate_pack_items_json(char *buffer, size_t buffer_size) {
     if (!rogue.gameHasEnded) {
-    item *currentItem = packItems;
-    size_t offset = 0;
+        item *current_item = packItems;
+        size_t offset = 0;
 
-    offset += snprintf(buffer + offset, buffer_size - offset, "[");
+        offset += snprintf(buffer + offset, buffer_size - offset, "[");
 
-    while (currentItem && offset < buffer_size - 1) {
-        const char *itemName = "Unknown";
-        const char *itemDescription = "No description available";
-        const char *categoryName = getCategoryName(currentItem->category);
-        char *kindName = "Unknown";
+        while (current_item && offset < buffer_size - 1) {
+            const char *item_name = "Unknown";
+            const char *item_description = "No description available";
+            const char *category_name = get_item_category(current_item->category);
+            const char *kind_name = "Unknown";
 
-       switch (currentItem->category) {
-            case WEAPON:
-                kindName = getWeaponKindName(currentItem->kind);
-                break;
-            case ARMOR:
-                kindName = getArmorKindName(currentItem->kind);
-                break;
-            case RING:
-                kindName = getRingKindName(currentItem->kind);
-                break;
-            case FOOD:
-                kindName = "Unknown" ? kindName = "Some Food" : kindName;
-                break;
-            case POTION:
-                kindName = getPotionKindName(currentItem->kind);
-                break;
-            case SCROLL:
-                kindName = getScrollKindName(currentItem->kind);
-                break;
-            case STAFF:
-                kindName = getStaffKindName(currentItem->kind);
-                break;
-            case WAND:
-                kindName = getWandKindName(currentItem->kind);
-                break;
-            case CHARM:
-                kindName = getCharmKindName(currentItem->kind);
-                break;
-            case GOLD:
-                kindName = "Gold";
-                break;
-            case AMULET:
-                kindName = "Amulet";
-                break;
-            case GEM:
-                kindName = "Gem";
-                break;
-            case KEY:
-                kindName = "Key";
-                break;
+            // Use category-based name retrieval function
+            switch (current_item->category) {
+                case WEAPON:
+                    kind_name = get_weapon_kind(current_item->kind);
+                    break;
+                case ARMOR:
+                    kind_name = get_armor_kind(current_item->kind);
+                    break;
+                case RING:
+                    kind_name = get_ring_kind(current_item->kind);
+                    break;
+                case FOOD:
+                    kind_name = "Food"; // Modify as necessary
+                    break;
+                case POTION:
+                    kind_name = get_potion_kind(current_item->kind);
+                    break;
+                case SCROLL:
+                    kind_name = get_scroll_kind(current_item->kind);
+                    break;
+                case STAFF:
+                    kind_name = get_staff_kind(current_item->kind);
+                    break;
+                case WAND:
+                    kind_name = get_wand_kind(current_item->kind);
+                    break;
+                case CHARM:
+                    kind_name = get_charm_kind(current_item->kind);
+                    break;
+                case GOLD:
+                    kind_name = "Gold";
+                    break;
+                case AMULET:
+                    kind_name = "Amulet";
+                    break;
+                case GEM:
+                    kind_name = "Gem";
+                    break;
+                case KEY:
+                    kind_name = "Key";
+                    break;
+                default:
+                    kind_name = "Unknown";
+            }
+
+            // Format item details as JSON
+            if (current_item->inventoryLetter) {
+                offset += snprintf(buffer + offset, buffer_size - offset,
+                    "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
+                    "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d }, "
+                    "\"inventoryLetter\": \"%c\" }",
+                    category_name, kind_name, item_description,
+                    current_item->quantity, current_item->armor,
+                    current_item->damage.lowerBound, current_item->damage.upperBound,
+                    current_item->inventoryLetter);
+
+                if (current_item->nextItem && offset < buffer_size - 2) {
+                    offset += snprintf(buffer + offset, buffer_size - offset, ", ");
+                }
+            }
+
+            current_item = current_item->nextItem;
         }
+        snprintf(buffer + offset, buffer_size - offset, "]");
 
-        // Format item details as JSON
-        if (currentItem->inventoryLetter) {
-                        offset += snprintf(buffer + offset, buffer_size - offset,
-                       "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
-                       "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d }, "
-                       "\"inventoryLetter\": \"%c\" }",
-                       categoryName, kindName, itemDescription,
-                       currentItem->quantity, currentItem->armor,
-                       currentItem->damage.lowerBound, currentItem->damage.upperBound,
-                       currentItem->inventoryLetter);
-       
-            
-
-        if (currentItem->nextItem && offset < buffer_size - 2) {
-            offset += snprintf(buffer + offset, buffer_size - offset, ", ");
-        }
-         }
-
-        currentItem = currentItem->nextItem;
+        printf("Inventory JSON: %s\n", buffer);
     }
-    snprintf(buffer + offset, buffer_size - offset, "]");
-
-    printf("Inventory JSON: %s\n", buffer);
-    }
-} 
+}

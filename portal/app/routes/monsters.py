@@ -203,10 +203,10 @@ def handle_existing_monster(monster, monster_id):
 def update_monster_status(monster, monster_id):
     if not monster.get("isDead", False):
         monsters_data[monster_id] = monster
+        monsters_all_data[monster_id] = monster
     else:
         # If the monster is dead, add it to the dead list
         monsters_dead.append(monster)
-
 
 
 @bp.route("/death", methods=["POST"], strict_slashes=False)
@@ -216,32 +216,42 @@ def receive_monster_death():
     """
     data = request.json
 
+    current_app.logger.info("Received data for a death notification: %s", data)
+
     # Ensure that the required data is present in the request
     monster_id = data.get("id")
     if not data or monster_id is None:
         return jsonify({"error": "No valid JSON payload received"}), 400
+    
+    # Convert ID to integer if it's a string
+    if isinstance(monster_id, str):
+        try:
+            monster_id = int(monster_id)  # Convert the ID to an integer
+        except ValueError:
+            return jsonify({"error": f"Invalid monster ID: {monster_id}"}), 400
 
-    current_app.logger.info("Received death notification for monster ID: %s", monster_id)
+    current_app.logger.info("Received death notification for monster ID: ", monster_id)
 
-    # Check if the monster exists in the all monster data
+    # Check if the monster exists in the all monster data using the ID
     if monster_id not in monsters_all_data:
         return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
 
     # Handle monster death if it hasn't been marked as dead already
-    if monsters_all_data[monster_id].get("isDead", False):
-        current_app.logger.info(f"Monster ID {monster_id} is already dead.")
-        return jsonify({"error": f"Monster {monster_id} is already dead."}), 400
+    monster = monsters_all_data[monster_id]
+    dead_monster = monster["name"] 
+    if monster.get("isDead", False):
+        current_app.logger.info(f"Monster with ID {monster_id} is already dead.")
+        return jsonify({"error": f"Monster with ID {monster_id} is already dead."}), 400
 
     # Calculate lifespan
-    monster = monsters_all_data[monster_id]
     creation_time = monster.get("creation_time")
     if creation_time:
         lifespan = time.time() - creation_time
         monster_lifespan_histogram.observe(lifespan)
 
     # Update the monster's stats to reflect its death
-    current_app.logger.info(f"Marking monster {monster['name']} as dead.")
-    monster["hp"] = 0
+    current_app.logger.info(f"Marking monster {dead_monster} as dead.")
+    #monster["hp"] = 0
     monster["isDead"] = True
 
     # Move the monster to the 'dead' collection
@@ -256,7 +266,7 @@ def receive_monster_death():
     # Delete the Monster custom resource in Kubernetes when the monster dies
     try:
         k8s_service.delete_monster_resource(
-            name=monster['name'],
+            name=monster['name'],  # The name is still needed for deletion
             namespace="dungeon-master-system"
         )
     except Exception as e:

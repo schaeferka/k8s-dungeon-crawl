@@ -93,3 +93,31 @@ const char *get_player_reset_url(void) {
     snprintf(url, sizeof(url), "%s/player/reset", PORTAL_BASE_URL);
     return url;
 }
+
+/**
+ * @brief Get the URL for sending equipped item data to the portal.
+ *
+ * This function generates the full URL for sending equipped item data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for sending equipped item data.
+ */
+const char *get_equipped_items_url(void) {
+    static char url[256];  // Static to persist the string
+    snprintf(url, sizeof(url), "%s/items/update", PORTAL_BASE_URL);
+    return url;
+}
+
+/**
+ * @brief Get the URL for sending pack data in the portal.
+ *
+ * This function generates the full URL for sending pack data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for sending pack data.
+ */
+const char *get_pack_url(void) {
+    static char url[256];  // Static to persist the string
+    snprintf(url, sizeof(url), "%s/pack/update", PORTAL_BASE_URL);
+    return url;
+}

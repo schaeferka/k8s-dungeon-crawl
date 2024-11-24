@@ -33,7 +33,7 @@ typedef struct {
 
 // Function declarations
 extern void update_player(void);
-void send_player_data_to_portal(const char *player_data);
+
 char *generate_player_json(const PlayerData *player_data);
 
 #endif // PORTAL_PLAYER_H

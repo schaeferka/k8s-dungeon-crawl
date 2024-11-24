@@ -15,8 +15,8 @@ class Item(BaseModel):
     damage: Optional[Damage] = None  
     armor: Optional[int] = 0 
     charges: Optional[int] = 0
-    timesEnchanted: Optional[int] = None
-    strengthRequired: Optional[int] = None
+    timesEnchanted: Optional[int] = 0
+    strengthRequired: Optional[int] = 0
     inventoryLetter: Optional[str] = " " 
 
 # Define the main model for the entire data structure
