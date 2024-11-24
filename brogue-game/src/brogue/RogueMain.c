@@ -27,21 +27,21 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
-#include "portal-monster.h"
+#include "./portal/portal_monster.h"
 #include <pthread.h>
 #include <time.h>
 #include "MainMenu.h"
-#include "portal-gamestats.h"
+#include "./portal/portal_gamestats.h"
 
 int MONSTIE_COUNT = 0;
 
-int rogueMain() {
+int rogueMain(void) {
     previousGameSeed = 0;
     mainBrogueJunction();
     return rogue.gameExitStatusCode;
 }
 
-void printBrogueVersion() {
+void printBrogueVersion(void) {
     printf("Brogue version: %s\n", brogueVersion);
     printf("Supports variant (rapid_brogue): %s\n", rapidBrogueVersion);
 }
@@ -157,7 +157,7 @@ static const char *getOrdinalSuffix(int number) {
     }
 }
 
-static void welcome() {
+static void welcome(void) {
     char buf[DCOLS*3], buf2[DCOLS*3];
     message("Hello and welcome, adventurer, to the Dungeons of Doom!", 0);
     strcpy(buf, "Retrieve the ");
@@ -173,7 +173,7 @@ static void welcome() {
     flavorMessage("The doors to the dungeon slam shut behind you.");
 }
 
-void initializeGameVariant() {
+void initializeGameVariant(void) {
 
     switch (gameVariant) {
         case VARIANT_RAPID_BROGUE:
@@ -532,12 +532,12 @@ void initializeRogue(uint64_t seed) {
     }
     clearMessageArchive();
     blackOutScreen();
-    initialize_monsters_new_game();
+    initialize_monsters();
     welcome();
 }
 
 // call this once per level to set all the dynamic colors as a function of depth
-static void updateColors() {
+static void updateColors(void) {
     short i;
 
     for (i=0; i<NUMBER_DYNAMIC_COLORS; i++) {
@@ -810,7 +810,7 @@ void startLevel(short oldLevelNumber, short stairDirection) {
     if (!levels[rogue.depthLevel-1].visited) {
         levels[rogue.depthLevel-1].visited = true;
         // K8S: Send monsters for the level to the portal
-        update_monsters(rogue.depthLevel-1);
+        update_monsters();
         if (rogue.depthLevel == gameConst->amuletLevel) {
             messageWithColor(levelFeelings[0].message, levelFeelings[0].color, 0);
         } else if (rogue.depthLevel == gameConst->deepestLevel) {
@@ -980,13 +980,13 @@ static void removeDeadMonstersFromList(creatureList *list) {
 
 // Removes dead monsters from `monsters`/`dormantMonsters`, and inserts them into `purgatory` if
 // the decedent is a player ally at the moment of death, for possible future resurrection.
-void removeDeadMonsters() {
+void removeDeadMonsters(void) {
     removeDeadMonstersFromList(monsters);
     removeDeadMonstersFromList(dormantMonsters);
 }
 
 // K8S: Free the levelData levels
-void free_levels() {
+void free_levels(void) {
     if (levels == NULL) {
         return;  // Nothing to free
     }
@@ -1021,19 +1021,19 @@ void free_levels() {
 }
 
 // K8S: Initialize the levelData levels
-void initialize_levels() {
+void initialize_levels(void) {
     //free_levels();  // Ensure it's empty before reallocation
     levels = malloc(sizeof(levelData) * gameConst->deepestLevel);
     memset(levels, 0, sizeof(levelData) * gameConst->deepestLevel);  // Zero-initialize all entries
 }
 
 
-void freeEverything() {
+void freeEverything(void) {
     short i;
     item *theItem, *theItem2;
 
     cleanup_game_resources();
-    end_of_game_monster_cleanup();
+    monster_cleanup();
 
 #ifdef AUDIT_RNG
     fclose(RNGLogFile);
@@ -1455,7 +1455,7 @@ void victory(boolean superVictory) {
     rogue.gameExitStatusCode = EXIT_STATUS_SUCCESS;
 }
 
-void enableEasyMode() {
+void enableEasyMode(void) {
     if (rogue.easyMode) {
         message("Alas, all hope of salvation is lost. You shed scalding tears at your plight.", 0);
         return;

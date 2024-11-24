@@ -1,5 +1,3 @@
-// portal-player.h
-
 #ifndef PORTAL_PLAYER_H
 #define PORTAL_PLAYER_H
 
@@ -31,10 +29,11 @@ typedef struct {
     int transference;
     int wisdomBonus;
     int reaping;
-} PlayerMetrics;
+} PlayerData;
 
 // Function declarations
-void update_player(void);
-void send_player_metrics_to_portal(const PlayerMetrics *metrics);
+extern void update_player(void);
+void send_player_data_to_portal(const char *player_data);
+char *generate_player_json(const PlayerData *player_data);
 
 #endif // PORTAL_PLAYER_H

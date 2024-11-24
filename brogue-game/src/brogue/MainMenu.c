@@ -31,11 +31,11 @@
 #include <unistd.h>    // For sleep
 #include <stdio.h>
 // K8S: Include the portal header files
-#include "portal-player.h"
-#include "portal-monster.h"
-#include "portal-gamestate.h"
-#include "portal-items.h"
-#include "portal-gamestats.h"
+#include "./portal/portal_player.h"
+#include "./portal/portal_monster.h"
+#include "./portal/portal_gamestats.h"
+#include "./portal/portal_items.h"
+#include "./portal/portal_gamestate.h"
 #include "MainMenu.h"
 
 
@@ -71,7 +71,7 @@ pthread_mutex_t metrics_thread_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_t metrics_thread;
 
-void start_metrics_thread_if_needed() {
+void start_metrics_thread_if_needed(void) {
     pthread_mutex_lock(&metrics_thread_mutex);
     if (!metrics_thread_started) {
         if (pthread_create(&metrics_thread, NULL, metrics_update_loop, NULL) != 0) {
@@ -113,13 +113,13 @@ void *metrics_update_loop(void *arg) {
 }
 
 // Cancel the thread in game cleanup code
-void cleanup_game_resources() {
+void cleanup_game_resources(void) {
     MONSTIE_COUNT = 0;
     rogue.gameHasEnded = true;
     pthread_cancel(metrics_thread);
     pthread_join(metrics_thread, NULL);  // Ensure cleanup
     metrics_thread_started = 0;
-    initialize_monsters_new_game();
+    initialize_monsters();
 }
 
 
@@ -471,7 +471,7 @@ static void initializeFlyoutMenu(buttonState *menu, screenDisplayBuffer *shadowB
 }
 
 /// @brief Displays a dialog window for the user to chose a game variant
-static void chooseGameVariant() {
+static void chooseGameVariant(void) {
     short gameVariantChoice;
     char textBuf[TEXT_MAX_LENGTH] = "", tmpBuf[TEXT_MAX_LENGTH] = "", goldColorEscape[5] = "", whiteColorEscape[5] = "";
 
@@ -504,7 +504,7 @@ static void chooseGameVariant() {
 
 /// @brief Displays a dialog window for the user to chose a game mode. The game mode is displayed in the bottom left
 /// on the title screen (except normal mode).
-static void chooseGameMode() {
+static void chooseGameMode(void) {
     short gameMode;
     char textBuf[TEXT_MAX_LENGTH] = "", tmpBuf[TEXT_MAX_LENGTH] = "", goldColorEscape[5] = "", whiteColorEscape[5] = "";
 
@@ -548,7 +548,7 @@ static void chooseGameMode() {
 
 /// @brief Used on the title screen for showing/hiding the flyout menus
 /// @return True if rogue.nextGame is a flyout command
-static boolean isFlyoutActive() {
+static boolean isFlyoutActive(void) {
     return ((int)rogue.nextGame >= (int)NG_FLYOUT_PLAY && rogue.nextGame <= (int)NG_FLYOUT_OPTIONS);
 }
 
@@ -584,7 +584,7 @@ static void redrawMainMenuButtons(buttonState *menu, screenDisplayBuffer *button
 
 #define FLYOUT_X 59
 
-static void titleMenu() {
+static void titleMenu(void) {
     signed short flames[COLS][(ROWS + MENU_FLAME_ROW_PADDING)][3]; // red, green and blue
     signed short colorSources[MENU_FLAME_COLOR_SOURCE_COUNT][4]; // red, green, blue, and rand, one for each color source (no more than MENU_FLAME_COLOR_SOURCE_COUNT).
     const color *colors[COLS][(ROWS + MENU_FLAME_ROW_PADDING)];
@@ -702,7 +702,7 @@ static void titleMenu() {
 }
 
 // Closes Brogue without any further prompts, animations, or user interaction.
-int quitImmediately() {
+int quitImmediately(void) {
     // If we are recording a game, save it.
     if (rogue.recording) {
         flushBufferToFile();
@@ -1156,7 +1156,7 @@ static void viewGameStats(void) {
 // accompanying path, and it's a command that should take a path, then pop up a dialog to have
 // the player specify a path. If there is no command (i.e. if rogue.nextGame contains NG_NOTHING),
 // then we'll display the title screen so the player can choose.
-void mainBrogueJunction() {
+void mainBrogueJunction(void) {
     // Initialize CURL globally
     curl_global_init(CURL_GLOBAL_DEFAULT);
 

@@ -8,7 +8,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal-items.h"
+#include "portal_items.h"
 
 #define ITEM_PORTAL_URL "http://portal-service.portal:5000/items/update"
 #define PACK_PORTAL_URL "http://portal-service.portal:5000/pack/update"

@@ -41,7 +41,7 @@ const char* getStaffKindName(short kind);
 const char* getRingKindName(short kind);
 const char* getCharmKindName(short kind);
 const char* getScrollKindName(short kind);
-void send_pack_to_portal();
+void send_pack_to_portal(void);
 
 void escape_json_string(const char *src, char *dest, size_t dest_size);
 

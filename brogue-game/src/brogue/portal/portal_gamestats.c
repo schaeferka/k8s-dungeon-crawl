@@ -7,7 +7,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal-gamestats.h"
+#include "portal_gamestats.h"
 #include "platform.h"
 #include "MainMenu.h"
 

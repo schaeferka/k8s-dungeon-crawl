@@ -31,7 +31,7 @@
 #define MAGIC_POLARITY_NEUTRAL 0
 #define MAGIC_POLARITY_ANY 0
 
-item *initializeItem() {
+item *initializeItem(void) {
     short i;
     item *theItem;
 
@@ -1005,7 +1005,7 @@ item *addItemToPack(item *theItem) {
     return theItem;
 }
 
-short numberOfItemsInPack() {
+short numberOfItemsInPack(void) {
     short theCount = 0;
     item *theItem;
     for(theItem = packItems->nextItem; theItem != NULL; theItem = theItem->nextItem) {
@@ -1014,7 +1014,7 @@ short numberOfItemsInPack() {
     return theCount;
 }
 
-char nextAvailableInventoryCharacter() {
+char nextAvailableInventoryCharacter(void) {
     boolean charTaken[26];
     short i;
     item *theItem;
@@ -1177,7 +1177,7 @@ static boolean swapItemEnchants(const short machineNumber) {
     return false;
 }
 
-void updateFloorItems() {
+void updateFloorItems(void) {
     short x, y;
     char buf[DCOLS*3], buf2[DCOLS*3];
     enum dungeonLayers layer;
@@ -1745,7 +1745,7 @@ void itemRunicName(item *theItem, char *runicName) {
     }
 }
 
-static int enchantMagnitude() {
+static int enchantMagnitude(void) {
     return tableForItemCategory(SCROLL)[SCROLL_ENCHANTING].power;
 }
 
@@ -3152,7 +3152,7 @@ short numberOfMatchingPackItems(unsigned short categoryMask,
     return matchingItemCount;
 }
 
-void updateEncumbrance() {
+void updateEncumbrance(void) {
     short moveSpeed, attackSpeed;
 
     moveSpeed = player.info.movementSpeed;
@@ -3180,7 +3180,7 @@ short armorValueIfUnenchanted(item *theItem) {
 }
 
 // Calculates the armor value to display to the player (estimated if the item is unidentified).
-short displayedArmorValue() {
+short displayedArmorValue(void) {
     if (!rogue.armor || (rogue.armor->flags & ITEM_IDENTIFIED)) {
         return player.info.defense / 10;
     } else {
@@ -6426,7 +6426,7 @@ void relabel(item *theItem) {
 
 // If the most recently equipped item caused another item to be unequiped, is
 // uncursed, and both haven't left the inventory since, swap them back.
-void swapLastEquipment() {
+void swapLastEquipment(void) {
     item *theItem;
     unsigned char command[10];
 
@@ -6852,7 +6852,7 @@ static short lotteryDraw(short *frequencies, short itemCount) {
     return 0;
 }
 
-short chooseVorpalEnemy() {
+short chooseVorpalEnemy(void) {
     short i, frequencies[MONSTER_CLASS_COUNT];
     for (i = 0; i < MONSTER_CLASS_COUNT; i++) {
         if (monsterClassCatalog[i].maxDepth <= 0
@@ -6904,7 +6904,7 @@ void updateIdentifiableItem(item *theItem) {
     }
 }
 
-void updateIdentifiableItems() {
+void updateIdentifiableItems(void) {
     item *theItem;
     for (theItem = packItems->nextItem; theItem != NULL; theItem = theItem->nextItem) {
         updateIdentifiableItem(theItem);
@@ -7517,7 +7517,7 @@ void unequip(item *theItem) {
     playerTurnEnded();
 }
 
-static boolean canDrop() {
+static boolean canDrop(void) {
     if (cellHasTerrainFlag(player.loc, T_OBSTRUCTS_ITEMS)) {
         return false;
     }
@@ -7663,7 +7663,7 @@ item *dropItem(item *theItem) {
     }
 }
 
-void recalculateEquipmentBonuses() {
+void recalculateEquipmentBonuses(void) {
     fixpt enchant;
     item *theItem;
     if (rogue.weapon) {
@@ -7828,7 +7828,7 @@ boolean unequipItem(item *theItem, boolean force) {
     return true;
 }
 
-void updateRingBonuses() {
+void updateRingBonuses(void) {
     short i;
     item *rings[2] = {rogue.ringLeft, rogue.ringRight};
 
@@ -7879,7 +7879,7 @@ void updateRingBonuses() {
     }
 }
 
-void updatePlayerRegenerationDelay() {
+void updatePlayerRegenerationDelay(void) {
     short maxHP;
     long turnsForFull; // In thousandths of a turn.
     maxHP = player.info.maxHP;
@@ -7925,7 +7925,7 @@ static void resetItemTableEntry(itemTable *theEntry) {
     theEntry->callTitle[0] = '\0';
 }
 
-void shuffleFlavors() {
+void shuffleFlavors(void) {
     short i, j, randIndex, randNumber;
     char buf[COLS];
 

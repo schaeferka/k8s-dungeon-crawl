@@ -809,7 +809,7 @@ enum potionKind {
     POTION_LICHEN,
 };
 
-extern enum weaponKind {
+enum weaponKind {
     DAGGER,
     SWORD,
     BROADSWORD,
@@ -3064,9 +3064,9 @@ extern "C" {
     void freeCreatureList(creatureList *list);
     void removeDeadMonsters(void);
     void freeEverything(void);
-    void free_levels();
-    void initialize_levels();
-    void free_pack_items();
+    void free_levels(void);
+    void initialize_levels(void);
+    void free_pack_items(void);
     boolean randomMatchingLocation(pos *loc, short dungeonType, short liquidType, short terrainType);
     enum dungeonLayers highestPriorityLayer(short x, short y, boolean skipGas);
     enum dungeonLayers layerWithTMFlag(short x, short y, unsigned long flag);

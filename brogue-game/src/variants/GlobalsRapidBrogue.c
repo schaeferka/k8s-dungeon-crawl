@@ -1064,7 +1064,7 @@ const gameConstants rapidBrogueGameConst = {
     .mainMenuTitleWidth = MENU_TITLE_WIDTH
 };
 
-void initializeGameVariantRapidBrogue() {
+void initializeGameVariantRapidBrogue(void) {
 
     // Game constants
     gameConst = &rapidBrogueGameConst;
