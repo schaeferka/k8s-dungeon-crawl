@@ -17,9 +17,14 @@ class Item(BaseModel):
     charges: Optional[int] = 0
     timesEnchanted: Optional[int] = 0
     strengthRequired: Optional[int] = 0
-    inventoryLetter: Optional[str] = " " 
+    inventoryLetter: Optional[str] = " "
+    originDepth: Optional[int] = 0
+    enchant1: Optional[str] = "None"  # For any enchantment on the item
+    enchant2: Optional[str] = "None"  # For the second enchantment
+    description: Optional[str] = "No description available"
 
-# Define the main model for the entire data structure
+
+# Define the main model for the entire equipped items data structure
 class ItemMetrics(BaseModel):
     weapon: Item
     armor: Item

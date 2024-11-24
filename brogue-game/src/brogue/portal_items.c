@@ -3,15 +3,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "Rogue.h"
-#include "GlobalsBase.h"
-#include "Globals.h"
 #include "portal_items.h"
 #include "portal_items_helpers.h"
 #include "portal.h"
 #include "portal_urls.h"
 
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE 16384
 #define PACK_CAPACITY 26
 
 // Declare previous pack items
@@ -36,7 +33,7 @@ void update_items(void) {
  * This function compares the current equipped items with the previously sent ones
  * to detect changes.
  *
- * @return `true` if there are changes, `false` otherwise.
+ * @return true if there are changes, false otherwise.
  */
 static bool is_equipped_items_changed(void) {
     // Compare equipped items with previously sent items
@@ -81,43 +78,70 @@ void send_equipped_items_to_portal(void) {
  * @param size The size of the buffer.
  */
 void generate_equipped_items_json(const EquippedItems *items, char *buffer, size_t size) {
+    // Fetch item details (with descriptions) for each item
+    const itemTable *weaponDetails = getWeaponDetails(items->weapon.kind);
+    const char *weaponDescription = weaponDetails ? weaponDetails->description : "No description available";
+    
+    const itemTable *armorDetails = getArmorDetails(items->armor.kind);
+    const char *armorDescription = armorDetails ? armorDetails->description : "No description available";
+
+    const itemTable *ringLeftDetails = getRingDetails(items->ringLeft.kind);
+    const char *ringLeftDescription = ringLeftDetails ? ringLeftDetails->description : "No description available";
+    
+    const itemTable *ringRightDetails = getRingDetails(items->ringRight.kind);
+    const char *ringRightDescription = ringRightDetails ? ringRightDetails->description : "No description available";
+
     // Ensure the buffer is large enough
-    snprintf(buffer, size,
+    snprintf(buffer, size, 
         "{"
         "\"weapon\": {"
             "\"category\": \"%s\", "
             "\"kind\": \"%s\", "
             "\"damage\": {\"min\": %d, \"max\": %d}, "
-            "\"enchant1\": \"%s\", "
-            "\"enchant2\": \"%s\", "
+            "\"enchant1\": \"%hd\", "
+            "\"enchant2\": \"%hd\", "
             "\"charges\": %d, "
             "\"timesEnchanted\": %d, "
             "\"strengthRequired\": %d, "
             "\"inventoryLetter\": \"%c\", "
             "\"inscription\": \"%s\", "
-            "\"quantity\": %d"
+            "\"quantity\": %d, "
+            "\"description\": \"%s\""
         "}, "
         "\"armor\": {"
             "\"category\": \"%s\", "
             "\"kind\": \"%s\", "
             "\"armor\": %d, "
-            "\"enchant1\": \"%s\", "
+            "\"enchant1\": \"%hd\", "
             "\"charges\": %d, "
             "\"timesEnchanted\": %d, "
             "\"strengthRequired\": %d, "
             "\"inventoryLetter\": \"%c\", "
             "\"inscription\": \"%s\", "
-            "\"quantity\": %d"
+            "\"quantity\": %d, "
+            "\"description\": \"%s\""
         "}, "
         "\"ringLeft\": {"
             "\"category\": \"%s\", "
             "\"kind\": \"%s\", "
-            "\"quantity\": %d"
+            "\"quantity\": %d, "
+            "\"enchant1\": \"%hd\", "
+            "\"enchant2\": \"%hd\", "
+            "\"originDepth\": %d, "
+            "\"timesEnchanted\": %d, "
+            "\"strengthRequired\": %d, "
+            "\"description\": \"%s\""
         "}, "
         "\"ringRight\": {"
             "\"category\": \"%s\", "
             "\"kind\": \"%s\", "
-            "\"quantity\": %d"
+            "\"quantity\": %d, "
+            "\"enchant1\": \"%hd\", "
+            "\"enchant2\": \"%hd\", "
+            "\"originDepth\": %d, "
+            "\"timesEnchanted\": %d, "
+            "\"strengthRequired\": %d, "
+            "\"description\": \"%s\""
         "}"
         "}",
         // Weapon data
@@ -125,35 +149,53 @@ void generate_equipped_items_json(const EquippedItems *items, char *buffer, size
         get_weapon_kind(items->weapon.kind),
         items->weapon.damage.lowerBound,
         items->weapon.damage.upperBound,
-        get_weapon_enchantment(items->weapon.enchant1),
-        get_weapon_enchantment(items->weapon.enchant2),
+        items->weapon.enchant1,  // Use %hd for short
+        items->weapon.enchant2,  // Use %hd for short
         items->weapon.charges,
         items->weapon.timesEnchanted,
         items->weapon.strengthRequired,
         items->weapon.inventoryLetter,
         items->weapon.inscription,
         items->weapon.quantity,
+        weaponDescription,  // Include description from itemTable
+
         // Armor data
         get_item_category(items->armor.category),
         get_armor_kind(items->armor.kind),
         items->armor.armor,
-        get_armor_enchantment(items->armor.enchant1),
+        items->armor.enchant1,  // Use %hd for short
         items->armor.charges,
         items->armor.timesEnchanted,
         items->armor.strengthRequired,
         items->armor.inventoryLetter,
         items->armor.inscription,
         items->armor.quantity,
+        armorDescription,  // Include description from itemTable
+
         // RingLeft data
         get_item_category(items->ringLeft.category),
         get_ring_kind(items->ringLeft.kind),
         items->ringLeft.quantity,
+        items->ringLeft.enchant1,  // Use %hd for short
+        items->ringLeft.enchant2,  // Use %hd for short
+        items->ringLeft.originDepth,
+        items->ringLeft.timesEnchanted,
+        items->ringLeft.strengthRequired,
+        ringLeftDescription,  // Include description from itemTable
+
         // RingRight data
         get_item_category(items->ringRight.category),
         get_ring_kind(items->ringRight.kind),
-        items->ringRight.quantity
+        items->ringRight.quantity,
+        items->ringRight.enchant1,  // Use %hd for short
+        items->ringRight.enchant2,  // Use %hd for short
+        items->ringRight.originDepth,
+        items->ringRight.timesEnchanted,
+        items->ringRight.strengthRequired,
+        ringRightDescription  // Include description from itemTable
     );
 }
+
 
 /**
  * @brief Check if the pack items have changed since the last update.
@@ -161,7 +203,7 @@ void generate_equipped_items_json(const EquippedItems *items, char *buffer, size
  * This function compares the current pack items with the previously sent ones
  * to detect changes.
  *
- * @return `true` if there are changes, `false` otherwise.
+ * @return true if there are changes, false otherwise.
  */
 static bool is_pack_items_changed(void) {
     // Compare pack items with previously sent items
@@ -175,7 +217,14 @@ static bool is_pack_items_changed(void) {
  */
 void send_pack_items_to_portal(void) {
     if (!rogue.gameHasEnded && is_pack_items_changed()) {
-        char post_data[BUFFER_SIZE];
+        // Dynamically allocate memory for the JSON string
+        size_t buffer_size = 16384;
+        char *post_data = malloc(buffer_size);
+        if (post_data == NULL) {
+            fprintf(stderr, "Memory allocation failed!\n");
+            return;
+        }
+
         snprintf(post_data, sizeof(post_data), "{\"pack\":");
 
         // Generate and append the inventory JSON
@@ -188,7 +237,10 @@ void send_pack_items_to_portal(void) {
         send_pack_to_portal(post_data);
 
         // Update previous pack items
-        memcpy(previous_pack_items, packItems, sizeof(packItems));
+        memcpy(previous_pack_items, packItems, sizeof(item) * PACK_CAPACITY);
+
+        // Free the dynamically allocated memory
+        free(post_data);
     }
 }
 
@@ -209,7 +261,6 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
         offset += snprintf(buffer + offset, buffer_size - offset, "[");
 
         while (current_item && offset < buffer_size - 1) {
-            const char *item_name = "Unknown";
             const char *item_description = "No description available";
             const char *category_name = get_item_category(current_item->category);
             const char *kind_name = "Unknown";

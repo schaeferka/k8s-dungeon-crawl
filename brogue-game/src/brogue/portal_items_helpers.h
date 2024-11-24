@@ -135,4 +135,10 @@ extern const char* get_scroll_kind(short kind);
  */
 extern void escape_json_string(const char *src, char *dest, size_t dest_size);
 
+extern const itemTable *getWeaponDetails(short kind);
+
+extern const itemTable *getArmorDetails(short kind);
+
+extern const itemTable *getRingDetails(short kind);
+
 #endif // PORTAL_ITEMS_HELPERS_H

@@ -20,6 +20,9 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef GLOBALSBASE_H
+#define GLOBALSBASE_H
+
 #include "Rogue.h"
 
 extern tcell tmap[DCOLS][DROWS];                        // grids with info about the map
@@ -133,3 +136,5 @@ extern const windowpos WINDOW_POSITION_DUNGEON_TOP_LEFT;
 extern const fixpt POW_0_CHARM_INCREMENT[];
 extern const fixpt POW_120_CHARM_INCREMENT[];
 extern const fixpt POW_125_CHARM_INCREMENT[];
+
+#endif // GLOBALSBASE_H

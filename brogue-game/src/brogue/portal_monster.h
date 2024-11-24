@@ -7,8 +7,7 @@
 // Define constants
 #define MAX_MONSTERS 1024            // Adjust based on expected max number of monsters
 #define MONSTER_JSON_SIZE 8192       // Increased buffer size for JSON payloads
-#define CHECK_FLAG(flags, bit) ((flags) & (1UL << (bit)))
-
+#define CHECK_FLAG(flags, bit) (((bit) < (sizeof(flags) * 8)) ? ((flags) & (1UL << (bit))) : 0)
 
 // Struct to store monster data for comparison
 typedef struct {

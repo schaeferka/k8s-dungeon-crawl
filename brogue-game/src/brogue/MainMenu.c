@@ -31,11 +31,11 @@
 #include <unistd.h>    // For sleep
 #include <stdio.h>
 // K8S: Include the portal header files
-#include "./portal/portal_player.h"
-#include "./portal/portal_monster.h"
-#include "./portal/portal_gamestats.h"
-#include "./portal/portal_items.h"
-#include "./portal/portal_gamestate.h"
+#include "portal_player.h"
+#include "portal_monster.h"
+#include "portal_gamestats.h"
+#include "portal_items.h"
+#include "portal_gamestate.h"
 #include "MainMenu.h"
 
 

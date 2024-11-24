@@ -10,7 +10,7 @@
 /** 
  * @brief Cache for storing monster data for comparison and change detection.
  */
-extern MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
+MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
 
 /**
  * @brief Initializes or resets all monster data and the monster cache.
@@ -110,6 +110,8 @@ bool has_monster_data_changed(const creature *monst, int levelIndex) {
 
         return false;  // No changes detected
     }
+
+    return false;  // Game has ended; no need to update
 }
 
 /**
@@ -119,7 +121,7 @@ bool has_monster_data_changed(const creature *monst, int levelIndex) {
  * has changed, generates the appropriate JSON string, and sends the data to
  * the portal if necessary.
  */
-void update_monsters() {
+void update_monsters(void) {
     if (!rogue.gameHasEnded) {
         char monster_json[MONSTER_JSON_SIZE];
         size_t offset = 0;
@@ -141,7 +143,9 @@ void update_monsters() {
                     if (CHECK_FLAG(monst->bookkeepingFlags, MB_HAS_DIED)) {
                         monst->isDead = true;
                         // Generate the monster death JSON and send it to portal
-                        send_monster_death_to_portal(monst);
+                        char death_json[512];  // Buffer to hold the death JSON string
+                        snprintf(death_json, sizeof(death_json), "{\"id\": \"%d\"}", monst->id);  // Create the JSON for the monster ID
+                        send_monster_death_to_portal(death_json);  // Send the JSON to the portal
                         continue;
                     }
 
@@ -190,35 +194,19 @@ void update_monsters() {
  * @param monst The monster that has died.
  */
 extern void report_monster_death(creature *monst) {
-    DEBUG_LOG("Entering report_monster_death function for monster: %s", monst->portalName);
-    
-    // Log the monster's current state before marking as dead
-    DEBUG_LOG("Monster ID: %d, Name: %s, Current HP: %d, Max HP: %d", 
-               monst->id, monst->portalName, monst->currentHP, monst->info.maxHP);
-
-    printf("Monster %s has died!\n", monst->portalName);
-
     // Set the monster's death status
     monst->isDead = true;
-    DEBUG_LOG("Marked monster %s as dead", monst->portalName);
-
-    printf("Monster %s has been marked as dead.\n", monst->portalName);
     
     // Update monsters and log the event
     update_monsters();
-    DEBUG_LOG("Updated monster list after marking %s as dead", monst->portalName);
-
-    printf("Monster data has been updated after death.\n");
 
     // Prepare the JSON data to be sent
     char death_data[512];
     snprintf(death_data, sizeof(death_data),
         "{\"id\": \"%d\"}", monst->id);  // Send the id as part of the JSON object
 
-
     // Send the monster death notification to the portal
     send_monster_death_to_portal(death_data);
-    DEBUG_LOG("Sent death notification for monster %s to the portal", monst->portalName);
 }
 
 /**

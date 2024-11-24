@@ -3,15 +3,17 @@
 
 #include "portal_items.h"
 
+void send_data_to_portal(const char *url, const char *data);
+
 /**
  * @brief Sends monster death data to the portal.
  *
  * This function is responsible for sending the JSON data representing a monster's death
  * to the portal using the appropriate endpoint.
  *
- * @param monster_name A JSON string containing the monster's death data.
+ * @param monster_data A JSON string containing the monster's death data.
  */
-extern void send_monster_death_to_portal(const char *monster_name);
+extern void send_monster_death_to_portal(const char *monster_data);
 
 /**
  * @brief Sends the list of monsters to the portal.

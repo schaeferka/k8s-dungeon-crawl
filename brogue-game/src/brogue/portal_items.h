@@ -2,6 +2,8 @@
 #define PORTAL_ITEMS_H
 
 #include "Rogue.h"
+#include "GlobalsBase.h"
+#include "Globals.h"
 #include "portal.h"
 
 typedef struct {

@@ -1,5 +1,3 @@
-// portal-items.c
-
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +7,30 @@
 #include "GlobalsBase.h"
 #include "Globals.h"
 #include "portal_items_helpers.h"
+
+const itemTable *getWeaponDetails(short kind) {
+    if (kind >= 0 && kind < NUMBER_WEAPON_KINDS) {
+        return &weaponTable[kind];
+    }
+    fprintf(stderr, "Error: Invalid weapon kind %d\n", kind);
+    return NULL;
+}
+
+const itemTable *getArmorDetails(short kind) {
+    if (kind >= 0 && kind < NUMBER_ARMOR_KINDS) {
+        return &armorTable[kind];
+    }
+    fprintf(stderr, "Error: Invalid armor kind %d\n", kind);
+    return NULL;
+}
+
+const itemTable *getRingDetails(short kind) {
+    if (kind >= 0 && kind < NUMBER_RING_KINDS) {
+        return &ringTable[kind];
+    }
+    fprintf(stderr, "Error: Invalid ring kind %d\n", kind);
+    return NULL;
+}
 
 /**
  * @brief Convert item category to a descriptive string.
@@ -125,6 +147,7 @@ const char* get_weapon_enchantment(short enchant) {
         case W_QUIETUS: return "Quietus";
         case W_SLOWING: return "Slowing";
     }
+    return "Unknown";
 }
 
 /**

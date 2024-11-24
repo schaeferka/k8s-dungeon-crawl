@@ -45,10 +45,10 @@ void send_data_to_portal(const char *url, const char *data) {
 /**
  * Sends monster death data to the portal.
  * 
- * @param monster_id The JSON data representing the monster's death.
+ * @param monster_data The JSON data representing the monster's death.
  */
-void send_monster_death_to_portal(const char *monster_id) {
-    send_data_to_portal(get_monster_death_url(), monster_id);
+void send_monster_death_to_portal(const char *monster_data) {
+    send_data_to_portal(get_monster_death_url(), monster_data);
 }
 
 /**

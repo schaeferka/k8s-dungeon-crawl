@@ -27,11 +27,11 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
-#include "./portal/portal_monster.h"
+#include "portal_monster.h"
 #include <pthread.h>
 #include <time.h>
 #include "MainMenu.h"
-#include "./portal/portal_gamestats.h"
+#include "portal_gamestats.h"
 
 int MONSTIE_COUNT = 0;
 

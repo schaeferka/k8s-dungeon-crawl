@@ -24,8 +24,8 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "./portal/portal_monster.h"
-#include "./portal/portal.h"
+#include "portal_monster.h"
+#include "portal.h"
 
 
 /* Combat rules:
@@ -1741,9 +1741,7 @@ void killCreature(creature *decedent, boolean administrativeDeath) {
         checkForContinuedLeadership(decedent->leader);
     }
     
-    // K8S: Notify the portal of the updates and death
-    //decedent->isDead = true;
-    //update_monsters();
+    // K8S: Notify the portal of the death of the monster
     report_monster_death(decedent);
 }
 
