@@ -69,4 +69,24 @@ const char *get_player_death_url(void);
  */
 const char *get_player_reset_url(void);
 
+/**
+ * @brief Get the URL for resetting player data in the portal.
+ *
+ * This function generates the full URL for resetting player data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for resetting player data.
+ */
+const char *get_equipped_items_url(void);
+
+/**
+ * @brief Get the URL for resetting player data in the portal.
+ *
+ * This function generates the full URL for resetting player data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for resetting player data.
+ */
+const char *get_pack_url(void);
+
 #endif // PORTAL_URLS_H

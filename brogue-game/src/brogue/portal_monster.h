@@ -7,8 +7,7 @@
 // Define constants
 #define MAX_MONSTERS 1024            // Adjust based on expected max number of monsters
 #define MONSTER_JSON_SIZE 8192       // Increased buffer size for JSON payloads
-#define CHECK_FLAG(flags, bit) ((flags) & (1UL << (bit)))
-
+#define CHECK_FLAG(flags, bit) (((bit) < (sizeof(flags) * 8)) ? ((flags) & (1UL << (bit))) : 0)
 
 // Struct to store monster data for comparison
 typedef struct {
@@ -55,30 +54,14 @@ bool has_monster_data_changed(const creature *monst, int levelIndex);
 extern void update_monsters(void);
 
 /**
- * @brief Sends the monster death data to the portal.
+ * @brief Sends the monster death event to the portal.
  *
- * This function generates the JSON string representing a monster's death and
- * sends it to the portal using the generic `send_data_to_portal` function.
+ * This function generates the JSON string for a monster death event and sends
+ * it to the portal.
  *
  * @param monst The monster that has died.
  */
-void send_monster_death_to_portal(creature *monst);
-
-/**
- * @brief Sends the monster data to the portal.
- *
- * This function sends a batch of monster data (in JSON format) to the portal.
- * 
- * @param data The JSON string containing the monster data to be sent.
- */
-void send_monsters_to_portal(const char *data);
-
-/**
- * @brief Sends a reset command to the portal.
- *
- * This function generates and sends a request to reset the monster data on the portal.
- */
-extern void send_monster_reset_to_portal(void);
+extern void report_monster_death(creature *monst);
 
 /**
  * @brief Generates the JSON string for a monster event.

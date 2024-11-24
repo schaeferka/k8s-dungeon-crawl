@@ -3,10 +3,14 @@
 #include "portal_urls.h" 
 #include "portal.h"       
 
+// Debug macro for logging
+#define DEBUG_LOG(fmt, ...) \
+    printf("[DEBUG] [%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+
 /** 
  * @brief Cache for storing monster data for comparison and change detection.
  */
-extern MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
+MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
 
 /**
  * @brief Initializes or resets all monster data and the monster cache.
@@ -40,6 +44,7 @@ void reset_monster_cache(void) {
 void monster_cleanup(void) {
     // Free any dynamically allocated memory or perform cleanup tasks here
     // This function is called when the game is exiting or restarting
+    printf("Monster cleanup complete.\n");
 }
 
 /**
@@ -105,6 +110,8 @@ bool has_monster_data_changed(const creature *monst, int levelIndex) {
 
         return false;  // No changes detected
     }
+
+    return false;  // Game has ended; no need to update
 }
 
 /**
@@ -114,7 +121,7 @@ bool has_monster_data_changed(const creature *monst, int levelIndex) {
  * has changed, generates the appropriate JSON string, and sends the data to
  * the portal if necessary.
  */
-void update_monsters() {
+void update_monsters(void) {
     if (!rogue.gameHasEnded) {
         char monster_json[MONSTER_JSON_SIZE];
         size_t offset = 0;
@@ -136,7 +143,9 @@ void update_monsters() {
                     if (CHECK_FLAG(monst->bookkeepingFlags, MB_HAS_DIED)) {
                         monst->isDead = true;
                         // Generate the monster death JSON and send it to portal
-                        send_monster_death_to_portal(monst);
+                        char death_json[512];  // Buffer to hold the death JSON string
+                        snprintf(death_json, sizeof(death_json), "{\"id\": \"%d\"}", monst->id);  // Create the JSON for the monster ID
+                        send_monster_death_to_portal(death_json);  // Send the JSON to the portal
                         continue;
                     }
 
@@ -177,41 +186,27 @@ void update_monsters() {
 }
 
 /**
- * @brief Sends the monster death data to the portal.
+ * @brief Sends the monster death event to the portal.
  *
- * This function generates the JSON string representing a monster's death and
- * sends it to the portal using the generic `send_data_to_portal` function.
+ * This function generates the JSON string for a monster death event and sends
+ * it to the portal.
  *
  * @param monst The monster that has died.
  */
-void send_monster_death_to_portal(creature *monst) {
-    char monster_data[512];
-    generate_monster_json(monst, monster_data, sizeof(monster_data));
+extern void report_monster_death(creature *monst) {
+    // Set the monster's death status
+    monst->isDead = true;
+    
+    // Update monsters and log the event
+    update_monsters();
 
-    // Send the death data using the generic function from portal.c
-    send_data_to_portal(get_monster_death_url(), monster_data);
-}
+    // Prepare the JSON data to be sent
+    char death_data[512];
+    snprintf(death_data, sizeof(death_data),
+        "{\"id\": \"%d\"}", monst->id);  // Send the id as part of the JSON object
 
-/**
- * @brief Sends the monster data to the portal.
- *
- * This function sends a batch of monster data (in JSON format) to the portal.
- * 
- * @param data The JSON string containing the monster data to be sent.
- */
-void send_monsters_to_portal(const char *data) {
-    // Send the data using the generic function from portal.c
-    send_data_to_portal(get_monster_update_url(), data);
-}
-
-/**
- * @brief Sends a reset command to the portal.
- *
- * This function generates and sends a request to reset the monster data on the portal.
- */
-void send_monster_reset_to_portal() {
-    // Send the reset command using the generic function from portal.c
-    send_data_to_portal(get_monster_reset_url(), NULL);
+    // Send the monster death notification to the portal
+    send_monster_death_to_portal(death_data);
 }
 
 /**

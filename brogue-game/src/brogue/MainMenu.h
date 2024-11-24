@@ -2,8 +2,8 @@
 #define MAIN_MENU_H
 
 #include <pthread.h>  // Include pthread for the mutex
-#include "./portal/portal_player.h"
-#include "./portal/portal_monster.h"
+#include "portal_player.h"
+#include "portal_monster.h"
 #include "Rogue.h"
 
 // Declaration of the function to start the metrics thread if needed
