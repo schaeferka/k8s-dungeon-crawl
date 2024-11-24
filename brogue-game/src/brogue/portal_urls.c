@@ -121,3 +121,31 @@ const char *get_pack_url(void) {
     snprintf(url, sizeof(url), "%s/pack/update", PORTAL_BASE_URL);
     return url;
 }
+
+/**
+ * @brief Get the URL for sending gamestate data in the portal.
+ *
+ * This function generates the full URL for gamestate data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for sending gamestate data.
+ */
+const char *get_gamestate_url(void) {
+    static char url[256];  // Static to persist the string
+    snprintf(url, sizeof(url), "%s/gamestate/update", PORTAL_BASE_URL);
+    return url;
+}
+
+/**
+ * @brief Get the URL for sending gamestats data in the portal.
+ *
+ * This function generates the full URL for gamestats data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for sending gamestats data.
+ */
+const char *get_gamestats_url(void) {
+    static char url[256];  // Static to persist the string
+    snprintf(url, sizeof(url), "%s/gamestats/update", PORTAL_BASE_URL);
+    return url;
+}

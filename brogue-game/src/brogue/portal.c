@@ -109,3 +109,21 @@ extern void send_items_to_portal(const char *items_data){
 void send_pack_to_portal(const char *pack_data) {
     send_data_to_portal(get_pack_url(), pack_data);
 }
+
+/**
+ * Sends the gamestate data to the portal.
+ * 
+ * @param gamestate_data The JSON data representing the gamestate.
+ */
+void send_gamestate_to_portal(const char *gamestate_data) {
+    send_data_to_portal(get_gamestate_url(), gamestate_data);
+}
+
+/**
+ * Sends the gamestats data to the portal.
+ * 
+ * @param gamestats_data The JSON data representing the gamestats.
+ */
+void send_pack_to_portal(const char *gamestats_data) {
+    send_data_to_portal(get_gamestats_url(), gamestats_data);
+}

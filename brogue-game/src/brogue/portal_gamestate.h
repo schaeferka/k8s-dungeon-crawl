@@ -1,5 +1,3 @@
-// portal-gamestate.h
-
 #ifndef PORTAL_GAMESTATE_H
 #define PORTAL_GAMESTATE_H
 
@@ -26,6 +24,6 @@ typedef struct {
 
 // Function declarations
 extern void update_gamestate(void);
-void send_gamestate_metrics_to_portal(const GameStateMetrics *gamestate);
+extern void generate_gamestate_json(const GameStateMetrics *gamestate, char *buffer, size_t size);
 
 #endif // PORTAL_GAMESTATE_H
