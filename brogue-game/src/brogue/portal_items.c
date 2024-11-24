@@ -36,7 +36,6 @@ void update_items(void) {
  * @return true if there are changes, false otherwise.
  */
 static bool is_equipped_items_changed(void) {
-    // Compare equipped items with previously sent items
     return (memcmp(&rogue.weapon, &previous_equipped_items.weapon, sizeof(item)) != 0 ||
             memcmp(&rogue.armor, &previous_equipped_items.armor, sizeof(item)) != 0 ||
             memcmp(&rogue.ringLeft, &previous_equipped_items.ringLeft, sizeof(item)) != 0 ||
@@ -45,9 +44,6 @@ static bool is_equipped_items_changed(void) {
 
 /**
  * @brief Updates equipped items and sends them to the portal if necessary.
- *
- * This function checks if the equipped items have changed, generates the JSON string,
- * and sends the data to the portal if necessary.
  */
 void send_equipped_items_to_portal(void) {
     if (!rogue.gameHasEnded && is_equipped_items_changed()) {
@@ -57,7 +53,7 @@ void send_equipped_items_to_portal(void) {
             .ringLeft = (rogue.ringLeft != NULL) ? *rogue.ringLeft : (item){0},
             .ringRight = (rogue.ringRight != NULL) ? *rogue.ringRight : (item){0},
         };
-        
+
         // Generate and send equipped items JSON
         char equipped_json[BUFFER_SIZE];
         generate_equipped_items_json(&items, equipped_json, sizeof(equipped_json));
@@ -70,15 +66,8 @@ void send_equipped_items_to_portal(void) {
 
 /**
  * @brief Generates the JSON string for the equipped items.
- *
- * This function generates a JSON string based on the equipped items data.
- *
- * @param items The equipped items to be serialized into JSON.
- * @param buffer The buffer to store the resulting JSON string.
- * @param size The size of the buffer.
  */
 void generate_equipped_items_json(const EquippedItems *items, char *buffer, size_t size) {
-    // Fetch item details (with descriptions) for each item
     const itemTable *weaponDetails = getWeaponDetails(items->weapon.kind);
     const char *weaponDescription = weaponDetails ? weaponDetails->description : "No description available";
     
@@ -91,7 +80,6 @@ void generate_equipped_items_json(const EquippedItems *items, char *buffer, size
     const itemTable *ringRightDetails = getRingDetails(items->ringRight.kind);
     const char *ringRightDescription = ringRightDetails ? ringRightDetails->description : "No description available";
 
-    // Ensure the buffer is large enough
     snprintf(buffer, size, 
         "{"
         "\"weapon\": {"
@@ -144,80 +132,63 @@ void generate_equipped_items_json(const EquippedItems *items, char *buffer, size
             "\"description\": \"%s\""
         "}"
         "}",
-        // Weapon data
         get_item_category(items->weapon.category),
         get_weapon_kind(items->weapon.kind),
         items->weapon.damage.lowerBound,
         items->weapon.damage.upperBound,
-        items->weapon.enchant1,  // Use %hd for short
-        items->weapon.enchant2,  // Use %hd for short
+        items->weapon.enchant1,
+        items->weapon.enchant2,
         items->weapon.charges,
         items->weapon.timesEnchanted,
         items->weapon.strengthRequired,
         items->weapon.inventoryLetter,
         items->weapon.inscription,
         items->weapon.quantity,
-        weaponDescription,  // Include description from itemTable
-
-        // Armor data
+        weaponDescription,
         get_item_category(items->armor.category),
         get_armor_kind(items->armor.kind),
         items->armor.armor,
-        items->armor.enchant1,  // Use %hd for short
+        items->armor.enchant1,
         items->armor.charges,
         items->armor.timesEnchanted,
         items->armor.strengthRequired,
         items->armor.inventoryLetter,
         items->armor.inscription,
         items->armor.quantity,
-        armorDescription,  // Include description from itemTable
-
-        // RingLeft data
+        armorDescription,
         get_item_category(items->ringLeft.category),
         get_ring_kind(items->ringLeft.kind),
         items->ringLeft.quantity,
-        items->ringLeft.enchant1,  // Use %hd for short
-        items->ringLeft.enchant2,  // Use %hd for short
+        items->ringLeft.enchant1,
+        items->ringLeft.enchant2,
         items->ringLeft.originDepth,
         items->ringLeft.timesEnchanted,
         items->ringLeft.strengthRequired,
-        ringLeftDescription,  // Include description from itemTable
-
-        // RingRight data
+        ringLeftDescription,
         get_item_category(items->ringRight.category),
         get_ring_kind(items->ringRight.kind),
         items->ringRight.quantity,
-        items->ringRight.enchant1,  // Use %hd for short
-        items->ringRight.enchant2,  // Use %hd for short
+        items->ringRight.enchant1,
+        items->ringRight.enchant2,
         items->ringRight.originDepth,
         items->ringRight.timesEnchanted,
         items->ringRight.strengthRequired,
-        ringRightDescription  // Include description from itemTable
+        ringRightDescription
     );
 }
 
-
 /**
  * @brief Check if the pack items have changed since the last update.
- *
- * This function compares the current pack items with the previously sent ones
- * to detect changes.
- *
- * @return true if there are changes, false otherwise.
  */
 static bool is_pack_items_changed(void) {
-    // Compare pack items with previously sent items
-    return (memcmp(packItems, previous_pack_items, sizeof(item)) != 0);
+    return (memcmp(packItems, previous_pack_items, sizeof(item) * PACK_CAPACITY) != 0);
 }
 
 /**
  * @brief Sends the pack items to the portal.
- *
- * This function generates the JSON string for the pack items and sends it to the portal.
  */
 void send_pack_items_to_portal(void) {
     if (!rogue.gameHasEnded && is_pack_items_changed()) {
-        // Dynamically allocate memory for the JSON string
         size_t buffer_size = 16384;
         char *post_data = malloc(buffer_size);
         if (post_data == NULL) {
@@ -225,13 +196,13 @@ void send_pack_items_to_portal(void) {
             return;
         }
 
-        snprintf(post_data, sizeof(post_data), "{\"pack\":");
+        snprintf(post_data, buffer_size, "{\"pack\":");
 
         // Generate and append the inventory JSON
-        generate_pack_items_json(post_data + strlen(post_data), sizeof(post_data) - strlen(post_data));
+        generate_pack_items_json(post_data + strlen(post_data), buffer_size - strlen(post_data));
 
         // Close JSON object
-        strncat(post_data, "}", sizeof(post_data) - strlen(post_data) - 1);
+        strncat(post_data, "}", buffer_size - strlen(post_data) - 1);
 
         // Send data to portal using the new portal function
         send_pack_to_portal(post_data);
@@ -246,54 +217,63 @@ void send_pack_items_to_portal(void) {
 
 /**
  * @brief Extracts item details and builds JSON for the player's inventory.
- *
- * This function iterates over the player's inventory and generates a JSON string 
- * representing all items in the inventory.
- *
- * @param buffer A buffer to store the generated JSON string.
- * @param buffer_size The size of the buffer.
  */
 void generate_pack_items_json(char *buffer, size_t buffer_size) {
     if (!rogue.gameHasEnded) {
         item *current_item = packItems;
         size_t offset = 0;
 
+        // Start the JSON array
         offset += snprintf(buffer + offset, buffer_size - offset, "[");
 
         while (current_item && offset < buffer_size - 1) {
-            const char *item_description = "No description available";
+            const char *item_description = "No description available";  // Default description
             const char *category_name = get_item_category(current_item->category);
             const char *kind_name = "Unknown";
 
-            // Use category-based name retrieval function
+            // Fetch description based on item category
             switch (current_item->category) {
-                case WEAPON:
+                case WEAPON: {
+                    const itemTable *weaponDetails = getWeaponDetails(current_item->kind);
                     kind_name = get_weapon_kind(current_item->kind);
+                    item_description = weaponDetails ? weaponDetails->description : "No description available";
                     break;
-                case ARMOR:
+                }
+                case ARMOR: {
+                    const itemTable *armorDetails = getArmorDetails(current_item->kind);
                     kind_name = get_armor_kind(current_item->kind);
+                    item_description = armorDetails ? armorDetails->description : "No description available";
                     break;
-                case RING:
+                }
+                case RING: {
+                    const itemTable *ringDetails = getRingDetails(current_item->kind);
                     kind_name = get_ring_kind(current_item->kind);
+                    item_description = ringDetails ? ringDetails->description : "No description available";
                     break;
+                }
                 case FOOD:
-                    kind_name = "Food"; // Modify as necessary
+                    kind_name = "Food"; // Example case
                     break;
-                case POTION:
+                case POTION: {
                     kind_name = get_potion_kind(current_item->kind);
                     break;
-                case SCROLL:
+                }
+                case SCROLL: {
                     kind_name = get_scroll_kind(current_item->kind);
                     break;
-                case STAFF:
+                }
+                case STAFF: {
                     kind_name = get_staff_kind(current_item->kind);
                     break;
-                case WAND:
+                }
+                case WAND: {
                     kind_name = get_wand_kind(current_item->kind);
                     break;
-                case CHARM:
+                }
+                case CHARM: {
                     kind_name = get_charm_kind(current_item->kind);
                     break;
+                }
                 case GOLD:
                     kind_name = "Gold";
                     break;
@@ -328,8 +308,10 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
 
             current_item = current_item->nextItem;
         }
+
+        // End the JSON array
         snprintf(buffer + offset, buffer_size - offset, "]");
 
-        printf("Inventory JSON: %s\n", buffer);
+        printf("Inventory JSON: %s\n", buffer);  // Debug print of the generated JSON
     }
 }
