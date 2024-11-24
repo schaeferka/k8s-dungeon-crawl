@@ -89,4 +89,24 @@ const char *get_equipped_items_url(void);
  */
 const char *get_pack_url(void);
 
+/**
+ * @brief Get the URL for gamestate data in the portal.
+ *
+ * This function generates the full URL for the gamestate data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for gamestate data.
+ */
+const char *get_gamestate_url(void);
+
+/**
+ * @brief Get the URL for gamestats data in the portal.
+ *
+ * This function generates the full URL for the gamestats data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for gamestats data.
+ */
+const char *get_gamestats_url(void);
+
 #endif // PORTAL_URLS_H
