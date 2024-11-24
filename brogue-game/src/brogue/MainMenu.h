@@ -2,8 +2,8 @@
 #define MAIN_MENU_H
 
 #include <pthread.h>  // Include pthread for the mutex
-#include "portal-player.h"
-#include "portal-monster.h"
+#include "./portal/portal_player.h"
+#include "./portal/portal_monster.h"
 #include "Rogue.h"
 
 // Declaration of the function to start the metrics thread if needed
@@ -20,7 +20,7 @@ void *metrics_update_loop(void *arg);
 // Declare the metrics thread
 static pthread_t metrics_thread;
 
-extern void cleanup_game_resources();
+extern void cleanup_game_resources(void);
 
 typedef struct gameStats {
     int games;

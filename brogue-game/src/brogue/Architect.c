@@ -1728,7 +1728,7 @@ boolean buildAMachine(enum machineTypes bp,
 }
 
 // add machines to the dungeon.
-static void addMachines() {
+static void addMachines(void) {
     short machineCount, failsafe;
     short randomMachineFactor;
 
@@ -1843,7 +1843,7 @@ static void runAutogenerators(boolean buildAreaMachines) {
 }
 
 // Knock down the boundaries between similar lakes where possible.
-static void cleanUpLakeBoundaries() {
+static void cleanUpLakeBoundaries(void) {
     short i, j, x, y, failsafe, layer;
     boolean reverse, madeChange;
     unsigned long subjectFlags;
@@ -1900,7 +1900,7 @@ static void cleanUpLakeBoundaries() {
     } while (madeChange && failsafe > 0);
 }
 
-static void removeDiagonalOpenings() {
+static void removeDiagonalOpenings(void) {
     short i, j, k, x1, y1, x2, layer;
     boolean diagonalCornerRemoved;
 
@@ -2720,7 +2720,7 @@ static void fillLakes(short **lakeMap) {
     }
 }
 
-static void finishDoors() {
+static void finishDoors(void) {
     short i, j;
     const short secretDoorChance = clamp((rogue.depthLevel - 1) * 67 / (gameConst->amuletLevel - 1), 0, 67);
     for (i=1; i<DCOLS-1; i++) {
@@ -2747,7 +2747,7 @@ static void finishDoors() {
     }
 }
 
-static void clearLevel() {
+static void clearLevel(void) {
     short i, j;
 
     for( i=0; i<DCOLS; i++ ) {
@@ -2773,7 +2773,7 @@ static void clearLevel() {
 
 // Scans the map in random order looking for a good place to build a bridge.
 // If it finds one, it builds a bridge there, halts and returns true.
-static boolean buildABridge() {
+static boolean buildABridge(void) {
     short i, j, k, l, i2, j2, nCols[DCOLS], nRows[DROWS];
     short bridgeRatioX, bridgeRatioY;
     boolean foundExposure;
@@ -2864,7 +2864,7 @@ static boolean buildABridge() {
 
 // This is the master function for digging out a dungeon level.
 // Finishing touches -- items, monsters, staircases, etc. -- are handled elsewhere.
-void digDungeon() {
+void digDungeon(void) {
     short i, j;
 
     short **grid;
@@ -2969,7 +2969,7 @@ void digDungeon() {
     }
 }
 
-void updateMapToShore() {
+void updateMapToShore(void) {
     short i, j;
     short **costMap;
 
@@ -3020,7 +3020,7 @@ void refreshWaypoint(short wpIndex) {
     freeGrid(costMap);
 }
 
-void setUpWaypoints() {
+void setUpWaypoints(void) {
     short i, j, sCoord[DCOLS * DROWS], x, y;
     char grid[DCOLS][DROWS];
 
@@ -3187,7 +3187,7 @@ short levelIsDisconnectedWithBlockingMap(char blockingMap[DCOLS][DROWS], boolean
     return (smallestQualifyingZoneSize < 10000 ? smallestQualifyingZoneSize : 0);
 }
 
-void resetDFMessageEligibility() {
+void resetDFMessageEligibility(void) {
     short i;
 
     for (i=0; i<NUMBER_DUNGEON_FEATURES; i++) {
@@ -3557,7 +3557,7 @@ void restoreMonster(creature *monst, short **mapToStairs, short **mapToPit) {
     }
 }
 
-void restoreItems() {
+void restoreItems(void) {
     item *theItem, *nextItem;
     pos loc;
     item preplaced;

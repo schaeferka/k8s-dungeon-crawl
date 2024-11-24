@@ -7,7 +7,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal-gamestate.h"
+#include "portal_gamestate.h"
 
 #define GAMESTATE_PORTAL_URL "http://portal-service.portal:5000/gamestate/update"
 #define GAMESTATS_PORTAL_URL "http://portal-service.portal:5000/gamestats/update"

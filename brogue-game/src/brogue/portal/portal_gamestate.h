@@ -25,7 +25,7 @@ typedef struct {
 } GameStateMetrics;
 
 // Function declarations
-void update_gamestate(void);
+extern void update_gamestate(void);
 void send_gamestate_metrics_to_portal(const GameStateMetrics *gamestate);
 
 #endif // PORTAL_GAMESTATE_H

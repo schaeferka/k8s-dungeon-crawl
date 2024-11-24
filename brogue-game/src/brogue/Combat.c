@@ -24,7 +24,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal-monster.h"
+#include "./portal/portal_monster.h"
 
 
 /* Combat rules:
@@ -981,7 +981,7 @@ void applyArmorRunicEffect(char returnString[DCOLS], creature *attacker, short *
     }
 }
 
-static void decrementWeaponAutoIDTimer() {
+static void decrementWeaponAutoIDTimer(void) {
     char buf[COLS*3], buf2[COLS*3];
 
     if (rogue.weapon
@@ -1325,7 +1325,7 @@ void combatMessage(char *theMsg, const color *theColor) {
 // they may be joined together by semi-colons.  Notice that combat messages may
 // be flushed by a number of different callers.  One is message() itself
 // creating a recursion, which this function is responsible for terminating.
-void displayCombatText() {
+void displayCombatText(void) {
     char buf[COLS * 2];
     char *start, *end;
 
@@ -1742,7 +1742,7 @@ void killCreature(creature *decedent, boolean administrativeDeath) {
     
     // K8S: Notify the portal of the updates and death
     decedent->isDead = true;
-    update_monsters(rogue.depthLevel-1);
+    update_monsters();
     send_monster_death_to_portal(decedent);
 }
 
