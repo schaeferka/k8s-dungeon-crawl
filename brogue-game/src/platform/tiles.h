@@ -3,6 +3,12 @@
 
 #include <SDL.h>
 
+// Declare the external variables
+extern int windowWidth;   // the SDL window's width
+extern int windowHeight;  // the SDL window's height
+extern boolean fullScreen; // true if the window should be full-screen, else false
+
+// Function declarations
 void initTiles(void);
 void resizeWindow(int width, int height);
 void updateTile(int row, int column, short charIndex,

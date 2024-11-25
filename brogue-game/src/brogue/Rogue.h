@@ -38,7 +38,12 @@
 // Brogue version number (for main engine)
 #define BROGUE_MAJOR 1
 #define BROGUE_MINOR 14
-#define BROGUE_PATCH 0
+#define BROGUE_PATCH 1
+
+#define RAPID_BROGUE_MAJOR 1
+#define RAPID_BROGUE_MINOR 14
+#define RAPID_BROGUE_PATCH 1
+
 
 // Expanding a macro as a string constant requires two levels of macros
 #define _str(x) #x

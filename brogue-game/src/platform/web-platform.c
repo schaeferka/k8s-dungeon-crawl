@@ -48,16 +48,16 @@ static unsigned char outputBuffer[OUTPUT_BUFFER_SIZE];
 static int outputBufferPos = 0;
 static int refreshScreenOnly = 0;
 
-static void gameLoop();
-static void openLogfile();
-static void closeLogfile();
+static void gameLoop(void);
+static void openLogfile(void);
+static void closeLogfile(void);
 static void writeToLog(const char *msg);
-static void setupSockets();
+static void setupSockets(void);
 static int readFromSocket(unsigned char *buf, int size);
 static void writeToSocket(unsigned char *buf, int size);
-static void flushOutputBuffer();
+static void flushOutputBuffer(void);
 
-static void gameLoop() {
+static void gameLoop(void) {
     openLogfile();
     writeToLog("Logfile started\n");
 
@@ -70,7 +70,7 @@ static void gameLoop() {
     exit(statusCode);
 }
 
-static void openLogfile() {
+static void openLogfile(void) {
     logfile = fopen("brogue-web.txt", "a");
     if (logfile == NULL)
     {
@@ -78,7 +78,7 @@ static void openLogfile() {
     }
 }
 
-static void closeLogfile() {
+static void closeLogfile(void) {
     fclose(logfile);
 }
 
@@ -87,7 +87,7 @@ static void writeToLog(const char *msg) {
     fflush(logfile);
 }
 
-static void setupSockets() {
+static void setupSockets(void) {
     struct sockaddr_un addr_read;
 
     // Open read socket (from external)
@@ -112,16 +112,26 @@ int readFromSocket(unsigned char *buf, int size) {
     return recvfrom(rfd, buf, size, 0, NULL, NULL);
 }
 
-static void flushOutputBuffer() {
+static void flushOutputBuffer(void) {
     char msg[80];
     int no_bytes_sent;
 
     no_bytes_sent = sendto(wfd, outputBuffer, outputBufferPos, 0, (struct sockaddr *)&addr_write, sizeof(struct sockaddr_un));
     if (no_bytes_sent == -1) {
-        snprintf(msg, 80, "Error: %s\n", strerror(errno));
+        // Construct the error message manually
+        strcpy(msg, "Error: ");
+        strcat(msg, strerror(errno));
+        strcat(msg, "\n");
         writeToLog(msg);
     } else if (no_bytes_sent != outputBufferPos) {
-        snprintf(msg, 80, "Sent %d bytes only - %s\n", no_bytes_sent, strerror(errno));
+        // Construct the partial bytes message manually
+        strcpy(msg, "Sent ");
+        char temp[20];
+        sprintf(temp, "%d", no_bytes_sent);  // Convert the integer to a string
+        strcat(msg, temp);
+        strcat(msg, " bytes only - ");
+        strcat(msg, strerror(errno));
+        strcat(msg, "\n");
         writeToLog(msg);
     }
 
@@ -177,7 +187,7 @@ static void web_plotChar(enum displayGlyph inputChar,
     writeToSocket(outputBuffer, OUTPUT_SIZE);
 }
 
-static void sendStatusUpdate() {
+static void sendStatusUpdate(void) {
     unsigned char statusOutputBuffer[OUTPUT_SIZE];
     unsigned long statusValues[STATUS_TYPES_NUMBER];
     int i, j;
@@ -213,7 +223,7 @@ static void sendStatusUpdate() {
 }
 
 // Pause by doing a blocking poll on the socket
-static boolean web_pauseForMilliseconds(short milliseconds) {
+static boolean web_pauseForMilliseconds(short milliseconds, PauseBehavior behavior) {
     fd_set input;
     struct timeval timeout;
 

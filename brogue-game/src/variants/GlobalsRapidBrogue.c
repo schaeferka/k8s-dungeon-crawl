@@ -34,8 +34,6 @@
  * variables (mostly defined in Globals.c) to the
  * variant-specific data.
  */
-
-#include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
 #include "GlobalsRapidBrogue.h"
@@ -976,9 +974,6 @@ const char *mainMenuTitle_RapidBrogue =
                           ##                                        \
                          ####                                       ";
 
-#define RAPID_BROGUE_MAJOR 1
-#define RAPID_BROGUE_MINOR 6
-#define RAPID_BROGUE_PATCH 0
 
 // Brogue version: what the user sees in the menu and title
 #define RAPID_BROGUE_VERSION_STRING "RB " STRINGIFY(RAPID_BROGUE_MAJOR) "." STRINGIFY(RAPID_BROGUE_MINOR) "." STRINGIFY(RAPID_BROGUE_PATCH) BROGUE_EXTRA_VERSION
@@ -1003,14 +998,14 @@ strings, but they are equal (rogue.patchLevel is set to 0).
 #define RAPID_BROGUE_DUNGEON_VERSION_STRING "RB 1.5"
 
 // Version shown in ./brogue --version
-const char *rapidBrogueVersion = RAPID_BROGUE_VERSION_STRING;
+const char *rapidBrogueVersion = "1.14.1";
 
 const gameConstants rapidBrogueGameConst = {
     .majorVersion = RAPID_BROGUE_MAJOR,
     .minorVersion = RAPID_BROGUE_MINOR,
     .patchVersion = RAPID_BROGUE_PATCH,
 
-    .versionString = RAPID_BROGUE_VERSION_STRING,
+    .versionString = "1.14.1",
     .dungeonVersionString = RAPID_BROGUE_DUNGEON_VERSION_STRING,
     .patchVersionPattern = RAPID_BROGUE_PATCH_VERSION_PATTERN,
     .recordingVersionString = RAPID_BROGUE_RECORDING_VERSION_STRING,

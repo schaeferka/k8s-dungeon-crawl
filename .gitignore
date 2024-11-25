@@ -25,3 +25,5 @@ gmon.out
 # Ignore all .env files in any directory
 *.env
 
+# Ignore node_modules directory
+node_modules
