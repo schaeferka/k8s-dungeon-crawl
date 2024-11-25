@@ -247,5 +247,8 @@ def reset_current_game_monsters():
     monsters_data.clear() 
     monsters_all_data.clear()
     monsters_dead.clear()
+    
+    k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
+    
     current_app.logger.info("Current game monster data and dead monsters data have been reset for a new game.")
     return jsonify({"status": "success"}), 200

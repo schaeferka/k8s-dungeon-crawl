@@ -29,7 +29,6 @@ class KubernetesService:
         }
 
         try:
-            # Attempt to create the custom object in Kubernetes
             self.api.create_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -51,7 +50,6 @@ class KubernetesService:
         :param monster_data: Dictionary containing the fields to update in the spec.
         """
         try:
-            # Fetch the current resource from Kubernetes
             current_resource = self.api.get_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -60,14 +58,11 @@ class KubernetesService:
                 name=name,
             )
 
-            # Ensure we are updating only the "spec" portion of the resource
             if "spec" not in current_resource:
                 raise ValueError(f"Monster resource {name} does not have a 'spec' field")
 
-            # Update the fields in the spec of the resource with the new monster data
-            current_resource["spec"].update(monster_data)  # Only updates fields within "spec"
+            current_resource["spec"].update(monster_data)
 
-            # Replace the resource with the updated data
             self.api.replace_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -94,7 +89,6 @@ class KubernetesService:
         :param namespace: Kubernetes namespace containing the resource.
         """
         try:
-            # Attempt to delete the custom resource
             self.api.delete_namespaced_custom_object(
                 group="kaschaefer.com",
                 version="v1",
@@ -105,10 +99,8 @@ class KubernetesService:
             current_app.logger.info(f"Successfully deleted Monster resource: {name} in namespace {namespace}")
         except client.exceptions.ApiException as e:
             current_app.logger.error(f"Failed to delete Monster resource {name} in namespace {namespace}: {e}")
-            # Re-raise the exception to propagate it back
             raise e
         except Exception as e:
-            # Catch any other exceptions to avoid the process crashing unexpectedly
             current_app.logger.error(f"Unexpected error while deleting Monster resource {name}: {e}")
             raise e
 
@@ -151,4 +143,30 @@ class KubernetesService:
                 current_app.logger.warning(f"Monster resource not found: {name}")
                 return None
             current_app.logger.error(f"Failed to retrieve Monster resource: {e}")
+            raise e
+
+    def delete_all_monsters_in_namespace(self, namespace: str):
+        """
+        Delete all Monster custom resources in a namespace.
+        :param namespace: Kubernetes namespace containing the resources to delete.
+        """
+        try:
+            monsters = self.list_monsters_in_namespace(namespace)
+            
+            if not monsters:
+                current_app.logger.info(f"No Monster resources found in namespace {namespace}")
+                return
+            
+            for monster in monsters:
+                name = monster.get("metadata", {}).get("name")
+                if name:
+                    self.delete_monster_resource(name, namespace)
+                else:
+                    current_app.logger.warning(f"Monster resource missing 'name' field: {monster}")
+                    
+        except client.exceptions.ApiException as e:
+            current_app.logger.error(f"Failed to delete Monster resources in namespace {namespace}: {e}")
+            raise e
+        except Exception as e:
+            current_app.logger.error(f"Unexpected error while deleting Monster resources in namespace {namespace}: {e}")
             raise e
