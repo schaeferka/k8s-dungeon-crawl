@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>  // For snprintf
-#include "portal_urls.h"  // Include the header file
+#include "portal_urls.h"
 
 /**
  * @brief Base URL for the portal service.
@@ -19,7 +19,7 @@ const char *PORTAL_BASE_URL = "http://portal-service.portal:5000";
  * @return The full URL for updating monster data.
  */
 const char *get_monster_update_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256]; 
     snprintf(url, sizeof(url), "%s/monsters/update", PORTAL_BASE_URL);
     return url;
 }
@@ -33,7 +33,7 @@ const char *get_monster_update_url(void) {
  * @return The full URL for sending monster death data.
  */
 const char *get_monster_death_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/monsters/death", PORTAL_BASE_URL);
     return url;
 }
@@ -47,7 +47,7 @@ const char *get_monster_death_url(void) {
  * @return The full URL for resetting monster data.
  */
 const char *get_monster_reset_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/monsters/reset", PORTAL_BASE_URL);
     return url;
 }
@@ -61,7 +61,7 @@ const char *get_monster_reset_url(void) {
  * @return The full URL for updating player data.
  */
 const char *get_player_update_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/player/update", PORTAL_BASE_URL);
     return url;
 }
@@ -75,7 +75,7 @@ const char *get_player_update_url(void) {
  * @return The full URL for sending player death data.
  */
 const char *get_player_death_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/player/death", PORTAL_BASE_URL);
     return url;
 }
@@ -89,7 +89,7 @@ const char *get_player_death_url(void) {
  * @return The full URL for resetting player data.
  */
 const char *get_player_reset_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/player/reset", PORTAL_BASE_URL);
     return url;
 }
@@ -103,7 +103,7 @@ const char *get_player_reset_url(void) {
  * @return The full URL for sending equipped item data.
  */
 const char *get_equipped_items_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/items/update", PORTAL_BASE_URL);
     return url;
 }
@@ -117,7 +117,7 @@ const char *get_equipped_items_url(void) {
  * @return The full URL for sending pack data.
  */
 const char *get_pack_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/pack/update", PORTAL_BASE_URL);
     return url;
 }
@@ -131,7 +131,7 @@ const char *get_pack_url(void) {
  * @return The full URL for sending gamestate data.
  */
 const char *get_gamestate_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/gamestate/update", PORTAL_BASE_URL);
     return url;
 }
@@ -145,7 +145,7 @@ const char *get_gamestate_url(void) {
  * @return The full URL for sending gamestats data.
  */
 const char *get_gamestats_url(void) {
-    static char url[256];  // Static to persist the string
+    static char url[256];
     snprintf(url, sizeof(url), "%s/gamestats/update", PORTAL_BASE_URL);
     return url;
 }
