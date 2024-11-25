@@ -10,7 +10,7 @@
 /** 
  * @brief Cache for storing monster data for comparison and change detection.
  */
-MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed entries
+MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};
 
 /**
  * @brief Initializes or resets all monster data and the monster cache.
@@ -19,25 +19,18 @@ MonsterCacheEntry monsterCache[MAX_MONSTERS] = {0};  // Initialize with zeroed e
  * and cache are in a clean state before new monsters are generated or updated.
  */
 void initialize_monsters(void) {
-    // Reset the monster cache to clear any previously stored data
     reset_monster_cache();
+    send_monster_reset_to_portal(); 
 
-    // Additional monster initialization logic (if needed)
-    // You might want to reset any global monster-related variables or flags here.
-
-    // Example: Reset monster data in the game world if needed
-    // for (int i = 0; i < MAX_MONSTERS; i++) {
-    //     reset_monster(&monsters[i]);  // Assuming a function to reset individual monsters
-    // }
-
+    // TODO: Additional monster initialization logic
+    
     printf("Monsters initialized and cache cleared.\n");
 }
 
 void reset_monster_cache(void) {
-    // Clear out the monster cache
     for (int i = 0; i < MAX_MONSTERS; i++) {
         memset(&monsterCache[i], 0, sizeof(MonsterCacheEntry));
-        monsterCache[i].is_initialized = false;  // Set all entries as uninitialized
+        monsterCache[i].is_initialized = false;  
     }
 }
 
@@ -145,7 +138,7 @@ void update_monsters(void) {
                         // Generate the monster death JSON and send it to portal
                         char death_json[512];  // Buffer to hold the death JSON string
                         snprintf(death_json, sizeof(death_json), "{\"id\": \"%d\"}", monst->id);  // Create the JSON for the monster ID
-                        send_monster_death_to_portal(death_json);  // Send the JSON to the portal
+                        send_monster_death_to_portal(death_json);
                         continue;
                     }
 
@@ -177,7 +170,6 @@ void update_monsters(void) {
         offset += snprintf(monster_json + offset, sizeof(monster_json) - offset, "]");
 
         if (has_changes) {
-            // Send the collected monster data to the portal
             send_monsters_to_portal(monster_json);
         } else {
             printf("No changes detected in monster data; skipping portal update.\n");
@@ -194,18 +186,15 @@ void update_monsters(void) {
  * @param monst The monster that has died.
  */
 extern void report_monster_death(creature *monst) {
-    // Set the monster's death status
     monst->isDead = true;
     
-    // Update monsters and log the event
     update_monsters();
 
     // Prepare the JSON data to be sent
     char death_data[512];
     snprintf(death_data, sizeof(death_data),
-        "{\"id\": \"%d\"}", monst->id);  // Send the id as part of the JSON object
+        "{\"id\": \"%d\"}", monst->id);
 
-    // Send the monster death notification to the portal
     send_monster_death_to_portal(death_data);
 }
 

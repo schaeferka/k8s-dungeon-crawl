@@ -2,11 +2,10 @@
 #define PORTAL_MONSTERS_H
 
 #include "Rogue.h"  // Include the creature and levelData definitions
-#include <stdbool.h>  // For boolean type
+#include <stdbool.h>
 
-// Define constants
-#define MAX_MONSTERS 1024            // Adjust based on expected max number of monsters
-#define MONSTER_JSON_SIZE 8192       // Increased buffer size for JSON payloads
+#define MAX_MONSTERS 1024
+#define MONSTER_JSON_SIZE 8192
 #define CHECK_FLAG(flags, bit) (((bit) < (sizeof(flags) * 8)) ? ((flags) & (1UL << (bit))) : 0)
 
 // Struct to store monster data for comparison
@@ -24,7 +23,7 @@ typedef struct {
     int damageMax;
     bool isDead;
     long turnsBetweenRegen;
-    bool is_initialized; // Flag to check if the entry has been initialized
+    bool is_initialized;
 } MonsterCacheEntry;
 
 /** 
@@ -81,6 +80,6 @@ extern void reset_monster_cache(void);
 extern void monster_cleanup(void);
 
 // External variables
-extern levelData *levels;  // The global levels array, defined elsewhere
+extern levelData *levels;
 
 #endif // PORTAL_MONSTERS_H
