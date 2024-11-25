@@ -124,6 +124,6 @@ void send_gamestate_to_portal(const char *gamestate_data) {
  * 
  * @param gamestats_data The JSON data representing the gamestats.
  */
-void send_pack_to_portal(const char *gamestats_data) {
+void send_gamestats_to_portal(const char *gamestats_data) {
     send_data_to_portal(get_gamestats_url(), gamestats_data);
 }
