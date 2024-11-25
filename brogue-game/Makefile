@@ -1,15 +1,14 @@
 include config.mk
 
-cflags := -Isrc/brogue -Isrc/platform -Isrc/variants -std=c99 \
+cflags := -Isrc/brogue -Isrc/platform -Isrc/variants -Isrc/brogue/tests -std=c18 \
 	-Wall -Wpedantic -Werror=implicit -Wno-parentheses -Wno-unused-result \
 	-Wformat -Werror=format-security -Wshift-overflow -Wmissing-prototypes \
-	-I$(shell brew --prefix curl)/include 
+	-I$(shell brew --prefix curl)/include
 libs := -lm -lmicrohttpd -L$(shell brew --prefix curl)/lib -lcurl 
 
 cppflags := -DDATADIR=$(DATADIR)
 
-sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c) \
-	$(wildcard src/brogue/portal/*.c) 
+sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c)
 objects :=
 
 ifeq ($(SYSTEM),WINDOWS)
@@ -78,6 +77,7 @@ include make/*.mk
 .DEFAULT_GOAL := bin/brogue$(.exe)
 
 clean:
+	rm -f $(objects)
 	$(warning 'make clean' is no longer needed in many situations, so is not supported. Use 'make -B' to force rebuild something.)
 
 escape = $(subst ','\'',$(1))
@@ -88,5 +88,9 @@ vars/%: vars FORCE
 	@echo '$(call escape,$($*))' > vars/$*.tmp
 	@if cmp --quiet vars/$*.tmp vars/$*; then :; else cp vars/$*.tmp vars/$*; fi
 
+test: 
+	@echo "Running all C tests..."
+	# Compile the tests
+	make -B -C src/brogue/tests || exit 1
 
 FORCE:

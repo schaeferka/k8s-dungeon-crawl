@@ -35,7 +35,6 @@
  * variant-specific data.
  */
 
-#include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
 #include "GlobalsBrogue.h"
@@ -950,12 +949,12 @@ const hordeType hordeCatalog_Brogue[] = {
 };
 
 const char *mainMenuTitle_Brogue =
-"                                                                    \
-                                                                    \
-                                                                    \
-                                                                    \
-                                                                    \
-                                                                    \
+"                                                                   \
+                    #  #   ######  ######                           \
+                    # #    #    #  #                                \
+                    ##     ######  ######                           \
+                    # #    #    #       #                           \
+                    #  #   ######  ######                           \
                                                                     \
 ########  ########      ######         ######  ####    ### #########\
  ##   ###  ##   ###   ##     ###     ##     ##  ##      #   ##     #\
@@ -976,6 +975,8 @@ const char *mainMenuTitle_Brogue =
                           ##                                        \
                           ##                                        \
                          ####                                       ";
+
+                         
 
 // Brogue version: what the user sees in the menu and title
 #define BROGUE_VERSION_STRING "CE " STRINGIFY(BROGUE_MAJOR) "." STRINGIFY(BROGUE_MINOR) "." STRINGIFY(BROGUE_PATCH) BROGUE_EXTRA_VERSION
@@ -1000,14 +1001,14 @@ strings, but they are equal (rogue.patchLevel is set to 0).
 #define BROGUE_DUNGEON_VERSION_STRING "CE 1.11"
 
 // Version shown in ./brogue --version
-const char *brogueVersion = BROGUE_VERSION_STRING;
+const char *brogueVersion = "1.14.1";
 
 const gameConstants brogueGameConst = {
     .majorVersion = BROGUE_MAJOR,
     .minorVersion = BROGUE_MINOR,
     .patchVersion = BROGUE_PATCH,
 
-    .versionString = BROGUE_VERSION_STRING,
+    .versionString = "1.14.1",
     .dungeonVersionString = BROGUE_DUNGEON_VERSION_STRING,
     .patchVersionPattern = BROGUE_PATCH_VERSION_PATTERN,
     .recordingVersionString = BROGUE_RECORDING_VERSION_STRING,

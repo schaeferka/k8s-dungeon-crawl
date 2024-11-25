@@ -1,0 +1,55 @@
+{
+  "name": "k8s-dungeon-crawl",
+  "version": "0.1.0",
+  "description": "A dungeon crawler game for Kubernetes",
+  "scripts": {
+    "start": "node index.js",
+    "test:game": "cd brogue-game && make test",
+    "test:controller": "cd dungeon-master && go test",
+    "test:portal": "cd portal && pytest", 
+    "test": "npm run test:game && npm run test:controller && npm run test:portal",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{c,h}": "make test --fail-on-empty",
+    "*.py": "pytest --max-warnings=0",
+    "*.go": "go test --fail-fast"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.10"
+  },
+  "peerDependencies": {
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schaeferka/k8s-dungeon-crawl.git"
+  },
+  "keywords": [
+    "web",
+    "node",
+    "express"
+  ],
+  "author": "Kim Schaefer",
+  "bugs": {
+    "url": "https://github.com/schaeferka/k8s-dungeon-crawl/issues"
+  },
+  "homepage": "https://github.com/schaeferka/k8s-dungeon-crawl#readme",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "config": {
+    "port": "3000"
+  },
+  "files": [
+    "brogue-game/bin",
+    "dungeon-master/cmd/main.go",
+    "portal/run.py"
+  ]
+}

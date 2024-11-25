@@ -1,0 +1,23 @@
+name: C Test Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up CMocka
+      run: sudo apt-get install cmocka
+
+    - name: Build tests
+      run: gcc -o test_portal test_portal.c -lcmocka -lcurl
+
+    - name: Run tests
+      run: ./test_portal
