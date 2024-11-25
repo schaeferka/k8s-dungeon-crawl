@@ -20,10 +20,11 @@ typedef struct {
     int turns;
     int currentDepth;
     int deepestLevel;
-} GameStateMetrics;
+} GameStateData;
 
 // Function declarations
 extern void update_gamestate(void);
-extern void generate_gamestate_json(const GameStateMetrics *gamestate, char *buffer, size_t size);
+extern void generate_gamestate_json(const GameStateData *gamestate, char *buffer, size_t size);
+extern bool is_gamestate_changed(void);
 
 #endif // PORTAL_GAMESTATE_H

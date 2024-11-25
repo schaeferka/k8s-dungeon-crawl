@@ -9,7 +9,7 @@
 #include "portal.h"
 
 // Declare a previous game state variable
-static GameStateMetrics previous_gamestate = {0};
+static GameStateData previous_gamestate = {0};
 
 /**
  * @brief Initiate the updating of the game state.
@@ -18,7 +18,7 @@ static GameStateMetrics previous_gamestate = {0};
  */
 void update_gamestate(void) {
     if (is_gamestate_changed()) {
-        GameStateMetrics gamestate = {
+        GameStateData gamestate = {
             .wizard = rogue.wizard,
             .rewardRoomsGenerated = rogue.rewardRoomsGenerated,
             .goldGenerated = rogue.goldGenerated,
@@ -52,7 +52,7 @@ void update_gamestate(void) {
  *
  * @return `true` if there are changes, `false` otherwise.
  */
-static bool is_gamestate_changed(void) {
+bool is_gamestate_changed(void) {
     return (previous_gamestate.wizard != rogue.wizard ||
             previous_gamestate.rewardRoomsGenerated != rogue.rewardRoomsGenerated ||
             previous_gamestate.goldGenerated != rogue.goldGenerated ||
@@ -78,7 +78,7 @@ static bool is_gamestate_changed(void) {
  * @param buffer The buffer to store the resulting JSON string.
  * @param size The size of the buffer.
  */
-void generate_gamestate_json(const GameStateMetrics *gamestate, char *buffer, size_t size) {
+void generate_gamestate_json(const GameStateData *gamestate, char *buffer, size_t size) {
     snprintf(buffer, size,
         "{"
         "\"wizard\": \"%s\", "

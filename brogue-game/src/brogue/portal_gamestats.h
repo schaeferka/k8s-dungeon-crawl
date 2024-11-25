@@ -1,5 +1,3 @@
-// portal-gamestate.h
-
 #ifndef PORTAL_GAMESTATS_H
 #define PORTAL_GAMESTATS_H
 
@@ -7,11 +5,32 @@
 #include "stdbool.h"
 #include "MainMenu.h"
 
+// Structure to hold game stats metrics
+extern struct {
+    int games;
+    int escaped;
+    int mastered;
+    int won;
+    float winRate;
+    int deepestLevel;
+    int cumulativeLevels;
+    int highestScore;
+    unsigned long cumulativeScore;
+    int mostGold;
+    unsigned long cumulativeGold;
+    int mostLumenstones;
+    int cumulativeLumenstones;
+    int fewestTurnsWin;
+    unsigned long cumulativeTurns;
+    int longestWinStreak;
+    int longestMasteryStreak;
+    int currentWinStreak;
+    int currentMasteryStreak;
+} gameStatsPortal;
+
 // Function declarations
 extern void update_gamestats(void);
-
-void extractGameStatsJSON(const gameStats *stats, char *buffer, size_t buffer_size);
-
-void send_gamestats_metrics_to_portal(const char *post_data);
+extern void extractGameStatsJSON(const gameStats *stats, char *buffer, size_t buffer_size);
+extern bool is_gamestats_changed(const gameStats *current_stats);
 
 #endif // PORTAL_GAMESTATS_H
