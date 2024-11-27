@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template, request, current_app
 from app.models.monsters import Monster
 from prometheus_client import Gauge, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from app.services.kubernetes import KubernetesService
+from app.services.k8s_service import KubernetesService
 from datetime import datetime
 from time import time
 
