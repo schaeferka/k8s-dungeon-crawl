@@ -27,7 +27,7 @@
 #include "GlobalsBrogue.h"
 #include "GlobalsRapidBrogue.h"
 #include <curl/curl.h>
-#include "portal_monster.h"
+#include "portal_monsters.h"
 #include <pthread.h>
 #include <time.h>
 #include "MainMenu.h"

@@ -6,7 +6,7 @@ IMAGE_NAME="controller:latest"  # Use local image tag
 NAMESPACE="dungeon-master-system"
 MONSTERS_NAMESPACE="monsters"
 MONSTIES_NAMESPACE="monsties"
-CRD_FILE="config/crd/bases/kaschaefer.com_monsters.yaml"
+CRD_FILE="./controller/config/crd/bases/kaschaefer.com_monsters.yaml"
 
 # Function to check if a namespace exists
 check_namespace() {
@@ -19,14 +19,15 @@ check_namespace() {
 }
 
 # kubectl create configmap nginx-config-map --from-file=nginx.conf
-kubectl apply -f config/rbac/configmap_role_binding.yaml
-kubectl apply -f config/rbac/configmap_role.yaml
+kubectl apply -f ./controller/config/rbac/configmap_role_binding.yaml
+kubectl apply -f ./controller/config/rbac/configmap_role.yaml
 
 
 # Step 1: Generate CRD manifest
 echo "Generating CRD manifest..."
+cd ./controller || exit
 make manifests
-
+cd ..
 # Step 2: Deploy the CRD
 echo "Deploying CRD..."
 if [[ -f "$CRD_FILE" ]]; then
@@ -56,12 +57,14 @@ make docker-build IMG="$IMAGE_NAME"  # Using the local image tag
 
 echo "Local controller image built: $IMAGE_NAME"
 echo "Loading the local image into the cluster..."
-k3d image import controller:latest -c k3d-k3s-default
+k3d image import controller:latest -c k8s-dungeon-crawl
 echo "Local image loaded into the cluster."
 
 # Step 6: Deploy the controller using the local image
 echo "Deploying the controller with the local image..."
+cd controller || exit
 make deploy IMG="$IMAGE_NAME"  # Using the local image tag
+cd ..
 
 # Step 7: Verify controller deployment
 echo "Verifying controller deployment..."
@@ -87,34 +90,4 @@ fi
 
 tmux new-session -d -s traefik_port_forward "kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
 
-# Step 9: Create an example Monster resource
-#EXAMPLE_MONSTER="example-monster.yaml"
-#cat <<EOF > "$EXAMPLE_MONSTER"
-#apiVersion: kaschaefer.com/v1
-#kind: Monster
-#metadata:
-#  name: goblin
-#  namespace: $NAMESPACE
-#spec:
-#  name: Goblin
-#  type: goblin
-#  id: 10001
-#  maxHP: 100
-#  hp: 22
-#  depth: 1
-#EOF
-
-#echo "Creating example Monster resource..."
-#kubectl apply -f "$EXAMPLE_MONSTER"
-
-# Step 10: Verify Monster resource
-#echo "Verifying Monster resource..."
-#if kubectl get monsters -n "$NAMESPACE" | grep -q "goblin"; then
-#  echo "Monster resource successfully created."
-#else
-#  echo "Monster resource creation failed. Check logs for more details."
-#  exit 1
-#fi
-
-# Finish
 echo "CRD and Controller deployment complete!"

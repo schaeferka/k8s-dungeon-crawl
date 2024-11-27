@@ -10,10 +10,10 @@ services:
     networks:
       - brogue_network
 
-  brogue-game:
+  game:
     build:
-      context: ./brogue-game  # Path to the Brogue game directory
-    container_name: brogue_game_container
+      context: ./game  # Path to the Brogue game directory
+    container_name: game_container
     depends_on:
       - portal  # Ensures Portal starts before game
     environment:
@@ -23,7 +23,7 @@ services:
       - "16080:16080"
       - "18000:18000"
     networks:
-      - brogue_network
+      - game_network
 
 networks:
   brogue_network:

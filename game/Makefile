@@ -1,15 +1,29 @@
 include config.mk
-
-cflags := -Isrc/brogue -Isrc/platform -Isrc/variants -Isrc/brogue/tests -std=c18 \
+# Compiler flags and includes
+cflags := -Isrc/brogue -Isrc/platform -Isrc/variants -Isrc/portal -std=c18 \
 	-Wall -Wpedantic -Werror=implicit -Wno-parentheses -Wno-unused-result \
 	-Wformat -Werror=format-security -Wshift-overflow -Wmissing-prototypes \
-	-I$(shell brew --prefix curl)/include
-libs := -lm -lmicrohttpd -L$(shell brew --prefix curl)/lib -lcurl 
+	-I$(shell brew --prefix curl)/include \
+	-I/opt/homebrew/opt/cmocka/include \
+	-I$(shell brew --prefix ncurses)/include
+libs := -lm -lmicrohttpd \
+	-L$(shell brew --prefix curl)/lib -lcurl \
+	-lcmocka \
+	-L$(shell brew --prefix ncurses)/lib -lncurses
 
 cppflags := -DDATADIR=$(DATADIR)
 
-sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c)
+# Define the sources, excluding test files
+sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(wildcard src/portal/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c)
 objects :=
+
+# Only include test files when `make test` is called
+ifeq ($(MAKECMDGOALS),test)
+    sources += $(wildcard src/portal/tests/*.c)
+else
+    # Exclude test files from the main build
+    sources := $(filter-out src/portal/tests/*.c, $(sources))
+endif
 
 ifeq ($(SYSTEM),WINDOWS)
 objects += windows/icon.o
@@ -89,8 +103,8 @@ vars/%: vars FORCE
 	@if cmp --quiet vars/$*.tmp vars/$*; then :; else cp vars/$*.tmp vars/$*; fi
 
 test: 
-	@echo "Running all C tests..."
+	@echo "Running all Portal C tests..."
 	# Compile the tests
-	make -B -C src/brogue/tests || exit 1
+	make -B -C src/portal/tests || exit 1
 
 FORCE:

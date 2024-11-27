@@ -25,7 +25,7 @@
 #include "GlobalsBase.h"
 #include "Globals.h"
 // K8S: Include the portal-monster.h file
-#include "portal_monster.h" 
+#include "portal_monsters.h" 
 
 void mutateMonster(creature *monst, short mutationIndex) {
     monst->mutationIndex = mutationIndex;

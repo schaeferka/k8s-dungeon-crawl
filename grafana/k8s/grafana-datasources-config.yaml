@@ -13,7 +13,7 @@ data:
         uid: dungeon-crawl-prom-ds
         type: prometheus
         access: proxy
-        url: http://prometheus-server.prometheus.svc.cluster.local
+        url: http://prometheus-kube-prometheus-prometheus.prometheus:9090
         isDefault: true
         jsonData:
           timeInterval: "1s"

@@ -3,7 +3,7 @@
 
 #include <pthread.h>  // Include pthread for the mutex
 #include "portal_player.h"
-#include "portal_monster.h"
+#include "portal_monsters.h"
 #include "Rogue.h"
 
 // Declaration of the function to start the metrics thread if needed

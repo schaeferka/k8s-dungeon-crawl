@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: dungeon-crawl-rbac
+  name: namespace-manager-binding
 subjects:
 - kind: ServiceAccount
-  name: brogue-sa
-  namespace: brogue
+  name: game-sa
+  namespace: game
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -17,8 +17,8 @@ metadata:
   name: deployment-manager-binding
 subjects:
 - kind: ServiceAccount
-  name: brogue-sa
-  namespace: brogue
+  name: game-sa
+  namespace: game
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

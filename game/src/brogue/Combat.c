@@ -24,7 +24,7 @@
 #include "Rogue.h"
 #include "GlobalsBase.h"
 #include "Globals.h"
-#include "portal_monster.h"
+#include "portal_monsters.h"
 #include "portal.h"
 
 

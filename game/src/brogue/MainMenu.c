@@ -32,7 +32,7 @@
 #include <stdio.h>
 // K8S: Include the portal header files
 #include "portal_player.h"
-#include "portal_monster.h"
+#include "portal_monsters.h"
 #include "portal_gamestats.h"
 #include "portal_items.h"
 #include "portal_gamestate.h"
