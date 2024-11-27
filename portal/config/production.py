@@ -5,4 +5,4 @@ class ProductionConfig(Config):
     SECRET_KEY = "prod-secret-key"
     DEBUG = False
     TESTING = False
-    PROMETHEUS_PORT = 5000  # Default for production
+    PROMETHEUS_PORT = 5000

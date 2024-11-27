@@ -1,30 +1,64 @@
 {
   "name": "k8s-dungeon-crawl",
   "version": "0.1.0",
-  "description": "A dungeon crawler game for Kubernetes",
+  "main": "app.js",
   "scripts": {
-    "start": "node index.js",
-    "test:game": "cd brogue-game && make test",
-    "test:controller": "cd dungeon-master && go test",
-    "test:portal": "cd portal && pytest", 
+    "cluster:create": "node ./scripts/cluster-action.js create",
+    "cluster:delete": "node ./scripts/cluster-action.js delete",
+    "cluster:stop": "node ./scripts/cluster-action.js stop",
+    "cluster:start": "node ./scripts/cluster-action.js start",
+    "cluster:reset": "node ./scripts/cluster-action.js delete && node ./scripts/cluster-action.js create",
+    "images": "npm run images:build && npm run images:import",
+    "images:build": "npm run images:game && npm run images:portal && npm run images:controller",
+    "images:game": "node ./scripts/image-action.js game build",
+    "images:portal": "node ./scripts/image-action.js portal build",
+    "images:controller": "node ./scripts/image-action.js controller build",
+    "images:import": "npm run import:game && npm run import:portal && npm run import:controller",
+    "import:game": "node ./scripts/image-action.js game import",
+    "import:portal": "node ./scripts/image-action.js portal import",
+    "import:controller": "node ./scripts/image-action.js controller import",
+    "deploy": "deploy:game && deploy:portal && deploy:dungeon-master && deploy:grafana && deploy:prometheus",
+    "deploy:game": "./scripts/deploy-k8s-resources.sh game",
+    "deploy:portal": "./scripts/deploy-k8s-resources.sh portal",
+    "deploy:controller": "./scripts/deploy-controller.sh",
+    "deploy:grafana": "./scripts/deploy-k8s-resources.sh grafana",
+    "deploy:prometheus": "./scripts/deploy-k8s-resources.sh prometheus",
+    "port-forward": "port-forward:game && port-forward:portal && port-forward:grafana && port-forward-prometheus && port-forward:controller",
+    "port-forward:game": "./scripts/port-forward-game.sh",
+    "port-forward:portal": "./scripts/port-forward-portal.sh",
+    "port-forward:grafana": "./scripts/port-forward-grafana.sh",
+    "port-forward-prometheus": "./scripts/port-forward-prometheus.sh",
+    "port-forward:controller": "./scripts/port-forward-controller.sh",
+    "namespaces:create": "npm run namespaces:game create --silent && npm run namespaces:portal create --silent && npm run namespaces:controller create --silent && npm run namespaces:grafana create --silent && npm run namespaces:prometheus create --silent && npm run namespaces:monsters create --silent && npm run namespaces:monsties create --silent",
+    "namespaces:delete": "npm run namespaces:game delete --silent && npm run namespaces:portal delete --silent && npm run namespaces:controller delete --silent && npm run namespaces:grafana delete --silent && npm run namespaces:prometheus delete --silent && npm run namespaces:monsters delete --silent && npm run namespaces:monsties delete --silent",
+    "namespaces:reset": "npm run namespaces:game reset --silent && npm run namespaces:portal reset --silent && npm run namespaces:controller reset --silent && npm run namespaces:grafana reset --silent && npm run namespaces:prometheus reset --silent && npm run namespaces:monsters reset --silent && npm run namespaces:monsties reset --silent",
+    "namespaces:game": "node --disable-warning=DEP0040  ./scripts/namespace-action.js game",
+    "namespaces:portal": "node --disable-warning=DEP0040  ./scripts/namespace-action.js portal",
+    "namespaces:controller": "node --disable-warning=DEP0040 ./scripts/namespace-action.js dungeon-master-system",
+    "namespaces:grafana": "node --disable-warning=DEP0040 ./scripts/namespace-action.js grafana",
+    "namespaces:prometheus": "node --disable-warning=DEP0040  ./scripts/namespace-action.js prometheus",
+    "namespaces:monsters": "node --disable-warning=DEP0040 ./scripts/namespace-action.js monsters",
+    "namespaces:monsties": "node --disable-warning=DEP0040 ./scripts/namespace-action.js monsties",
+    "start": "npm run cluster:reset && npm run images && npm run deploy:game && npm run deploy:portal && npm run deploy:grafana && npm run deploy:prometheus && npm run deploy:controller",
     "test": "npm run test:game && npm run test:controller && npm run test:portal",
+    "test:game": "cd game && make test",
+    "test:controller": "cd controller && go test",
+    "test:portal": "cd portal && pytest",
     "prepare": "husky install",
-    "pre-commit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.{c,h}": "make test --fail-on-empty",
-    "*.py": "pytest --max-warnings=0",
-    "*.go": "go test --fail-fast"
+    "pre-commit": "lint-staged",
+    "load-env": "node ./scripts/load-env.js --print"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "@kubernetes/client-node": "^0.22.3",
+    "express": "^4.17.1",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "lint-staged": "^15.2.10"
-  },
-  "peerDependencies": {
   },
   "license": "MIT",
   "repository": {
@@ -48,7 +82,7 @@
     "port": "3000"
   },
   "files": [
-    "brogue-game/bin",
+    "game/bin",
     "dungeon-master/cmd/main.go",
     "portal/run.py"
   ]

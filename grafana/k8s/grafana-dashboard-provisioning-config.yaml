@@ -7,7 +7,7 @@ data:
   dashboards.yaml: |
     apiVersion: 1
     providers:
-      - name: "Dungeon Crawl Dashboards"
+      - name: "K8s Dungeon Crawl Dashboards"
         orgId: 1
         folder: ""
         type: file

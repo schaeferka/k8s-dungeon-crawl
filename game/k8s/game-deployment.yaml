@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game
+  namespace: game
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: game
+  template:
+    metadata:
+      labels:
+        app: game
+    spec:
+      serviceAccountName: game-sa
+      containers:
+      - name: game
+        image: game:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 16080 # noVNC port
+        - containerPort: 35910 # VNC port
+        - containerPort: 38010 # Metrics port
+        env:
+        - name: DISPLAY
+          value: ":1"
+        - name: SDL_VIDEODRIVER
+          value: "x11"
+        - name: SDL_AUDIODRIVER
+          value: "dummy"

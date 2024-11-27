@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-service
+  namespace: game
+spec:
+  selector:
+    app: game
+  type: ClusterIP
+  ports:
+  - name: novnc
+    port: 8090  
+    targetPort: 16080  # Match container port for noVNC
+  - name: vnc
+    port: 5910
+    targetPort: 35910  # Match container port for VNC
+  - name: metrics
+    port: 8010
+    targetPort: 38010  # Match container port for Metrics

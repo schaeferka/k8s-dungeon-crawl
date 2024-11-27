@@ -46,7 +46,7 @@ data:
               "showLineNumbers": false,
               "showMiniMap": false
             },
-            "content": "<div style=\"display: flex; justify-content: center; align-items: center; height: 100%;\"><iframe src=\"http://localhost:8090/vnc.html?autoconnect=true&resize=scale\" style=\"width:800px; height:600px; border:none;\"></iframe></div>",
+            "content": "<div style=\"display: flex; justify-content: center; align-items: center; height: 100%;\"><iframe src=\"http://localhost:6080/vnc.html?autoconnect=true&resize=scale\" style=\"width:800px; height:600px; border:none;\"></iframe></div>",
             "mode": "html"
           },
           "pluginVersion": "11.3.0+security-01",

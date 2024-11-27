@@ -18,7 +18,7 @@ spec:
       serviceAccountName: portal-sa
       containers:
         - name: portal
-          image: portalk8s:latest
+          image: portal:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
