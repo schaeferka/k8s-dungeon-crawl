@@ -35,7 +35,7 @@ void reset_monster_cache(void) {
 }
 
 void monster_cleanup(void) {
-    // Free any dynamically allocated memory or perform cleanup tasks here
+    // Free any dynamically allocated memory and perform cleanup tasks here
     // This function is called when the game is exiting or restarting
     printf("Monster cleanup complete.\n");
 }

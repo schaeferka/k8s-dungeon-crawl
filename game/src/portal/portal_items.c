@@ -198,19 +198,16 @@ void send_pack_items_to_portal(void) {
 
         snprintf(post_data, buffer_size, "{\"pack\":");
 
-        // Generate and append the inventory JSON
         generate_pack_items_json(post_data + strlen(post_data), buffer_size - strlen(post_data));
 
         // Close JSON object
         strncat(post_data, "}", buffer_size - strlen(post_data) - 1);
 
-        // Send data to portal using the new portal function
         send_pack_to_portal(post_data);
 
         // Update previous pack items
         memcpy(previous_pack_items, packItems, sizeof(item) * PACK_CAPACITY);
 
-        // Free the dynamically allocated memory
         free(post_data);
     }
 }
@@ -227,7 +224,7 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
         offset += snprintf(buffer + offset, buffer_size - offset, "[");
 
         while (current_item && offset < buffer_size - 1) {
-            const char *item_description = "No description available";  // Default description
+            const char *item_description = "No description available";
             const char *category_name = get_item_category(current_item->category);
             const char *kind_name = "Unknown";
 
@@ -252,7 +249,7 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
                     break;
                 }
                 case FOOD:
-                    kind_name = "Food"; // Example case
+                    kind_name = "Food";
                     break;
                 case POTION: {
                     kind_name = get_potion_kind(current_item->kind);
@@ -311,7 +308,5 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
 
         // End the JSON array
         snprintf(buffer + offset, buffer_size - offset, "]");
-
-        printf("Inventory JSON: %s\n", buffer);  // Debug print of the generated JSON
     }
 }

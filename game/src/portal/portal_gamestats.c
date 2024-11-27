@@ -8,7 +8,7 @@
 #include "portal_gamestats.h"
 #include "platform.h"
 #include "MainMenu.h"
-#include "portal.h" // Assuming portal.h contains the send_data_to_portal function
+#include "portal.h"
 
 // Declare previous game stats
 static gameStats previous_gamestats = {0};
@@ -19,7 +19,7 @@ static gameStats previous_gamestats = {0};
  * This function is responsible for updating game stats and sending them to the portal.
  */
 void update_gamestats(void) {
-    gameStats gamestats = {0};  // Initialize gamestats with zeros
+    gameStats gamestats = {0};
 
     rogueRun *runHistory = loadRunHistory();
     rogueRun *currentRun = runHistory;
@@ -40,17 +40,13 @@ void update_gamestats(void) {
         free(currentRun);
         currentRun = nextRun;
     }
-
-    // Check if game stats have changed
+// Check if game stats have changed
     if (is_gamestats_changed(&gamestats)) {
-        // Create JSON buffer
         char jsonBuffer[1024];
         extractGameStatsJSON(&gamestats, jsonBuffer, sizeof(jsonBuffer));
 
-        // Send the data to the portal
         send_gamestats_to_portal(jsonBuffer);
 
-        // Update the previous game stats
         previous_gamestats = gamestats;
     }
 }

@@ -79,7 +79,6 @@ extern void initialize_monsters(void);
 extern void reset_monster_cache(void);
 extern void monster_cleanup(void);
 
-// External variables
 extern levelData *levels;
 
 #endif // PORTAL_MONSTERS_H

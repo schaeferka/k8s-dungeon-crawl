@@ -31,7 +31,6 @@ typedef struct {
     int reaping;
 } PlayerData;
 
-// Function declarations
 extern void update_player(void);
 
 char *generate_player_json(const PlayerData *player_data);

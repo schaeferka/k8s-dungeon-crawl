@@ -22,7 +22,6 @@ typedef struct {
     int deepestLevel;
 } GameStateData;
 
-// Function declarations
 extern void update_gamestate(void);
 extern void generate_gamestate_json(const GameStateData *gamestate, char *buffer, size_t size);
 extern bool is_gamestate_changed(void);

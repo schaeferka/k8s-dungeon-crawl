@@ -62,10 +62,8 @@ void update_player(void) {
         // Generate the JSON string for the player data
         char *player_json = generate_player_json(&player_data);
 
-        // Send the updated player data to the portal using the generic send function
         send_player_to_portal(player_json);
 
-        // Free the allocated JSON string after sending
         free(player_json);
     }
 }

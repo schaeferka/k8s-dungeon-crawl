@@ -28,7 +28,6 @@ extern struct {
     int currentMasteryStreak;
 } gameStatsPortal;
 
-// Function declarations
 extern void update_gamestats(void);
 extern void extractGameStatsJSON(const gameStats *stats, char *buffer, size_t buffer_size);
 extern bool is_gamestats_changed(const gameStats *current_stats);
