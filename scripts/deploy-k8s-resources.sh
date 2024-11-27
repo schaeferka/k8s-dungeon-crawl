@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Load environment variables
 source ./.env
 
 # Check if the resource argument is provided
@@ -117,12 +116,8 @@ if [[ "$RESOURCE" == "prometheus" ]]; then
 
     echo "Prometheus pod $POD_NAME is ready."
 
-    # Start port forwarding for Prometheus
+    # Make sure service is available before starting port-forwarding
     sleep 10
-    tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-    #kubectl port-forward service/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 &
-    echo "Port forwarding started for $RESOURCE."
-    echo "Prometheus service is available at http://localhost:$KDC_LOCAL_PORT_9090"
 fi
 
 # Apply Kubernetes resources for the selected resource if not Prometheus
@@ -154,17 +149,17 @@ fi
 echo "Starting port forwarding for $RESOURCE..."
 
 # Example for Prometheus port-forwarding
-#if [[ "$RESOURCE" == "prometheus" ]]; then
-#    echo "Starting port forwarding for Grafana..."
-#    tmux has-session -t prometheus_port_forward 2>/dev/null
-#    if [ $? != 0 ]; then
-#        tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-#    else
-#        tmux send-keys -t prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
-#    fi
-#    echo "Port forwarding started for $RESOURCE."
-#    echo "Prometheus service is available at http://localhost:$KDC_LOCAL_PORT_9090"
-#fi
+if [[ "$RESOURCE" == "prometheus" ]]; then
+    echo "Starting port forwarding for Grafana..."
+    tmux has-session -t prometheus_port_forward 2>/dev/null
+    if [ $? != 0 ]; then
+        tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+    else
+        tmux send-keys -t prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
+    fi
+    echo "Port forwarding started for $RESOURCE."
+    echo "Prometheus service is available at http://localhost:$KDC_LOCAL_PORT_9090"
+fi
 
 # Example for Brogue service port-forwarding
 if [[ "$RESOURCE" == "game" ]]; then

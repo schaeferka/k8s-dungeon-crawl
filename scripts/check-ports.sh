@@ -9,7 +9,7 @@ fi
 # Load environment variables
 source ../.env
 
-# Function to check if a port is in use
+# Check if port in use
 check_port() {
     local port=$1
     if lsof -i ":$port" &>/dev/null; then
@@ -20,7 +20,7 @@ check_port() {
 }
 
 # Check each port individually and prompt for action if any are in use
-for port in $KDC_LOCAL_PORT_8090 $KDC_LOCAL_PORT_5910 $KDC_LOCAL_PORT_8010 $KDC_LOCAL_PORT_5000 $KDC_LOCAL_PORT_9090 $KDC_LOCAL_PORT_3000; do
+for port in $KDC_LOCAL_PORT_6080 $KDC_LOCAL_PORT_5910 $KDC_LOCAL_PORT_8010 $KDC_LOCAL_PORT_5000 $KDC_LOCAL_PORT_9090 $KDC_LOCAL_PORT_3000; do
     if ! check_port $port; then
         echo "Port $port is already in use."
         echo "Please free up the port."

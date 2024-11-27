@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Set variables
 PROJECT_NAME="dungeon-master"
-IMAGE_NAME="controller:latest"  # Use local image tag
+IMAGE_NAME="controller:latest"
 NAMESPACE="dungeon-master-system"
 MONSTERS_NAMESPACE="monsters"
 MONSTIES_NAMESPACE="monsties"
 CRD_FILE="./controller/config/crd/bases/kaschaefer.com_monsters.yaml"
 
-# Function to check if a namespace exists
 check_namespace() {
   if kubectl get namespace "$1" >/dev/null 2>&1; then
     echo "Namespace $1 exists."
@@ -18,7 +16,6 @@ check_namespace() {
   fi
 }
 
-# kubectl create configmap nginx-config-map --from-file=nginx.conf
 kubectl apply -f ./controller/config/rbac/configmap_role_binding.yaml
 kubectl apply -f ./controller/config/rbac/configmap_role.yaml
 
@@ -28,6 +25,7 @@ echo "Generating CRD manifest..."
 cd ./controller || exit
 make manifests
 cd ..
+
 # Step 2: Deploy the CRD
 echo "Deploying CRD..."
 if [[ -f "$CRD_FILE" ]]; then
@@ -53,7 +51,7 @@ check_namespace "$MONSTIES_NAMESPACE"
 
 # Step 5: Build the local controller image
 echo "Building local controller image..."
-make docker-build IMG="$IMAGE_NAME"  # Using the local image tag
+make docker-build IMG="$IMAGE_NAME"  
 
 echo "Local controller image built: $IMAGE_NAME"
 echo "Loading the local image into the cluster..."
@@ -63,7 +61,7 @@ echo "Local image loaded into the cluster."
 # Step 6: Deploy the controller using the local image
 echo "Deploying the controller with the local image..."
 cd controller || exit
-make deploy IMG="$IMAGE_NAME"  # Using the local image tag
+make deploy IMG="$IMAGE_NAME"  
 cd ..
 
 # Step 7: Verify controller deployment
@@ -73,7 +71,7 @@ echo "Verifying controller deployment..."
 if kubectl get pods -n "$NAMESPACE" | grep -q "controller-manager"; then
   echo "Controller pod found. Waiting for it to be ready..."
 
-  # Wait for the controller pod to be in Running and Ready state
+  # Wait for the controller pod to be ready
   kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=60s
 
   # Check if the kubectl wait command was successful

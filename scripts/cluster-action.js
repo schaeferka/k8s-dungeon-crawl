@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { exec } = require('child_process');
-const logger = require('./logger');  // Make sure to import the logger
+const logger = require('./logger');
 
 // Get the cluster name and action argument from the command line
 const clusterName = process.env.KDC_CLUSTER_NAME;
@@ -16,13 +16,10 @@ if (!actionArg) {
     process.exit(1);
 }
 
-// Function to create the cluster
 async function createCluster() {
     logger.info(`Cluster '${clusterName}' is being created`);
-    //const command = `k3d cluster create ${clusterName}`;
     const command = `k3d cluster create ${clusterName} --port "$KDC_LOCAL_PORT_8090:16080@loadbalancer" --port "$KDC_LOCAL_PORT_8010:38010@loadbalancer" --port "$KDC_LOCAL_PORT_5910:35910@loadbalancer" --port "$KDC_LOCAL_PORT_5000:35000@loadbalancer"
-`
-
+`;
     exec(command, (error, stdout, stderr) => {
         if (error) {
             logger.error(`Error executing command: ${error.message}`);
@@ -34,11 +31,10 @@ async function createCluster() {
         }
 
         logger.info(`Cluster '${clusterName}' created successfully.`);
-        checkClusterReady(clusterName);  // Check if the cluster is ready
+        checkClusterReady(clusterName); 
     });
 }
 
-// Function to delete the cluster
 async function deleteCluster() {
     logger.info(`Cluster '${clusterName}' is being deleted`);
     const command = `k3d cluster delete ${clusterName}`;
@@ -57,7 +53,6 @@ async function deleteCluster() {
     });
 }
 
-// Function to start the cluster
 async function startCluster() {
     logger.info(`Starting cluster '${clusterName}'`);
     const command = `k3d cluster start ${clusterName}`;
@@ -73,11 +68,10 @@ async function startCluster() {
         }
 
         logger.info(`Cluster '${clusterName}' started successfully.`);
-        checkClusterReady(clusterName);  // Check if the cluster is ready
+        checkClusterReady(clusterName);  
     });
 }
 
-// Function to stop the cluster
 async function stopCluster() {
     logger.info(`Stopping cluster '${clusterName}'`);
     const command = `k3d cluster stop ${clusterName}`;
@@ -96,9 +90,8 @@ async function stopCluster() {
     });
 }
 
-// Function to check if the cluster is ready
 async function checkClusterReady(clusterName) {
-    let retries = 10; // Number of retries
+    let retries = 10;
     let ready = false;
 
     // Helper function to check if kubectl is able to communicate with the cluster
@@ -148,7 +141,7 @@ async function checkClusterReady(clusterName) {
         });
     };
 
-    // Attempt to verify the readiness of the cluster
+    // Verify the readiness of the cluster
     while (retries > 0) {
         try {
             // First, check if the Kubernetes API server is responsive
@@ -184,8 +177,6 @@ async function checkClusterReady(clusterName) {
     }
 }
 
-
-// Function to handle the cluster action
 async function handleClusterAction(action) {
     switch (action) {
         case 'create':
@@ -206,10 +197,8 @@ async function handleClusterAction(action) {
     }
 }
 
-// Run the script
 async function execute() {
     await handleClusterAction(actionArg);
 }
 
-// Start the script
 execute();

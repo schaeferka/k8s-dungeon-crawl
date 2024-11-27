@@ -1,13 +1,10 @@
-require('dotenv').config();  // Load environment variables from .env file
+require('dotenv').config();  
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-// Import the logger from the logger.js file
 const logger = require('./logger');
-
-// Get the environment and action arguments from the command line
-const envArg = process.argv[2];  // This will get the 3rd argument passed (game, portal, controller)
+const envArg = process.argv[2];  // game, portal, or controller
 const actionArg = process.argv[3];  // Action to perform: build or import
 
 if (!envArg || !actionArg) {
@@ -15,7 +12,6 @@ if (!envArg || !actionArg) {
     process.exit(1);
 }
 
-// Define environment-specific variables based on the argument
 let IMAGE_NAME, BUILD_DIR, NAMESPACE;
 
 switch (envArg) {
@@ -39,7 +35,6 @@ switch (envArg) {
         process.exit(1);
 }
 
-// Check if the Dockerfile exists in the build directory (only for build action)
 if (actionArg === 'build') {
     const dockerfilePath = path.join(BUILD_DIR, 'Dockerfile');
     if (!fs.existsSync(dockerfilePath)) {
@@ -48,7 +43,6 @@ if (actionArg === 'build') {
     }
 }
 
-// Determine what action to take based on the argument
 async function handleImageAction() {
     switch (actionArg) {
         case 'build':
@@ -63,11 +57,9 @@ async function handleImageAction() {
     }
 }
 
-// Build the Docker image
 async function buildImage() {
     logger.info(`Starting Docker image build for ${IMAGE_NAME} from directory ${BUILD_DIR}...`);
     const buildCommand = `docker build -t ${IMAGE_NAME} ${BUILD_DIR}`;
-    const logFile = path.join(__dirname, 'build_output.log');  // Specify the log file path
 
     const command = exec(buildCommand, (error, stdout, stderr) => {
         if (error) {
@@ -81,23 +73,15 @@ async function buildImage() {
             process.exit(1);
         }
 
-        // Output the build result to the console
         logger.info(stdout);
-
-        // Check if the build was successful
         logger.info(`Docker image '${IMAGE_NAME}' built successfully!`);
     });
-
-    // Redirect stdout and stderr to the log file
-    command.stdout.pipe(fs.createWriteStream(logFile, { flags: 'a' }));
-    command.stderr.pipe(fs.createWriteStream(logFile, { flags: 'a' }));
 }
 
-// Import the Docker image into Kubernetes
 async function importImage() {
     logger.info(`Starting to import Docker image '${IMAGE_NAME}' into k3d cluster '${process.env.KDC_CLUSTER_NAME}'...`);
 
-    const clusterName = process.env.KDC_CLUSTER_NAME; // Cluster name from environment variables
+    const clusterName = process.env.KDC_CLUSTER_NAME;
 
     if (!clusterName) {
         logger.error('Error: KDC_CLUSTER_NAME is not defined in the .env file.');
@@ -118,13 +102,9 @@ async function importImage() {
             process.exit(1);
         }
 
-        // Output the import result to the console
         logger.info(stdout);
-
-        // Check if the import was successful
         logger.info(`Docker image '${IMAGE_NAME}' imported successfully into the k3d cluster '${clusterName}'!`);
     });
 }
 
-// Run the script
 handleImageAction();
