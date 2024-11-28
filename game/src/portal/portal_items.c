@@ -290,7 +290,7 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
             // Format item details as JSON
             if (current_item->inventoryLetter) {
                 offset += snprintf(buffer + offset, buffer_size - offset,
-                    "{ \"category\": \"%s\", \"name\": \"%s\", \"description\": \"%s\", "
+                    "{ \"category\": \"%s\", \"kind\": \"%s\", \"description\": \"%s\", "
                     "\"quantity\": %d, \"armor\": %d, \"damage\": { \"min\": %d, \"max\": %d }, "
                     "\"inventory_letter\": \"%c\" }",
                     category_name, kind_name, item_description,

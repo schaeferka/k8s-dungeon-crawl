@@ -14,6 +14,7 @@ Returns:
 """
 from typing import Optional, List
 from pydantic import BaseModel
+from flask import current_app
 
 class Damage(BaseModel):
     """
@@ -61,9 +62,9 @@ class Item(BaseModel):
         kind (str): The type or kind of the item (e.g., "sword", "helmet").
         quantity (int): The quantity of the item in the player's inventory.
     """
-    category: str
-    kind: str
-    quantity: int
+    category: Optional[str] = "None"
+    kind: Optional[str] = "None"
+    quantity: Optional[int] = 0
     inscription: Optional[str] = "None"
     damage: Optional[Damage] = None
     armor: Optional[int] = 0
@@ -130,5 +131,6 @@ class Items(BaseModel):
         equipped_items (EquippedItems): The player's equipped items.
         pack (Pack): The player's inventory pack.
     """
-    equipped_items: EquippedItems
-    pack_items: Pack
+    equipped_items: Optional[EquippedItems] = None
+    pack_items: Optional[Pack] = None
+

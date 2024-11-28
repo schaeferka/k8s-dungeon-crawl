@@ -18,7 +18,6 @@ Module Functions:
 """
 from typing import Optional
 from pydantic import BaseModel
-from flask import current_app
 
 # Defines the Position class for tracking coordinates of a Monster
 class Position(BaseModel):
@@ -71,20 +70,6 @@ class Monster(BaseModel):
     turns_between_regen: int
     spawn_timestamp: Optional[int] = None
     death_timestamp: Optional[int] = None
-
-    def __init__(self, **data):
-        """Initializes a Monster instance with the provided data.
-
-        Args:
-            **data: The keyword arguments representing the monster's attributes.
-
-        Logs the initialization data to the application's logger.
-        """
-        super().__init__(**data)
-        current_app.logger.info(f"Monster initialized with data: {data}")
-        # Logs each key and value to the logger for debugging
-        for key, value in data.items():
-            current_app.logger.info(f"Key: {key}, Value: {value}, Type: {type(value)}")
 
     class Config:
         """Configuration class for Pydantic's alias generation.

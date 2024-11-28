@@ -72,7 +72,7 @@ if kubectl get pods -n "$NAMESPACE" | grep -q "controller-manager"; then
   echo "Controller pod found. Waiting for it to be ready..."
 
   # Wait for the controller pod to be ready
-  kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=60s
+  kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=120s
 
   # Check if the kubectl wait command was successful
   if [ $? -eq 0 ]; then

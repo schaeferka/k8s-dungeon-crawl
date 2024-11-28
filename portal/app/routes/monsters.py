@@ -211,19 +211,19 @@ def create():
     if not received_data:
         return jsonify({"error": "No JSON payload received"}), 400
     
-    current_app.logger.info("ALERT: Received data from game....")
+    #current_app.logger.info("ALERT: Received data from game....")
     
-    for monster_data in received_data:
-        current_app.logger.info(f"ALERT: Received monster_data: {monster_data}")
-        for key, value in monster_data.items():
-            current_app.logger.info(f"ALERT: Received monster data: {key}: {value}")
-            current_app.logger.info(f"ALERT: Value is of type: {type(value)}")
+    #for monster_data in received_data:
+    #    current_app.logger.info(f"ALERT: Received monster_data: {monster_data}")
+    #    for key, value in monster_data.items():
+    #        current_app.logger.info(f"ALERT: Received monster data: {key}: {value}")
+    #        current_app.logger.info(f"ALERT: Value is of type: {type(value)}")
     
-    current_app.logger.info("ALERT: Finished listing received monster data....")
+    #current_app.logger.info("ALERT: Finished listing received monster data....")
     
     for monster_data in received_data:
         try:
-            current_app.logger.info(f"ALERT: Validating monster data: {monster_data}")
+            #current_app.logger.info(f"ALERT: Validating monster data: {monster_data}")
             monster = Monster(**monster_data)
             current_app.logger.info(f"Monster data validated: {monster}")
         except (ValueError, TypeError) as e:

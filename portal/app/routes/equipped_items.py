@@ -28,35 +28,6 @@ item_armor_defense = Gauge('brogue_armor_defense', 'Defense of equipped armor')
 # In-memory storage for equipped items
 equipped_items = {}
 
-def handle_equipped_items(data):
-    """
-    Helper function to handle equipped items and update the in-memory storage.
-    
-    This function validates and parses the incoming equipped item data using the 
-    `EquippedItems` model. It updates the in-memory storage for the equipped items 
-    and updates corresponding Prometheus metrics for weapon damage and armor defense.
-    
-    Args:
-        data (dict): The data for equipped items, typically extracted from the request body.
-
-    Returns:
-        None: The function updates the in-memory `equipped_items` dictionary and Prometheus metrics.
-    """
-    equipped_items_data = EquippedItems(**data)
-
-    equipped_items["weapon"] = equipped_items_data.weapon
-    equipped_items["armor"] = equipped_items_data.armor
-    equipped_items["ringLeft"] = equipped_items_data.left_ring
-    equipped_items["ringRight"] = equipped_items_data.right_ring
-
-    # Update Prometheus metrics for weapon damage and armor defense
-    if equipped_items_data.weapon and equipped_items_data.weapon.damage:
-        item_weapon_damage_min.set(equipped_items_data.weapon.damage.min)
-        item_weapon_damage_max.set(equipped_items_data.weapon.damage.max)
-
-    if equipped_items_data.armor:
-        item_armor_defense.set(equipped_items_data.armor.armor)
-
 @bp.route('/update', methods=['POST'], strict_slashes=False)
 def receive_equipped_items():
     """
@@ -67,7 +38,8 @@ def receive_equipped_items():
     in-memory `equipped_items` storage, and updates the corresponding Prometheus metrics.
 
     Args:
-        None: This is a POST endpoint that expects a JSON payload containing equipped item metrics data.
+        None: This is a POST endpoint that expects a JSON payload containing equipped item 
+        metrics data.
 
     Returns:
         Response: A JSON response indicating the success or failure of the request, along with the 
@@ -123,11 +95,11 @@ def get_equipped_items():
         Response: A JSON response containing the current equipped items data, or an error message if 
         the data is not available.
     """
-    # Check if the equipped items data exists in memory
+    # Check if the equipped items data exists
     if not equipped_items:
         return jsonify({"error": "Equipped items data not available"}), 404
 
-    # Return the equipped items data as a JSON response, serializing the objects using model_dump()
+    # Return the equipped items data as a JSON response
     equipped_items_data = {key: item.model_dump() for key, item in equipped_items.items()}
 
     return jsonify(equipped_items_data)
