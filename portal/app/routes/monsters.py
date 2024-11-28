@@ -14,10 +14,8 @@ Returns:
     None: This module defines routes for the Flask app to manage monsters and Prometheus metrics.
 """
 from time import time
-
-from app.models.monsters import Monster  # For creating or validating monster data
+from app.models.monsters import Monster 
 from app.services.k8s_service import KubernetesService
-from app.utils.utils import convert_data_to_model, convert_value
 from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
@@ -72,7 +70,6 @@ def get_monsters():
         Response: A JSON response containing the list of active monsters.
     """
     try:
-        # Convert Monster objects to dictionaries using .dict() method
         monster_data = [monster.dict() for monster in active_monsters.values()]
         current_app.logger.info(f"Active monster data: {monster_data}")
         return jsonify([monster.dict() for monster in active_monsters.values()])
@@ -137,7 +134,7 @@ def get_all_monsters():
     Returns:
         Response: A JSON response containing all monsters, both alive and dead.
     """
-    current_app.logger.info(f"Fetching all monsters (alive and dead). Total monsters: {len(all_monsters)}")
+    current_app.logger.info(f"Fetching all monsters. Total monsters: {len(all_monsters)}")
     monster_data = [monster.dict() for monster in all_monsters.values()]
     current_app.logger.info(f"All monster data: {monster_data}")
     return jsonify([monster.dict() for monster in all_monsters.values()])
@@ -157,8 +154,29 @@ def get_dead_monsters():
     return jsonify([monster.dict() for monster in dead_monsters])
 
 
-""" @bp.route("/timestamps", methods=["GET"], strict_slashes=False)
+@bp.route("/timestamps", methods=["GET"], strict_slashes=False)
 def get_monster_timestamps():
+    """
+    Handles the GET request to retrieve the spawn and death timestamps for all monsters.
+
+    This function iterates over the `all_monsters` collection, extracting the `name`, 
+    `spawnTimestamp`, and `deathTimestamp` for each monster. It then returns a JSON response 
+    containing a list of these timestamps. If either timestamp is missing, it returns "Unknown" 
+    as a placeholder value.
+
+    Logging:
+    - Logs the number of monsters whose timestamps were retrieved.
+    - Logs an error message if an exception occurs during the retrieval process.
+
+    Returns:
+        Response: A JSON response containing a list of dictionaries with the monster names and their
+            respective timestamps (spawn and death), or an error message if an exception is raised.
+
+    Exceptions:
+        - ValueError, TypeError: These exceptions are caught and logged, and an error response is 
+        returned with a 500 status code if an issue occurs during the process.
+    """
+
     try:
         timestamps = []
         for monster in all_monsters.values():
@@ -173,7 +191,7 @@ def get_monster_timestamps():
 
     except (ValueError, TypeError) as e:
         current_app.logger.error(f"Error retrieving timestamps: {e}")
-        return jsonify({"error": "Error retrieving timestamps"}), 500 """
+        return jsonify({"error": "Error retrieving timestamps"}), 500
 
 
 @bp.route("/update", methods=["POST"], strict_slashes=False)
@@ -217,8 +235,6 @@ def create():
             current_app.logger.warning(f"Skipping monster entry without 'id': {monster_data}")
             continue
 
-        #monster.spawn_timestamp = int(time())  # Assign current time as spawn timestamp
-
         if monster_id not in all_monsters:
             # Handle new monster creation
             return_value = handle_new_monster(monster)
@@ -246,18 +262,19 @@ def handle_new_monster(monster: Monster):
             response is returned.
     """
     monster_id = monster.id
-    monster_name = monster.name or "unknown-monster"
+    monster_name = monster.name
     monster_count.inc()
+    monster.spawn_timestamp = int(time())
 
     current_app.logger.info(f"Adding new monster: {monster_name}")
     current_app.logger.info(f"Monster data: {monster.model_dump()}")
-    all_monsters[monster_id] = monster  # Store the Monster instance directly in all_monsters
+    all_monsters[monster_id] = monster
 
     try:
         k8s_service.create_monster_resource(
             name=monster.name,
             namespace="dungeon-master-system", 
-            monster_data=monster.model_dump()  # Get the monster's data as a dictionary
+            monster_data=monster.model_dump()
         )
         current_app.logger.info(f"Monster resource created for {monster_id}.")
     except KubernetesError as e:
@@ -310,6 +327,7 @@ def update_monster_status(monster: Monster, monster_id: int):
         active_monsters[monster_id] = monster
         all_monsters[monster_id] = monster
     else:
+        monster.death_timestamp = int(time())
         dead_monsters.append(monster)
 
 
@@ -345,6 +363,7 @@ def receive_monster_death():
 
     # Mark monster as dead and update the Prometheus metrics
     monster.is_dead = True
+    monster.death_timestamp = int(time())
     dead_monsters.append(monster)
     monster_death_count.inc()
     active_monsters.pop(monster_id, None)

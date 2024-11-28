@@ -4,7 +4,7 @@ This module defines the Game class, which represents a game instance in the appl
 It contains two key attributes:
 - `game_state`: An instance of the `GameState` model, which represents the state of the game.
 - `game_stats`: An instance of the `GameStats` model, which represents various statistics 
-for the game.
+  for the game.
 
 Returns:
     None: No return values for this module.
@@ -31,8 +31,8 @@ class Game(BaseModel):
         """
         Retrieves the information of the game, including both the state and stats.
 
-        This method uses `model_dump()` (instead of the deprecated `dict()`) to serialize
-        the `game_state` and `game_stats` attributes into dictionaries.
+        This method uses `model_dump()` to serialize the `game_state` and `game_stats` 
+        attributes into dictionaries.
 
         Returns:
             dict: A dictionary containing the serialized `game_state` and `game_stats`.

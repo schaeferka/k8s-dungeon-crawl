@@ -12,8 +12,8 @@ Returns:
 from flask import Blueprint, render_template, jsonify
 from app.routes.gamestate import get_game_state
 from app.routes.gamestats import get_game_stats
+from app.models.game import Game
 
-# Create a Blueprint named 'game' for game-related routes
 bp = Blueprint('game', __name__)
 
 @bp.route('/', methods=['GET'])
@@ -44,7 +44,7 @@ def game():
         return render_template('game.html', game_state=game_state, game_stats=game_stats)
 
     except (ConnectionError, TimeoutError, ValueError) as e:
-        # If any error occurs during the process, log the error and return an internal server 
+        # If any error occurs during the process, log the error and return an internal server
         # error message
         print(f"Error loading game page: {e}")
         # Return a 500 Internal Server Error response with a generic error message

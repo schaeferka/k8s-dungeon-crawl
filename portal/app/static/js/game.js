@@ -83,7 +83,7 @@ function updateGameStatsInfo(gameStats) {
         sectionDiv.appendChild(sectionHeader);
 
         section.keys.forEach(key => {
-            const value = gameStats[key] !== undefined ? gameStats[key] : "N/A";
+            const value = gameStats[key] !== undefined ? gameStats[key] : "0";
             const infoItem = document.createElement('p');
             infoItem.classList.add('text-gray-600');
             infoItem.textContent = `${key}: ${value}`;

@@ -47,10 +47,10 @@ class Item(BaseModel):
         damage (Optional[Damage]): The damage range of the item, if it's a weapon. Defaults to None.
         armor (Optional[int]): The armor value of the item, if applicable. Defaults to 0.
         charges (Optional[int]): The number of charges left for items like scrolls or potions.
-        timesEnchanted (Optional[int]): The number of times the item has been enchanted.
-        strengthRequired (Optional[int]): The strength required to equip the item.
-        inventoryLetter (Optional[str]): The letter representing the item in the player's inventory.
-        originDepth (Optional[int]): The depth at which the item was found in the game world.
+        times_enchanted (Optional[int]): The number of times the item has been enchanted.
+        strength_required (Optional[int]): The strength required to equip the item.
+        inventory_letter (Optional[str]): The letter representing the item in the player's inventory.
+        origin_depth (Optional[int]): The depth at which the item was found in the game world.
         enchant1 (Optional[str]): The first enchantment applied to the item. Defaults to "None".
         enchant2 (Optional[str]): The second enchantment applied to the item. Defaults to "None".
         description (Optional[str]): A brief description of the item. Defaults to "No description 
@@ -86,14 +86,14 @@ class EquippedItems(BaseModel):
     Attributes:
         weapon (Item): The player's equipped weapon.
         armor (Item): The player's equipped armor.
-        ringLeft (Item): The player's equipped ring in the left hand.
-        ringRight (Item): The player's equipped ring in the right hand.
+        left_ring (Item): The player's equipped ring in the left hand.
+        right_ring (Item): The player's equipped ring in the right hand.
 
     Args:
         weapon (Item): The item representing the player's weapon.
         armor (Item): The item representing the player's armor.
-        ringLeft (Item): The item representing the player's left-hand ring.
-        ringRight (Item): The item representing the player's right-hand ring.
+        left_ring (Item): The item representing the player's left-hand ring.
+        right_ring (Item): The item representing the player's right-hand ring.
     """
     weapon: Item
     armor: Item
@@ -114,3 +114,21 @@ class Pack(BaseModel):
         pack (List[Item]): A list of items contained in the pack.
     """
     pack: List[Item]
+
+class Items(BaseModel):
+    """
+    Represents the collection of items in the game.
+
+    This class encapsulates the player's equipped items, inventory pack, and other item-related
+    data structures.
+
+    Attributes:
+        equipped_items (EquippedItems): The player's equipped items.
+        pack (Pack): The player's inventory pack.
+
+    Args:
+        equipped_items (EquippedItems): The player's equipped items.
+        pack (Pack): The player's inventory pack.
+    """
+    equipped_items: EquippedItems
+    pack_items: Pack

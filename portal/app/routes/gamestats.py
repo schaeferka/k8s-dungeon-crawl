@@ -11,12 +11,10 @@ Returns:
     None: This module does not return any values directly but provides Flask routes and 
     Prometheus metrics.
 """
-
 from flask import Blueprint, request, jsonify
 from app.models.gamestats import GameStats
 from prometheus_client import Gauge
 
-# Create a Blueprint named 'gamestats' for game statistics-related routes
 bp = Blueprint('gamestats', __name__)
 
 # Prometheus Gauges for Game Stats (These will track various game metrics)
@@ -75,7 +73,8 @@ def receive_game_stats():
         game_stats = GameStats(**data)  # Creates a GameStats instance and validates the data
 
         # Update the in-memory game_stats_data with the latest received game stats
-        game_stats_data.update(data)
+        # Use model_dump to store the validated fields from the GameStats model
+        game_stats_data.update(game_stats.model_dump())
 
         # Return the updated game stats in the response
         return jsonify({"status": "success", "received": game_stats.model_dump()}), 200
