@@ -70,8 +70,8 @@ def get_monsters():
         Response: A JSON response containing the list of active monsters.
     """
     try:
-        monster_data = [monster.dict() for monster in active_monsters.values()]
-        current_app.logger.info(f"Active monster data: {monster_data}")
+        #monster_data = [monster.dict() for monster in active_monsters.values()]
+        #current_app.logger.info(f"Active monster data: {monster_data}")
         return jsonify([monster.dict() for monster in active_monsters.values()])
     except (AttributeError, KeyError, TypeError) as e:
         current_app.logger.error(f"Error fetching active monsters data: {e}")
@@ -135,8 +135,8 @@ def get_all_monsters():
         Response: A JSON response containing all monsters, both alive and dead.
     """
     current_app.logger.info(f"Fetching all monsters. Total monsters: {len(all_monsters)}")
-    monster_data = [monster.dict() for monster in all_monsters.values()]
-    current_app.logger.info(f"All monster data: {monster_data}")
+    #monster_data = [monster.dict() for monster in all_monsters.values()]
+    #current_app.logger.info(f"All monster data: {monster_data}")
     return jsonify([monster.dict() for monster in all_monsters.values()])
 
 

@@ -109,7 +109,7 @@ function updatePlayerInfo(playerInfo) {
             itemDiv.classList.add('item-section');
             itemDiv.classList.add('border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
             itemDiv.innerHTML = `
-                <strong>${item.name || "Unknown Item"}</strong> (${item.category || "Unknown Category"}):<br>
+                <strong>${item.kind || "Unknown Item"}</strong> (${item.category || "Unknown Category"}):<br>
                 Quantity: ${item.quantity || 1}<br>
                 Armor: ${item.armor || 0}<br>
                 Damage: ${item.damage ? `${item.damage.min || 0} - ${item.damage.max || 0}` : 'N/A'}<br>

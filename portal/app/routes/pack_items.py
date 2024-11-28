@@ -1,56 +1,40 @@
 """
-This module defines the `packitems` blueprint for managing pack items and exposing 
+This module defines the `pack` blueprint for managing pack items and exposing 
 related metrics.
 
-It provides routes for receiving pack item data, updating in-memory storage, 
-and Prometheus metrics. The `Pack` model is used to validate and store the structured 
-data for pack items.
+It provides routes for receiving pack item metrics data and updating in-memory storage, 
+The `Pack` model is used to validate and store the structured data for pack items, 
+including weapons, armor, and rings.
 
 Returns:
     None: This module does not return values directly but provides Flask routes and 
     Prometheus metrics.
 """
+
 from flask import Blueprint, request, jsonify, current_app
 from app.models.items import Pack
 
-bp = Blueprint('packitems', __name__)
+bp = Blueprint('pack', __name__)
 
-pack_items = {}
-
-def handle_pack_items(data):
-    """
-    Helper function to handle the pack items and update the in-memory storage.
-
-    This function validates and parses the incoming pack item data using the 
-    `Pack` model. It updates the in-memory storage for the pack items.
-
-    Args:
-        data (list): The list of pack items, typically extracted from the request body.
-
-    Returns:
-        None: The function updates the in-memory `pack_items` dictionary.
-    """
-    # Validate and parse the incoming data using the Pack model
-    pack_items_data = [Pack(**item) for item in data]
-
-    # Store the Pack objects themselves (not just JSON) in in-memory storage
-    pack_items["pack"] = pack_items_data
+# In-memory storage for pack items
+pack_items = []
 
 @bp.route('/update', methods=['POST'], strict_slashes=False)
 def receive_pack_items():
     """
-    Receives pack item data and updates in-memory storage.
+    Receives pack item metrics data and updates in-memory storage as well as Prometheus metrics.
 
-    This route handles POST requests that contain pack item data. It validates the incoming 
-    data using the `Pack` model, updates both the in-memory `pack_items` storage.
+    This route validates the incoming data using the `Pack` model and updates the 
+    in-memory `pack_items` storage.
 
     Args:
         None: This is a POST endpoint that expects a JSON payload containing pack item data.
 
     Returns:
-        Response: A JSON response indicating the success or failure of the request, along with 
-        the received data.
+        Response: A JSON response indicating the success or failure of the request, along with the 
+        received pack item data.
     """
+    # Extract JSON data from the incoming request
     data = request.json
 
     # Check if the request contains data
@@ -58,40 +42,61 @@ def receive_pack_items():
         return jsonify({"error": "No JSON payload received"}), 400
 
     try:
-        # Ensure that the "pack" field is present in the incoming data
-        if "pack" not in data:
-            return jsonify({"error": "'pack' field is missing in the request data"}), 400
+        # Validate and parse the incoming JSON using the Pack model
+        items = Pack(**data)
 
-        # Process the pack items data
-        handle_pack_items(data["pack"])
+        # Helper function to check if an item already exists in the pack
+        def item_exists(new_item, existing_pack):
+            # Define your unique identifier (e.g., inventory_letter, category, kind)
+            for item in existing_pack:
+                # Access attributes using dot notation
+                if item.inventory_letter == new_item.inventory_letter:
+                    return True  # Item with the same inventory letter exists
+            return False
 
-        # Return a success response along with the received data
-        return jsonify({"status": "success", "received": data}), 200
+        # If pack_items is empty, initialize it, otherwise append only unique items
+        if not pack_items:
+            pack_items.append({
+                "pack": items.pack
+            })
+        else:
+            # Only add new items that do not already exist in the pack
+            for new_item in items.pack:
+                if not item_exists(new_item, pack_items[0]["pack"]):
+                    pack_items[0]["pack"].append(new_item)
+
+        # Return a success response along with the received item metrics data
+        return jsonify({"status": "success", "received": items.model_dump()}), 200
 
     except (ValueError, TypeError, KeyError) as e:
         # Log the error and return a failure response if an error occurs
-        current_app.logger.error(f"Error processing pack item data: {e}")
+        current_app.logger.error(f"Error processing equipped item data: {e}")
         return jsonify({"error": str(e)}), 400
 
 @bp.route('/data', methods=['GET'], strict_slashes=False)
 def get_pack_items():
     """
-    Returns the current pack items data.
+    Returns the current equipped items data.
 
-    This route handles GET requests to retrieve the current in-memory pack items.
-    If no pack items data is available, it returns a 404 error with an appropriate message.
+    This route handles GET requests to retrieve the current in-memory equipped items.
+    If no equipped items data is available, it returns a 404 error with an appropriate message.
 
     Args:
-        None: This is a GET endpoint that returns the current pack items data.
+        None: This is a GET endpoint that returns the current equipped items data.
 
     Returns:
-        Response: A JSON response containing the current pack items data, or an error message if 
+        Response: A JSON response containing the current equipped items data, or an error message if 
         the data is not available.
     """
-    # Check if the pack items data exists in memory
+    # Check if the equipped items data exists
     if not pack_items:
-        return jsonify({"error": "Pack items data not available"}), 404
+        return jsonify({"error": "Equipped items data not available"}), 404
 
-    pack_items_data = [item.model_dump() for item in pack_items.get("pack", [])]
-    
-    return jsonify({"pack": pack_items_data})
+    # Since you want the response to be a single JSON object, not a list of dictionaries,
+    # we will return the pack data directly (without wrapping it in a list).
+    pack_items_data = {
+        "pack": [item.model_dump() for item in pack_items[0]["pack"]]  # Access the first pack in the list and serialize
+    }
+
+    # Return the equipped items data as a JSON response
+    return jsonify(pack_items_data)
