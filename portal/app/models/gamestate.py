@@ -38,16 +38,16 @@ class GameState(BaseModel):
         xpxpThisTurn (Optional[int]): The experience points gained this turn. Defaults to 0.
     """
     wizard: Optional[bool] = False
-    rewardRoomsGenerated: Optional[int] = 0
-    goldGenerated: Optional[int] = 0
-    currentDepth: Optional[int] = 0
-    deepestLevel: Optional[int] = 0
-    gameInProgress: Optional[bool] = False
-    gameHasEnded: Optional[bool] = False
-    easyMode: Optional[bool] = False
+    reward_rooms_generated: Optional[int] = 0
+    gold_generated: Optional[int] = 0
+    current_depth: Optional[int] = 0
+    deepest_level: Optional[int] = 0
+    game_in_progress: Optional[bool] = False
+    game_has_ended: Optional[bool] = False
+    easy_mode: Optional[bool] = False
     seed: Optional[int] = 0
-    RNG: Optional[int] = 0
-    absoluteTurnNumber: Optional[int] = 0
+    rng: Optional[int] = 0
+    absolute_turn_number: Optional[int] = 0
     milliseconds: Optional[int] = 0
-    monsterSpawnFuse: Optional[int] = 0
-    xpxpThisTurn: Optional[int] = 0
+    monster_spawn_fuse: Optional[int] = 0
+    xpxp_this_turn: Optional[int] = 0

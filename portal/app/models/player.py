@@ -49,23 +49,23 @@ class Player(BaseModel):
             in certain situations.
     """
     gold: int
-    depthLevel: int
-    deepestLevel: int
-    currentHP: int
-    maxHP: int
+    depth_level: int
+    deepest_level: int
+    current_hp: int
+    max_hp: int
     strength: int
-    playerTurnNumber: int
-    xpxpThisTurn: int
-    stealthRange: int
+    player_turn_number: int
+    xpxp_this_turn: int
+    stealth_range: int
     disturbed: bool
-    regenPerTurn: int
-    weaknessAmount: int
-    poisonAmount: int
+    regen_per_turn: int
+    weakness_amount: int
+    poison_amount: int
     clairvoyance: int
-    stealthBonus: int
-    regenerationBonus: int
-    lightMultiplier: int
-    awarenessBonus: int
+    stealth_bonus: int
+    regeneration_bonus: int
+    light_multiplier: int
+    awareness_bonus: int
     transference: int
-    wisdomBonus: int
+    wisdom_bonus: int
     reaping: int

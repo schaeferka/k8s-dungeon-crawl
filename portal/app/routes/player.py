@@ -14,7 +14,8 @@ player_deepest_level = Gauge('brogue_deepest_level', 'Deepest level reached by t
 player_current_hp = Gauge('brogue_player_current_hp', 'Current hit points of the player')
 player_max_hp = Gauge('brogue_player_max_hp', 'Maximum hit points of the player')
 player_strength = Gauge('brogue_strength', 'Player’s strength')
-player_stealth_range = Gauge('brogue_stealth_range', 'Distance from which monsters will notice the player')
+player_stealth_range = Gauge('brogue_stealth_range',
+                             'Distance from which monsters will notice the player')
 player_turns = Gauge('brogue_player_turns', 'Total turns played by the player')
 player_regen_per_turn = Gauge('brogue_regen_per_turn', 'HP regeneration per turn')
 player_weakness_amount = Gauge('brogue_weakness_amount', 'Amount of weakness inflicted')
@@ -37,7 +38,7 @@ def get_hp():
     """
     Returns the current player hp.
     """
-    hp = player_data['currentHP']
+    hp = player_data['current_hp']
     return jsonify({"hp": hp})
 
 # Route for getting current player gold
@@ -55,7 +56,7 @@ def get_depth():
     """
     Returns the current player depth.
     """
-    depth = player_data['depthLevel']
+    depth = player_data['depth_level']
     return jsonify({"current_depth": depth})
 
 # Route for getting current player deepest level
@@ -64,7 +65,7 @@ def get_deepest_level():
     """
     Returns the current player deepest level.
     """
-    depth = player_data['deepestLevel']
+    depth = player_data['deepest_level']
     return jsonify({"deepest_level": depth})
 
 # Route for getting current player max hp
@@ -73,7 +74,7 @@ def get_max_hp():
     """
     Returns the current player max hp.
     """
-    hp = player_data['maxHP']
+    hp = player_data['max_hp']
     return jsonify({"max_hp": hp})
 
 # Route for getting current player strength
@@ -106,11 +107,11 @@ def receive_player():
         return jsonify({"error": "No JSON payload received"}), 400
 
     try:
-        player = Player(**data)  # Assuming Player is the model you're using
+        new_player = Player(**data)
         player_data.update(data)
         # current_app.logger.info("Successfully processed player data: %s", data)
-        return jsonify({"status": "success", "received": player.dict()}), 200
-    except Exception as e:
+        return jsonify({"status": "success", "received": new_player.model_dump()}), 200
+    except ValueError as e:
         # Log the error if there's a problem with the player data
         current_app.logger.error(f"Error processing player data: {str(e)}")
         return jsonify({"error": str(e)}), 400

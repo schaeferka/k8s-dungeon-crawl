@@ -48,7 +48,7 @@ spec:
               id:
                 description: Unique identifier for the monster.
                 type: integer
-              maxHP:
+              max_hp:
                 description: Maximum health of the monster.
                 type: integer
               name:

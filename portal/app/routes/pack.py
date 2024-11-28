@@ -19,7 +19,7 @@ def receive_pack():
 
     # Optional: Validate structure of each item in the pack
     for item in data.get("pack", []):
-        if not all(k in item for k in ["category", "name", "quantity", "inventoryLetter"]):
+        if not all(k in item for k in ["category", "name", "quantity", "inventory_letter"]):
             return jsonify({"error": "Item missing required fields"}), 400
 
     # Store or update the pack data

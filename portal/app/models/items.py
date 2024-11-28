@@ -1,12 +1,12 @@
 """
 This module defines classes that represent various game items and their attributes,
-including damage, item metrics, and inventory packs. It uses Pydantic’s `BaseModel`
+including damage, item metrics, and inventory packs. It uses the Pydantic `BaseModel`
 to enforce data validation and serialization.
 
 Classes:
     Damage: Represents the damage range of a weapon.
     Item: Represents an item in the game, including properties like category, kind, and damage.
-    ItemMetrics: Represents the player's equipped items, including weapon, armor, and rings.
+    EquippedItems: Represents the player's equipped items, including weapon, armor, and rings.
     Pack: Represents an inventory pack that contains a list of items.
 
 Returns:
@@ -64,19 +64,19 @@ class Item(BaseModel):
     category: str
     kind: str
     quantity: int
-    inscription: Optional[str] = "None"  
-    damage: Optional[Damage] = None  
-    armor: Optional[int] = 0 
+    inscription: Optional[str] = "None"
+    damage: Optional[Damage] = None
+    armor: Optional[int] = 0
     charges: Optional[int] = 0
-    timesEnchanted: Optional[int] = 0
-    strengthRequired: Optional[int] = 0
-    inventoryLetter: Optional[str] = " "
-    originDepth: Optional[int] = 0
+    times_enchanted: Optional[int] = 0
+    strength_required: Optional[int] = 0
+    inventory_letter: Optional[str] = " "
+    origin_depth: Optional[int] = 0
     enchant1: Optional[str] = "None"
     enchant2: Optional[str] = "None"
     description: Optional[str] = "No description available"
 
-class ItemMetrics(BaseModel):
+class EquippedItems(BaseModel):
     """
     Represents the player's equipped items, including their weapon, armor, and rings.
 
@@ -97,8 +97,8 @@ class ItemMetrics(BaseModel):
     """
     weapon: Item
     armor: Item
-    ringLeft: Item
-    ringRight: Item
+    left_ring: Item
+    right_ring: Item
 
 class Pack(BaseModel):
     """

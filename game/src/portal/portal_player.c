@@ -86,13 +86,13 @@ char *generate_player_json(const PlayerData *player_data) {
 
     // Format the player data into JSON
     snprintf(json_data, 1024,
-        "{\"gold\": %d, \"depthLevel\": %d, \"deepestLevel\": %d, "
-        "\"currentHP\": %d, \"maxHP\": %d, \"strength\": %d, "
-        "\"playerTurnNumber\": %d, \"xpxpThisTurn\": %d, \"stealthRange\": %d, "
-        "\"disturbed\": %d, \"regenPerTurn\": %d, \"weaknessAmount\": %d, \"poisonAmount\": %d, "
-        "\"clairvoyance\": %d, \"stealthBonus\": %d, \"regenerationBonus\": %d, "
-        "\"lightMultiplier\": %d, \"awarenessBonus\": %d, \"transference\": %d, "
-        "\"wisdomBonus\": %d, \"reaping\": %d}",
+        "{\"gold\": %d, \"depth_level\": %d, \"deepest_level\": %d, "
+        "\"current_hp\": %d, \"max_hp\": %d, \"strength\": %d, "
+        "\"player_turn_number\": %d, \"xpxp_this_turn\": %d, \"stealth_range\": %d, "
+        "\"disturbed\": %d, \"regen_per_turn\": %d, \"weakness_amount\": %d, \"poison_amount\": %d, "
+        "\"clairvoyance\": %d, \"stealth_bonus\": %d, \"regeneration_bonus\": %d, "
+        "\"light_multiplier\": %d, \"awareness_bonus\": %d, \"transference\": %d, "
+        "\"wisdom_bonus\": %d, \"reaping\": %d}",
         player_data->gold, player_data->depthLevel, player_data->deepestLevel,
         player_data->currentHP, player_data->maxHP, player_data->strength,
         player_data->playerTurnNumber, player_data->xpxpThisTurn, player_data->stealthRange,

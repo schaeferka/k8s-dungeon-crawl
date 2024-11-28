@@ -35,7 +35,7 @@ type MonsterSpec struct {
 	CurrentHP int `json:"hp,omitempty"`
 
 	// Maximum health of the monster.
-	MaxHP int `json:"maxHP,omitempty"`
+	MaxHP int `json:"max_hp,omitempty"`
 
 	// Level of the monster.
 	Depth int `json:"depth,omitempty"`

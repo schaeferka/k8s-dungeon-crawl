@@ -210,9 +210,9 @@ extern void report_monster_death(creature *monst) {
  */
 void generate_monster_json(const creature *monst, char *monster_data, size_t size) {
     snprintf(monster_data, size,
-        "{\"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"maxHP\": %d, \"depth\": %d, "
-        "\"position\": {\"x\": %d, \"y\": %d}, \"attackSpeed\": %d, \"movementSpeed\": %d, \"accuracy\": %d, \"defense\": %d, "
-        "\"damageMin\": %d, \"damageMax\": %d, \"turnsBetweenRegen\": %ld, \"isDead\": %d}",
+        "{\"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"max_hp\": %d, \"depth\": %d, "
+        "\"position\": {\"x\": %d, \"y\": %d}, \"attack_speed\": %d, \"movement_speed\": %d, \"accuracy\": %d, \"defense\": %d, "
+        "\"damage_min\": %d, \"damage_max\": %d, \"turns_between_regen\": %ld, \"is_dead\": %d}",
         monst->id, monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP,
         monst->spawnDepth, monst->loc.x, monst->loc.y, monst->attackSpeed, monst->movementSpeed,
         monst->info.accuracy, monst->info.defense, monst->info.damage.lowerBound,

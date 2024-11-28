@@ -23,10 +23,10 @@ function updateGameStateInfo(gameState) {
     gameStateDiv.innerHTML = '';
 
     const sections = {
-        "Basic Info": ["wizard", "gameInProgress", "gameHasEnded", "easyMode", "rewardRoomsGenerated"],
-        "Game Timers and XP": ["absoluteTurnNumber", "milliseconds", "xpxpThisTurn", "monsterSpawnFuse"],
-        "Gold and Resources": ["goldGenerated", "seed", "RNG"],
-        "Game Depth": ["currentDepth", "deepestLevel"]
+        "Basic Info": ["wizard", "game_in_progress", "game_has_ended", "easy_mode", "reward_rooms_generated"],
+        "Game Timers and XP": ["absolute_turn_number", "milliseconds", "xpxp_this_turn", "monster_spawn_fuse"],
+        "Gold and Resources": ["gold_generated", "seed", "rng"],
+        "Game Depth": ["current_depth", "deepest_level"]
     };
 
     for (const [sectionTitle, keys] of Object.entries(sections)) {
@@ -57,19 +57,19 @@ function updateGameStatsInfo(gameStats) {
     const statsSections = [
         {
             title: "Gameplay Stats",
-            keys: ["games", "escaped", "mastered", "won", "winRate", "currentWinStreak"]
+            keys: ["games", "escaped", "mastered", "won", "win_rate", "current_win_streak"]
         },
         {
             title: "Level Stats",
-            keys: ["deepestLevel", "cumulativeLevels", "highestScore", "cumulativeScore"]
+            keys: ["deepest_level", "cumulative_levels", "highest_score", "cumulative_score"]
         },
         {
             title: "Gold and Lumenstone Stats",
-            keys: ["mostGold", "cumulativeGold", "mostLumenstones", "cumulativeLumenstones"]
+            keys: ["most_gold", "cumulative_gold", "most_lumenstones", "cumulative_lumenstones"]
         },
         {
             title: "Turn and Streak Stats",
-            keys: ["fewestTurnsWin", "cumulativeTurns", "longestWinStreak", "longestMasteryStreak", "currentMasteryStreak"]
+            keys: ["fewest_turns_win", "cumulative_turns", "longest_win_streak", "longest_mastery_streak", "current_mastery_streak"]
         }
     ];
 

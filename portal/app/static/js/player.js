@@ -30,13 +30,13 @@ function updatePlayerInfo(playerInfo) {
     modifiersDiv.innerHTML = '';
 
     const playerStatsKeys = [
-        "currentHP", "gold", "maxHP", "poisonAmount", "regenPerTurn",
-        "stealthRange", "strength", "weaknessAmount"
+        "current_hp", "gold", "max_hp", "poison_amount", "regen_per_turn",
+        "stealth_range", "strength", "weakness_amount"
     ];
-    const itemKeys = ["weapon", "armor", "ringLeft", "ringRight"];
+    const itemKeys = ["weapon", "armor", "left_ring", "right_ring"];
     const modifierKeys = [
-        "awarenessBonus", "clairvoyance", "disturbed", "lightMultiplier",
-        "reaping", "regenerationBonus", "stealthBonus", "transference", "wisdomBonus"
+        "awareness_bonus", "clairvoyance", "disturbed", "light_multiplier",
+        "reaping", "regeneration_bonus", "stealth_bonus", "transference", "wisdom_bonus"
     ];
 
     // Populate Player Stats section
@@ -53,14 +53,14 @@ function updatePlayerInfo(playerInfo) {
         const titleMap = {
             weapon: "Weapon",
             armor: "Armor",
-            ringLeft: "Left Ring",
-            ringRight: "Right Ring"
+            left_ring: "Left Ring",
+            right_ring: "Right Ring"
         };
         const icons = {
             weapon: "⚔️",
             armor: "🛡️",
-            ringLeft: "💍",
-            ringRight: "💍"
+            left_ring: "💍",
+            right_ring: "💍"
         };
 
         const itemSection = document.createElement('div');
@@ -68,7 +68,7 @@ function updatePlayerInfo(playerInfo) {
         itemSection.classList.add('border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
 
         // Check if the item is equipped (has an inventoryLetter)
-        if (item && item.inventoryLetter && item.category !== "Unknown") {
+        if (item && item.inventory_letter && item.category !== "Unknown") {
             // Set section title with icon
             itemSection.innerHTML = `
                 <strong>${icons[key]} ${titleMap[key]}:</strong><br>
@@ -114,7 +114,7 @@ function updatePlayerInfo(playerInfo) {
                 Armor: ${item.armor || 0}<br>
                 Damage: ${item.damage ? `${item.damage.min || 0} - ${item.damage.max || 0}` : 'N/A'}<br>
                 Description: ${item.description || "No description"}<br>
-                Inventory Letter: ${item.inventoryLetter || "N/A"}<br><br>
+                Inventory Letter: ${item.inventory_letter || "N/A"}<br><br>
             `;
             inventoryDiv.appendChild(itemDiv);
         });
