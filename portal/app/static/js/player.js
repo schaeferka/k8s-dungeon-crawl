@@ -18,16 +18,28 @@ async function fetchPlayerData() {
     }
 }
 
+function createSectionElement(title, content) {
+    const section = document.createElement('div');
+    section.classList.add('item-section', 'border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
+    section.innerHTML = `<strong>${title}:</strong><br>${content}`;
+    return section;
+}
+
+function populateSection(keys, data, container) {
+    container.innerHTML = '';
+    keys.forEach(key => {
+        const value = key in data ? data[key] : "N/A";
+        const item = document.createElement('p');
+        item.textContent = `${key}: ${value}`;
+        container.appendChild(item);
+    });
+}
+
 function updatePlayerInfo(playerInfo) {
     const playerStatsDiv = document.getElementById('player-stats');
     const itemsDiv = document.getElementById('items');
     const inventoryDiv = document.getElementById('inventory-items');
     const modifiersDiv = document.getElementById('modifiers');
-
-    playerStatsDiv.innerHTML = '';
-    itemsDiv.innerHTML = '';
-    inventoryDiv.innerHTML = '';
-    modifiersDiv.innerHTML = '';
 
     const playerStatsKeys = [
         "current_hp", "gold", "max_hp", "poison_amount", "regen_per_turn",
@@ -39,15 +51,9 @@ function updatePlayerInfo(playerInfo) {
         "reaping", "regeneration_bonus", "stealth_bonus", "transference", "wisdom_bonus"
     ];
 
-    // Populate Player Stats section
-    playerStatsKeys.forEach(key => {
-        const statValue = key in playerInfo ? playerInfo[key] : "N/A";
-        const statItem = document.createElement('p');
-        statItem.textContent = `${key}: ${statValue}`;
-        playerStatsDiv.appendChild(statItem);
-    });
+    populateSection(playerStatsKeys, playerInfo, playerStatsDiv);
 
-    // Populate Items section with equipped items
+    itemsDiv.innerHTML = '';
     itemKeys.forEach(key => {
         const item = playerInfo[key];
         const titleMap = {
@@ -63,72 +69,33 @@ function updatePlayerInfo(playerInfo) {
             right_ring: "💍"
         };
 
-        const itemSection = document.createElement('div');
-        itemSection.classList.add('item-section');
-        itemSection.classList.add('border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
+        let content = item && item.inventory_letter && item.category !== "Unknown" ? `
+            ${item.description && item.description !== "No description" ? `<p>Description: ${item.description}</p>` : ''}
+            ${key === "weapon" && item.damage ? `<p>Damage: ${item.damage.min || 0} - ${item.damage.max || 0}</p>` : ''}
+            ${Object.entries(item).filter(([k]) => !['name', 'description', 'damage'].includes(k)).map(([k, v]) => `<p>${k}: ${v}</p>`).join('')}
+        ` : '<p>Not Equipped</p>';
 
-        // Check if the item is equipped (has an inventoryLetter)
-        if (item && item.inventory_letter && item.category !== "Unknown") {
-            // Set section title with icon
-            itemSection.innerHTML = `
-                <strong>${icons[key]} ${titleMap[key]}:</strong><br>
-            `;
-
-            // Add description if it's not "No description"
-            if (item.description && item.description !== "No description") {
-                itemSection.innerHTML += `<p>Description: ${item.description}</p>`;
-            }
-
-            // Add other properties for the equipped items (like name, damage, etc.)
-            if (key === "weapon" && item.damage) {
-                itemSection.innerHTML += `<p>Damage: ${item.damage.min || 0} - ${item.damage.max || 0}</p>`;
-            }
-            
-            // Display other properties for all items (excluding name and description)
-            for (const [itemKey, itemValue] of Object.entries(item)) {
-                if (itemKey !== "name" && itemKey !== "description" && itemKey !== "damage") {
-                    itemSection.innerHTML += `<p>${itemKey}: ${itemValue}</p>`;
-                }
-            }
-        } else {
-            // Display "Not Equipped" if the item is not equipped
-            itemSection.innerHTML = `
-                <strong>${icons[key]} ${titleMap[key]}:</strong><br>
-                <p>Not Equipped</p>
-            `;
-        }
-
-        // Append item section to the items div
-        itemsDiv.appendChild(itemSection);
+        itemsDiv.appendChild(createSectionElement(`${icons[key]} ${titleMap[key]}`, content));
     });
 
-    // Populate Inventory section with items from the pack
+    inventoryDiv.innerHTML = '';
     if (playerInfo.pack && Object.keys(playerInfo.pack).length > 0) {
         Object.values(playerInfo.pack).forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('item-section');
-            itemDiv.classList.add('border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
-            itemDiv.innerHTML = `
+            const content = `
                 <strong>${item.kind || "Unknown Item"}</strong> (${item.category || "Unknown Category"}):<br>
                 Quantity: ${item.quantity || 1}<br>
                 Armor: ${item.armor || 0}<br>
                 Damage: ${item.damage ? `${item.damage.min || 0} - ${item.damage.max || 0}` : 'N/A'}<br>
                 Description: ${item.description || "No description"}<br>
-                Inventory Letter: ${item.inventory_letter || "N/A"}<br><br>
+                Inventory Letter: ${item.inventory_letter || "N/A"}
             `;
-            inventoryDiv.appendChild(itemDiv);
+            inventoryDiv.appendChild(createSectionElement('', content));
         });
     } else {
         inventoryDiv.innerHTML = '<p>No items in inventory.</p>';
     }
 
-    // Populate Modifiers section
-    modifierKeys.forEach(key => {
-        const modifierValue = key in playerInfo ? playerInfo[key] : "N/A";
-        const modifierItem = document.createElement('p');
-        modifierItem.textContent = `${key}: ${modifierValue}`;
-        modifiersDiv.appendChild(modifierItem);
-    });
+    populateSection(modifierKeys, playerInfo, modifiersDiv);
 }
 
 // Fetch and update data every second
