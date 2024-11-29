@@ -27,7 +27,6 @@ from prometheus_client import Gauge
 
 bp = Blueprint('player', __name__)
 
-# In-memory storage
 player_data = {}
 
 # Player Metrics
@@ -170,7 +169,7 @@ def receive_player():
     Returns:
         Response: A JSON response indicating the status of the update operation.
     """
-    data = request.json  # Expecting JSON format
+    data = request.json
 
     if not data:
         return jsonify({"error": "No JSON payload received"}), 400

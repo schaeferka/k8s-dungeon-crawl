@@ -17,6 +17,7 @@ Module Functions:
 - None
 """
 from typing import Optional
+from datetime import datetime, timezone
 from pydantic import BaseModel
 
 # Defines the Position class for tracking coordinates of a Monster
@@ -50,8 +51,8 @@ class Monster(BaseModel):
         damage_min (int): The minimum damage the monster can deal.
         damage_max (int): The maximum damage the monster can deal.
         turns_between_regen (int): The number of turns between health regeneration.
-        spawn_timestamp (Optional[int]): The timestamp when the monster spawned.
-        death_timestamp (Optional[int]): The timestamp when the monster died (if applicable).
+        spawn_timestamp (Optional[datetime]): The timestamp when the monster spawned.
+        death_timestamp (Optional[datetime]): The timestamp when the monster died (if applicable).
     """
     id: int
     name: str
@@ -68,8 +69,13 @@ class Monster(BaseModel):
     damage_min: int
     damage_max: int
     turns_between_regen: int
-    spawn_timestamp: Optional[int] = None
-    death_timestamp: Optional[int] = None
+    spawn_timestamp: Optional[datetime] = None
+    death_timestamp: Optional[datetime] = None
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self.spawn_timestamp:
+            self.spawn_timestamp = datetime.now(timezone.utc)
 
     class Config:
         """Configuration class for Pydantic's alias generation.

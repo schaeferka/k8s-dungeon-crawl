@@ -29,8 +29,10 @@ Methods:
     - get_monster: Retrieve a specific Monster custom resource by name.
     - delete_all_monsters_in_namespace: Delete all Monster resources in a namespace.
 """
+import time
 from flask import current_app
 from kubernetes import config, client
+from kubernetes.client.rest import ApiException
 
 class KubernetesService:
     """
@@ -67,6 +69,31 @@ class KubernetesService:
 
         self.api = client.CustomObjectsApi()
 
+    def resource_exists(self, name: str, namespace: str) -> bool:
+        """
+        Check if a Monster custom resource exists.
+
+        Args:
+            name (str): The name of the Monster resource.
+            namespace (str): The Kubernetes namespace where the resource is located.
+
+        Returns:
+            bool: True if the resource exists, False otherwise.
+        """
+        try:
+            self.api.get_namespaced_custom_object(
+                group="kaschaefer.com",
+                version="v1",
+                namespace=namespace,
+                plural="monsters",
+                name=name,
+            )
+            return True
+        except client.exceptions.ApiException as e:
+            if e.status == 404:
+                return False
+            raise e
+
     def create_monster_resource(self, name: str, namespace: str, monster_data: dict):
         """
         Create a Monster custom resource in the specified namespace.
@@ -80,6 +107,11 @@ class KubernetesService:
         Raises:
             Exception: If there is an error creating the Monster resource.
         """
+        if self.resource_exists(name, namespace):
+            current_app.logger.warning(f"Monster resource {name} already exists in namespace \
+                {namespace} - unable to create")
+            return
+
         monster_manifest = {
             "apiVersion": "kaschaefer.com/v1",
             "kind": "Monster",
@@ -100,7 +132,8 @@ class KubernetesService:
             current_app.logger.error(f"Failed to create Monster resource: {e}")
             raise RuntimeError(f"Failed to create Monster resource: {e}") from e
 
-    def update_monster_resource(self, name: str, namespace: str, monster_data: dict):
+    def update_monster_resource(self, name: str, namespace: str, monster_data: dict,
+                                retries: int = 3):
         """
         Update an existing Monster custom resource.
 
@@ -108,41 +141,54 @@ class KubernetesService:
             name (str): The name of the Monster resource.
             namespace (str): The Kubernetes namespace where the resource is located.
             monster_data (dict): Dictionary containing the fields to update in the spec.
+            retries (int): Number of retries for handling conflict errors.
 
         Raises:
             ValueError: If the resource does not have a 'spec' field.
             client.exceptions.ApiException: If there is an error with the API request.
         """
-        try:
-            current_resource = self.api.get_namespaced_custom_object(
-                group="kaschaefer.com",
-                version="v1",
-                namespace=namespace,
-                plural="monsters",
-                name=name,
-            )
+        if not self.resource_exists(name, namespace):
+            current_app.logger.warning(f"Monster resource {name} does not exist in namespace \
+                {namespace} - unable to update")
+            return
 
-            if "spec" not in current_resource:
-                raise ValueError(f"Monster resource {name} does not have a 'spec' field")
+        for attempt in range(retries):
+            try:
+                current_resource = self.api.get_namespaced_custom_object(
+                    group="kaschaefer.com",
+                    version="v1",
+                    namespace=namespace,
+                    plural="monsters",
+                    name=name,
+                )
 
-            current_resource["spec"].update(monster_data)
+                if "spec" not in current_resource:
+                    raise ValueError(f"Monster resource {name} does not have a 'spec' field")
 
-            self.api.replace_namespaced_custom_object(
-                group="kaschaefer.com",
-                version="v1",
-                namespace=namespace,
-                plural="monsters",
-                name=name,
-                body=current_resource,
-            )
+                current_resource["spec"].update(monster_data)
 
-            current_app.logger.info(f"Updated Monster resource: {name}")
-        except client.exceptions.ApiException as e:
-            current_app.logger.error(f"Failed to update Monster resource: {e}")
-            raise e
-        except ValueError as e:
-            current_app.logger.error(f"Invalid resource structure: {e}")
-            raise e
+                self.api.replace_namespaced_custom_object(
+                    group="kaschaefer.com",
+                    version="v1",
+                    namespace=namespace,
+                    plural="monsters",
+                    name=name,
+                    body=current_resource,
+                )
+
+                current_app.logger.info(f"Updated Monster resource: {name}")
+                return
+            except ApiException as e:
+                if e.status == 409 and attempt < retries - 1:
+                    current_app.logger.warning(f"Conflict error while updating Monster resource \
+                        {name}, retrying...")
+                    time.sleep(1)  # Wait before retrying
+                else:
+                    current_app.logger.error(f"Failed to update Monster resource: {e}")
+                    raise e
+            except ValueError as e:
+                current_app.logger.error(f"Invalid resource structure: {e}")
+                raise e
 
     def delete_monster_resource(self, name: str, namespace: str):
         """
@@ -155,6 +201,11 @@ class KubernetesService:
         Raises:
             client.exceptions.ApiException: If there is an error with the API request.
         """
+        if not self.resource_exists(name, namespace):
+            current_app.logger.warning(f"Monster resource {name} does not exist in namespace \
+                {namespace} - unable to delete")
+            return
+
         try:
             self.api.delete_namespaced_custom_object(
                 group="kaschaefer.com",
@@ -250,17 +301,17 @@ class KubernetesService:
 
             for monster in monsters:
                 name = monster.get("metadata", {}).get("name")
-                if name:
+                if name and self.resource_exists(name, namespace):
                     self.delete_monster_resource(name, namespace)
                 else:
-                    current_app.logger.warning(f"Monster resource missing 'name' field: {monster}")
+                    current_app.logger.warning(f"\
+                        Monster resource missing 'name' field or does not exist: {monster}")
 
         except client.exceptions.ApiException as e:
-            current_app.logger.error(f"Failed to delete Monster resources in namespace \
-                                     {namespace}: {e}")
+            current_app.logger.error(f"\
+                Failed to delete Monster resources in namespace {namespace}: {e}")
             raise e
         except Exception as e:
-            current_app.logger.error(
-                f"Unexpected error while deleting Monster resources in namespace {namespace}: {e}"
-            )
+            current_app.logger.error(f"\
+                Unexpected error while deleting Monster resources in namespace {namespace}: {e}")
             raise e

@@ -37,10 +37,6 @@ def receive_equipped_items():
     armor defense). It validates the incoming data using the `EquippedItems` model, updates both the 
     in-memory `equipped_items` storage, and updates the corresponding Prometheus metrics.
 
-    Args:
-        None: This is a POST endpoint that expects a JSON payload containing equipped item 
-        metrics data.
-
     Returns:
         Response: A JSON response indicating the success or failure of the request, along with the 
         received equipped item data.
@@ -87,9 +83,6 @@ def get_equipped_items():
 
     This route handles GET requests to retrieve the current in-memory equipped items.
     If no equipped items data is available, it returns a 404 error with an appropriate message.
-
-    Args:
-        None: This is a GET endpoint that returns the current equipped items data.
 
     Returns:
         Response: A JSON response containing the current equipped items data, or an error message if 

@@ -4,7 +4,7 @@ related metrics.
 
 It provides endpoints for receiving game stats data, storing it in memory, and retrieving
 the current game stats. Additionally, it defines Prometheus metrics for tracking various
-aspects of the game, such as the number of games played,the highest score, win streaks,
+aspects of the game, such as the number of games played, the highest score, win streaks,
 and other cumulative game stats.
 
 Returns:
@@ -55,9 +55,6 @@ def receive_game_stats():
     If the request does not contain valid JSON or the data cannot be parsed, an error response
     is returned.
 
-    Args:
-        None: This is a POST endpoint that expects a JSON payload with game statistics data.
-
     Returns:
         Response: A JSON response with the status of the request and the received game stats 
         data or an error message.
@@ -90,9 +87,6 @@ def get_game_stats():
     This route handles GET requests to retrieve the current in-memory game stats. If the game 
     stats are available, it returns them in the response. If not, it returns a 404 error message 
     indicating that the game stats are not available.
-
-    Args:
-        None: This is a GET endpoint that returns the current game stats data.
 
     Returns:
         Response: A JSON response containing the current game stats or an error message if 

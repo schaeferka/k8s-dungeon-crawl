@@ -12,7 +12,6 @@ Returns:
 from flask import Blueprint, render_template, jsonify
 from app.routes.gamestate import get_game_state
 from app.routes.gamestats import get_game_stats
-from app.models.game import Game
 
 bp = Blueprint('game', __name__)
 

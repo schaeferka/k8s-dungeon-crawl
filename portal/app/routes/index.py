@@ -4,6 +4,9 @@ This module defines the `index` blueprint for handling the root endpoint of the 
 The blueprint registers a route for the root URL ('/') that renders the index page of the 
 application.
 
+Endpoints:
+- /: Renders the index page.
+
 Returns:
     None: This module does not return values directly but defines routes for the Flask application.
 """
@@ -26,4 +29,3 @@ def index():
         Response: The rendered HTML template (index.html).
     """
     return render_template('index.html')
-
