@@ -142,17 +142,34 @@ The `Monster` custom resource represents monsters in the game. A Kubebuilder-bas
 
 
 
-### Key CRD: Monster
+### Monster CRD
 ```yaml
 apiVersion: kaschaefer.com/v1
 kind: Monster
 metadata:
   name: goblin
 spec:
-  type: melee
-  health: 100
+  accuracy: 80
+  attack-speed: 100
+  damage_max: 4
+  damage_min: 1
+  death_timestamp: ""
+  defense: 0
+  depth: 2
+  hp: 8
+  id: 4
+  is_dead: False
+  max_hp: 8
+  movement_speed: 40
+  name: goblin-4
+  position:
+   x: 45
+   y: 120
+  spawn_timestamp: "Fri, 29 Nov 2024 21:40:12 GMT"
+  turns_between_regen: 20000
+  type: goblin
 ```
-The Monster CRD defines the schema for monsters, including their type and health.
+The Monster CRD defines the schema for monsters, including their type, health, attack, defense, speed, and abilities.
 
 ### Custom Controller Logic
 The controller:
@@ -199,6 +216,19 @@ The Portal exposes metrics in the following format:
   /// And many more metrics...
 ```
 Prometheus scrapes this endpoint and makes the metrics available for Grafana.
+
+## Next Steps
+
+- [ ] Implement deleting monster in game if monster deployment deleted.
+- [ ] Implement creating monsters based on pods in "monstie" namespace.
+- [ ] Implement player bonuses based on killing monsties.
+- [ ] Add architecture diagram.
+- [ ] Add event flow diagram.
+- [ ] Implement persistent storage.
+- [ ] Add more detailed metrics for player actions.
+- [ ] Improve the Grafana dashboard with more visualizations.
+- [ ] Write more unit tests for the custom controller.
+- [ ] Document the API endpoints in detail.
 
 ## Contributions
 Contributions are welcome! If you have ideas to expand the project or fix bugs, feel free to open an issue or submit a pull request.
