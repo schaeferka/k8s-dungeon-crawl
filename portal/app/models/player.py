@@ -21,29 +21,29 @@ class Player(BaseModel):
 
     Attributes:
         gold (int): The amount of gold the player currently possesses.
-        depthLevel (int): The current depth level in the game.
-        deepestLevel (int): The deepest level the player has reached in the game.
-        currentHP (int): The player's current health points.
-        maxHP (int): The player's maximum health points.
+        depth_level (int): The current depth level in the game.
+        deepest_level (int): The deepest level the player has reached in the game.
+        current_hp (int): The player's current health points.
+        max_hp (int): The player's maximum health points.
         strength (int): The player's strength attribute, influencing physical combat.
-        playerTurnNumber (int): The current turn number in the game for the player.
-        xpxpThisTurn (int): The experience points gained during the current turn.
-        stealthRange (int): The range within which the player can use stealth.
+        player_turn_number (int): The current turn number in the game for the player.
+        xpxp_this_turn (int): The experience points gained during the current turn.
+        stealth_range (int): The range within which the player can use stealth.
         disturbed (bool): Whether the player has been disturbed (e.g., alerted enemies).
-        regenPerTurn (int): The amount of health regenerated per turn.
-        weaknessAmount (int): The player's current weakness status, which may affect combat.
-        poisonAmount (int): The amount of poison affecting the player, if any.
+        regen_per_turn (int): The amount of health regenerated per turn.
+        weakness_amount (int): The player's current weakness status, which may affect combat.
+        poison_amount (int): The amount of poison affecting the player, if any.
         clairvoyance (int): The player's clairvoyance level, influencing their ability to 
             sense the environment.
-        stealthBonus (int): The player's bonus to stealth actions, improving sneaking and evasion.
-        regenerationBonus (int): The player's bonus to health regeneration per turn.
-        lightMultiplier (int): The player's ability to see in the dark or in low-light 
+        stealth_bonus (int): The player's bonus to stealth actions, improving sneaking and evasion.
+        regeneration_bonus (int): The player's bonus to health regeneration per turn.
+        light_multiplier (int): The player's ability to see in the dark or in low-light 
             conditions.
-        awarenessBonus (int): The player's bonus to awareness, affecting detection of 
+        awareness_bonus (int): The player's bonus to awareness, affecting detection of 
             hidden threats.
         transference (int): The player's transference ability, influencing the transfer 
             of abilities or energy.
-        wisdomBonus (int): The player's wisdom, which can affect decision-making or 
+        wisdom_bonus (int): The player's wisdom, which can affect decision-making or 
             magical abilities.
         reaping (int): The player's reaping ability, influencing damage dealt to enemies 
             in certain situations.

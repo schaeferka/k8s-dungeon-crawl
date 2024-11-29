@@ -8,10 +8,12 @@ Classes:
     Item: Represents an item in the game, including properties like category, kind, and damage.
     EquippedItems: Represents the player's equipped items, including weapon, armor, and rings.
     Pack: Represents an inventory pack that contains a list of items.
+    Items: Represents the collection of items in the game, including equipped items and inventory pack.
 
 Returns:
     None: No return values for this module.
 """
+
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -40,22 +42,20 @@ class Item(BaseModel):
     kind, damage (if applicable), enchantments, and more.
 
     Attributes:
-        category (str): The category of the item (e.g., "weapon", "armor").
-        kind (str): The type or kind of the item (e.g., "sword", "helmet").
-        quantity (int): The quantity of the item in the player's inventory.
+        category (Optional[str]): The category of the item (e.g., "weapon", "armor"). Defaults to "None".
+        kind (Optional[str]): The type or kind of the item (e.g., "sword", "helmet"). Defaults to "None".
+        quantity (Optional[int]): The quantity of the item in the player's inventory. Defaults to 0.
         inscription (Optional[str]): An inscription on the item, if any. Defaults to "None".
         damage (Optional[Damage]): The damage range of the item, if it's a weapon. Defaults to None.
         armor (Optional[int]): The armor value of the item, if applicable. Defaults to 0.
-        charges (Optional[int]): The number of charges left for items like scrolls or potions.
-        times_enchanted (Optional[int]): The number of times the item has been enchanted.
-        strength_required (Optional[int]): The strength required to equip the item.
-        inventory_letter (Optional[str]): The letter representing the item in the player's
-            inventory.
-        origin_depth (Optional[int]): The depth at which the item was found in the game world.
+        charges (Optional[int]): The number of charges left for items like scrolls or potions. Defaults to 0.
+        times_enchanted (Optional[int]): The number of times the item has been enchanted. Defaults to 0.
+        strength_required (Optional[int]): The strength required to equip the item. Defaults to 0.
+        inventory_letter (Optional[str]): The letter representing the item in the player's inventory. Defaults to " ".
+        origin_depth (Optional[int]): The depth at which the item was found in the game world. Defaults to 0.
         enchant1 (Optional[str]): The first enchantment applied to the item. Defaults to "None".
         enchant2 (Optional[str]): The second enchantment applied to the item. Defaults to "None".
-        description (Optional[str]): A brief description of the item. Defaults to "No description 
-            available".
+        description (Optional[str]): A brief description of the item. Defaults to "No description available".
 
     Args:
         category (str): The category of the item (e.g., "weapon", "armor").
@@ -87,8 +87,8 @@ class EquippedItems(BaseModel):
     Attributes:
         weapon (Item): The player's equipped weapon.
         armor (Item): The player's equipped armor.
-        left_ring (Item): The player's equipped ring in the left hand.
-        right_ring (Item): The player's equipped ring in the right hand.
+        left_ring (Item): The player's equipped ring on the left hand.
+        right_ring (Item): The player's equipped ring on the right hand.
 
     Args:
         weapon (Item): The item representing the player's weapon.
@@ -124,8 +124,8 @@ class Items(BaseModel):
     data structures.
 
     Attributes:
-        equipped_items (EquippedItems): The player's equipped items.
-        pack (Pack): The player's inventory pack.
+        equipped_items (Optional[EquippedItems]): The player's equipped items. Defaults to None.
+        pack_items (Optional[Pack]): The player's inventory pack. Defaults to None.
 
     Args:
         equipped_items (EquippedItems): The player's equipped items.

@@ -49,7 +49,7 @@ static bool is_equipped_items_changed(void) {
  * @brief Updates equipped items and sends them to the portal if necessary.
  */
 void send_equipped_items_to_portal(void) {
-    if (!rogue.gameHasEnded && is_equipped_items_changed()) {
+    if (!rogue.gameHasEnded) {
         EquippedItems items = {
             .weapon = (rogue.weapon != NULL) ? *rogue.weapon : (item){0},
             .armor = (rogue.armor != NULL) ? *rogue.armor : (item){0},
@@ -63,8 +63,6 @@ void send_equipped_items_to_portal(void) {
 
         printf("EQUIPPED Sending equipped items to portal...\n\n");
         printf("%s\n\n", equipped_json);
-        send_pack_to_portal(equipped_json);
-
         send_items_to_portal(equipped_json);
 
         // Update previous equipped items
@@ -196,7 +194,6 @@ static bool is_inventory_items_changed(void) {
  * @brief Sends the inventory items to the portal.
  */
 void send_pack_items_to_portal(void) {
-    printf("PACK Sending pack items to portal...\n\n");
     if (!rogue.gameHasEnded) {
         size_t buffer_size = 16384;
         char *post_data = malloc(buffer_size);
