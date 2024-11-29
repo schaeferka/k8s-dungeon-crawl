@@ -1,20 +1,10 @@
-async function fetchGameStateData() {
+async function fetchData(url, updateFunction) {
     try {
-        const response = await fetch('/gamestate/data');
+        const response = await fetch(url);
         const data = await response.json();
-        updateGameStateInfo(data);
+        updateFunction(data);
     } catch (error) {
-        console.error('Error fetching game state data:', error);
-    }
-}
-
-async function fetchGameStatsData() {
-    try {
-        const response = await fetch('/gamestats/data');
-        const data = await response.json();
-        updateGameStatsInfo(data);
-    } catch (error) {
-        console.error('Error fetching game stats data:', error);
+        console.error(`Error fetching data from ${url}:`, error);
     }
 }
 
@@ -83,7 +73,7 @@ function updateGameStatsInfo(gameStats) {
         sectionDiv.appendChild(sectionHeader);
 
         section.keys.forEach(key => {
-            const value = gameStats[key] !== undefined ? gameStats[key] : "N/A";
+            const value = gameStats[key] !== undefined ? gameStats[key] : "0";
             const infoItem = document.createElement('p');
             infoItem.classList.add('text-gray-600');
             infoItem.textContent = `${key}: ${value}`;
@@ -94,10 +84,12 @@ function updateGameStatsInfo(gameStats) {
     });
 }
 
-setInterval(fetchGameStateData, 1000);
-setInterval(fetchGameStatsData, 1000);
+setInterval(() => fetchData('/gamestate/data', updateGameStateInfo), 1000);
+setInterval(() => fetchData('/gamestats/data', updateGameStatsInfo), 1000);
 
 window.onload = () => {
-    fetchGameStateData();
-    fetchGameStatsData();
+    Promise.all([
+        fetchData('/gamestate/data', updateGameStateInfo),
+        fetchData('/gamestats/data', updateGameStatsInfo)
+    ]);
 };

@@ -4,7 +4,7 @@ related metrics.
 
 It provides endpoints for receiving game state data, storing it in memory, and retrieving 
 the current game state. Additionally, it defines Prometheus metrics for tracking various 
-aspects of the game, such as reward rooms,monster spawn fuse, and total gold generated.
+aspects of the game, such as reward rooms, monster spawn fuse, and total gold generated.
 
 Returns:
     None: This module does not return values directly but provides Flask routes and 
@@ -38,15 +38,11 @@ def receive_game_state():
     The data is validated using the `GameState` model, and the in-memory game state storage
     is updated. If the request is successful, a JSON response containing the status and received 
     data is returned.
-    
-    Args:
-        None: This is a POST endpoint that expects JSON data.
 
     Returns:
         Response: A JSON response with the status of the request and the received game state data,
         or an error message.
     """
-    # Extract JSON data from the incoming request
     data = request.json
 
     # Check if the data is missing
@@ -58,12 +54,13 @@ def receive_game_state():
         game_state = GameState(**data)
 
         # Update the in-memory game_state_data with the latest received game state
-        game_state_data.update(data)
+        # Use the model's model_dump() method to get the validated data as a dictionary
+        game_state_data.update(game_state.model_dump())
 
         # Return a success response along with the received game state data
         return jsonify({"status": "success", "received": game_state.model_dump()}), 200
-    
-    except (ValueError, TypeError) as e:
+
+    except (ValueError, TypeError, KeyError) as e:
         # If an error occurs during parsing or validation, return an error response
         return jsonify({"error": str(e)}), 400
 
@@ -74,9 +71,6 @@ def get_game_state():
 
     This route handles GET requests to retrieve the current in-memory game state.
     If the game state data is not available, it returns a 404 error with an appropriate message.
-    
-    Args:
-        None: This is a GET endpoint that returns the current game state data.
 
     Returns:
         Response: A JSON response containing the current game state data, or an error message if

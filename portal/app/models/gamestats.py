@@ -1,6 +1,6 @@
 """
 This module defines the `GameStats` class, which represents the game statistics
-for a player, tracking various metrics about their gameplay history.
+for a player, tracking various metrics about gameplay history.
 
 The class uses Pydantic's `BaseModel` for data validation and serialization.
 It contains attributes that track statistics such as games played, games won,

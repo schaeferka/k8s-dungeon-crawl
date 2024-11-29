@@ -39,6 +39,45 @@ type MonsterSpec struct {
 
 	// Level of the monster.
 	Depth int `json:"depth,omitempty"`
+
+	// Accuracy of the monster.
+	Accuracy int `json:"accuracy,omitempty"`
+
+	// Attack speed of the monster.
+	AttackSpeed int `json:"attack_speed,omitempty"`
+
+	// Maximum damage the monster can inflict.
+	DamageMax int `json:"damage_max,omitempty"`
+
+	// Minimum damage the monster can inflict.
+	DamageMin int `json:"damage_min,omitempty"`
+
+	// Timestamp of the monster's death.
+	DeathTimestamp *metav1.Time `json:"death_timestamp,omitempty"`
+
+	// Defense of the monster.
+	Defense int `json:"defense,omitempty"`
+
+	// Indicates if the monster is dead.
+	IsDead bool `json:"is_dead,omitempty"`
+
+	// Movement speed of the monster.
+	MovementSpeed int `json:"movement_speed,omitempty"`
+
+	// Position of the monster.
+	Position Position `json:"position,omitempty"`
+
+	// Timestamp of the monster's spawn.
+	SpawnTimestamp *metav1.Time `json:"spawn_timestamp,omitempty"`
+
+	// Turns between health regeneration.
+	TurnsBetweenRegen int `json:"turns_between_regen,omitempty"`
+}
+
+// Position defines the coordinates of the monster.
+type Position struct {
+	X int `json:"x,omitempty"`
+	Y int `json:"y,omitempty"`
 }
 
 // MonsterStatus defines the observed state of Monster.

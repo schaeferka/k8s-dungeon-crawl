@@ -23,8 +23,8 @@ def create_app(config_name=None):
     from app.routes.player import bp as player_bp  # Import from player.py
     from app.routes.gamestate import bp as gamestate_bp  # Import from gamestate.py
     from app.routes.gamestats import bp as gamestats_bp  # Import from gamestats.py
-    from app.routes.items import bp as items_bp  # Import from items.py
-    from app.routes.pack import bp as pack_bp  # Import from pack.py
+    from app.routes.equipped_items import bp as items_bp  # Import from items.py
+    from app.routes.pack_items import bp as pack_bp  # Import from pack.py
     from app.routes.game import bp as game_bp  # Import from game
 
     app.register_blueprint(index_bp)  # Register index blueprint

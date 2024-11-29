@@ -39,6 +39,25 @@ spec:
           spec:
             description: MonsterSpec defines the desired state of Monster.
             properties:
+              accuracy:
+                description: Accuracy of the monster.
+                type: integer
+              attack_speed:
+                description: Attack speed of the monster.
+                type: integer
+              damage_max:
+                description: Maximum damage the monster can inflict.
+                type: integer
+              damage_min:
+                description: Minimum damage the monster can inflict.
+                type: integer
+              death_timestamp:
+                description: Timestamp of the monster's death.
+                format: date-time
+                type: string
+              defense:
+                description: Defense of the monster.
+                type: integer
               depth:
                 description: Level of the monster.
                 type: integer
@@ -48,12 +67,33 @@ spec:
               id:
                 description: Unique identifier for the monster.
                 type: integer
+              is_dead:
+                description: Indicates if the monster is dead.
+                type: boolean
               max_hp:
                 description: Maximum health of the monster.
+                type: integer
+              movement_speed:
+                description: Movement speed of the monster.
                 type: integer
               name:
                 description: Name of the monster.
                 type: string
+              position:
+                description: Position of the monster.
+                properties:
+                  x:
+                    type: integer
+                  "y":
+                    type: integer
+                type: object
+              spawn_timestamp:
+                description: Timestamp of the monster's spawn.
+                format: date-time
+                type: string
+              turns_between_regen:
+                description: Turns between health regeneration.
+                type: integer
               type:
                 description: Type of the monster (e.g., "bloat", "goblin").
                 type: string

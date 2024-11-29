@@ -28,10 +28,15 @@ Returns:
 import time
 import logging
 from prometheus_client import Gauge, Counter, Histogram
+from typing import Dict
 
 # Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 class MetricsService:
     """
@@ -99,7 +104,7 @@ class MetricsService:
 
         logger.info("Initialized Prometheus metrics.")
 
-    def update_player_metrics(self, data: dict):
+    def update_player_metrics(self, data: Dict[str, float]) -> None:
         """
         Update Prometheus player metrics.
 
@@ -108,7 +113,7 @@ class MetricsService:
         corresponding Prometheus metrics.
 
         Args:
-            data (dict): A dictionary containing player metrics (e.g., gold, depth, HP).
+            data (Dict[str, float]): A dictionary containing player metrics (e.g., gold, depth, HP).
 
         Raises:
             None
@@ -121,7 +126,7 @@ class MetricsService:
             self.player_current_hp.set(data['currentHP'])
         logger.info("Updated player metrics: %s", data)
 
-    def record_game_event(self, event: str):
+    def record_game_event(self, event: str) -> None:
         """
         Record a game-related event in Prometheus metrics.
 
@@ -140,7 +145,7 @@ class MetricsService:
             self.games_won.inc()
         logger.info("Recorded game event: %s", event)
 
-    def record_monster_creation(self, monster_id: str):
+    def record_monster_creation(self, monster_id: str) -> None:
         """
         Record the creation of a new monster.
 
@@ -157,7 +162,7 @@ class MetricsService:
         self.last_monster_created.set_to_current_time()
         logger.info("Recorded monster creation: %s", monster_id)
 
-    def record_monster_death(self, monster_id: str, creation_time: float):
+    def record_monster_death(self, monster_id: str, creation_time: float) -> None:
         """
         Record the death of a monster and update metrics.
 
@@ -178,7 +183,7 @@ class MetricsService:
         self.last_monster_death.set_to_current_time()
         logger.info("Recorded monster death: %s (lifespan: %.2f seconds)", monster_id, lifespan)
 
-    def reset_metrics(self):
+    def reset_metrics(self) -> None:
         """
         Reset all metrics, typically for a new game.
 

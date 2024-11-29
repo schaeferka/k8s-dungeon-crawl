@@ -69,6 +69,43 @@ function resetFilters() {
     updateTables(activeMonstersData, deadMonstersData, allMonstersData); // Reset tables with full data
 }
 
+function createTableCell(content, className = 'text-center') {
+    const cell = document.createElement('td');
+    cell.classList.add(className);
+    cell.textContent = content || '-';
+    return cell;
+}
+
+function createMonsterRow(monster, isDead = false) {
+    const row = document.createElement('tr');
+    if (isDead) {
+        row.classList.add('bg-red-200');
+    }
+
+    const nameCell = document.createElement('td');
+    nameCell.classList.add('text-center');
+    const link = document.createElement('a');
+    link.href = 'http://localhost:8080/' + monster.name;
+    link.textContent = monster.name || 'Unknown';
+    link.classList.add('text-blue-500', 'hover:text-blue-700', 'transition-colors', 'no-underline');
+    nameCell.appendChild(link);
+
+    row.appendChild(nameCell);
+    row.appendChild(createTableCell(monster.hp));
+    row.appendChild(createTableCell(monster.max_hp));
+    row.appendChild(createTableCell(monster.depth));
+    row.appendChild(createTableCell(monster.defense));
+    row.appendChild(createTableCell(monster.accuracy));
+    row.appendChild(createTableCell(`${monster.damage_min || 'N/A'} - ${monster.damage_max || 'N/A'}`));
+    row.appendChild(createTableCell(monster.turns_between_regen));
+    row.appendChild(createTableCell(monster.movement_speed));
+    row.appendChild(createTableCell(monster.attack_speed));
+    row.appendChild(createTableCell(monster.id));
+    row.appendChild(createTableCell(monster.type));
+
+    return row;
+}
+
 function updateTables(activeMonsters, deadMonsters, allMonsters) {
     /**
      * Updates the tables for live monsters, dead monsters, and all monsters with the provided
@@ -88,172 +125,22 @@ function updateTables(activeMonsters, deadMonsters, allMonsters) {
 
     // Update active monsters table
     activeMonsters.forEach(monster => {
-        const row = document.createElement('tr');
-
-        // Create monster name link
-        const nameCell = document.createElement('td');
-        nameCell.classList.add('text-center');
-        const link = document.createElement('a');
-        link.href = 'http://localhost:8080/' + monster.name; 
-        link.textContent = monster.name || 'Unknown'; 
-        link.classList.add('text-blue-500', 'hover:text-blue-700', 'transition-colors', 'no-underline');
-        nameCell.appendChild(link);
-
-        // Create other monster data cells
-        const hpCell = document.createElement('td');
-        hpCell.classList.add('text-center');
-        hpCell.textContent = monster.hp || '-';
-
-        const maxHpCell = document.createElement('td');
-        maxHpCell.classList.add('text-center');
-        maxHpCell.textContent = monster.max_hp || '-';
-
-        const depthCell = document.createElement('td');
-        depthCell.classList.add('text-center');
-        depthCell.textContent = monster.depth || '-';
-
-        const defenseCell = document.createElement('td');
-        defenseCell.classList.add('text-center');
-        defenseCell.textContent = monster.defense || '-';
-
-        const accuracyCell = document.createElement('td');
-        accuracyCell.classList.add('text-center');
-        accuracyCell.textContent = monster.accuracy || '-';
-
-        const damageCell = document.createElement('td');
-        damageCell.classList.add('text-center');
-        damageCell.textContent = `${monster.damage_min || 'N/A'} - ${monster.damage_max || 'N/A'}`;
-
-        const turnsRegenCell = document.createElement('td');
-        turnsRegenCell.classList.add('text-center');
-        turnsRegenCell.textContent = monster.turns_between_regen || '-';
-
-        const movementSpeedCell = document.createElement('td');
-        movementSpeedCell.classList.add('text-center');
-        movementSpeedCell.textContent = monster.movement_speed || '-';
-
-        const attackSpeedCell = document.createElement('td');
-        attackSpeedCell.classList.add('text-center');
-        attackSpeedCell.textContent = monster.attack_speed || '-';
-
-        const idCell = document.createElement('td');
-        idCell.classList.add('text-center');
-        idCell.textContent = monster.id || '-';
-
-        const typeCell = document.createElement('td');
-        typeCell.classList.add('text-center');
-        typeCell.textContent = monster.type || '-';
-
-        // Append all cells to the row
-        row.appendChild(nameCell);
-        row.appendChild(hpCell);
-        row.appendChild(maxHpCell);
-        row.appendChild(depthCell);
-        row.appendChild(defenseCell);
-        row.appendChild(accuracyCell);
-        row.appendChild(damageCell);
-        row.appendChild(turnsRegenCell);
-        row.appendChild(movementSpeedCell);
-        row.appendChild(attackSpeedCell);
-        row.appendChild(idCell);
-        row.appendChild(typeCell);
-
-        // Append the row to the table body
-        activeTableBody.appendChild(row);
+        activeTableBody.appendChild(createMonsterRow(monster));
     });
 
     // Update dead monsters table (similar to the above method)
     deadMonsters.forEach(monster => {
         const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.classList.add('text-center');
-        nameCell.textContent = monster.name || '';
-
-        const depthCell = document.createElement('td');
-        depthCell.classList.add('text-center');
-        depthCell.textContent = monster.depth || '';
-
-        const hpCell = document.createElement('td');
-        hpCell.classList.add('text-center');
-        hpCell.textContent = `${monster.hp || '0'} / ${monster.max_hp || ''}`;
-
-        const idCell = document.createElement('td');
-        idCell.classList.add('text-center');
-        idCell.textContent = monster.id || '';
-
-        row.appendChild(nameCell);
-        row.appendChild(depthCell);
-        row.appendChild(hpCell);
-        row.appendChild(idCell);
+        row.appendChild(createTableCell(monster.name));
+        row.appendChild(createTableCell(monster.depth));
+        row.appendChild(createTableCell(`${monster.hp || '0'} / ${monster.max_hp || ''}`));
+        row.appendChild(createTableCell(monster.id));
         deadTableBody.appendChild(row);
     });
 
     // Update all monsters table (similar to the above method)
     allMonsters.forEach(monster => {
-        const row = document.createElement('tr');
-
-        // Apply a red background if the monster is dead
-        if (monster.is_dead) {
-            row.classList.add('bg-red-200'); // Tailwind class for light red background
-        }
-
-        const nameCell = document.createElement('td');
-        nameCell.classList.add('text-center');
-        nameCell.textContent = monster.name || '-';
-
-        const hpCell = document.createElement('td');
-        hpCell.classList.add('text-center');
-        hpCell.textContent = monster.is_dead ? '0' : monster.hp || '';  // Set to 0 if dead, else show HP
-
-        const maxHpCell = document.createElement('td');
-        maxHpCell.classList.add('text-center');
-        maxHpCell.textContent = monster.max_hp || '-';
-
-        const depthCell = document.createElement('td');
-        depthCell.classList.add('text-center');
-        depthCell.textContent = monster.depth || '-';
-
-        const defenseCell = document.createElement('td');
-        defenseCell.classList.add('text-center');
-        defenseCell.textContent = monster.defense || '-';
-
-        const accuracyCell = document.createElement('td');
-        accuracyCell.classList.add('text-center');
-        accuracyCell.textContent = monster.accuracy || '-';
-
-        const damageCell = document.createElement('td');
-        damageCell.classList.add('text-center');
-        damageCell.textContent = `${monster.damage_min || 'N/A'} - ${monster.damage_max || 'N/A'}`;
-
-        const movementSpeedCell = document.createElement('td');
-        movementSpeedCell.classList.add('text-center');
-        movementSpeedCell.textContent = monster.movement_speed || '-';
-
-        const attackSpeedCell = document.createElement('td');
-        attackSpeedCell.classList.add('text-center');
-        attackSpeedCell.textContent = monster.attack_speed || '-';
-
-        const idCell = document.createElement('td');
-        idCell.classList.add('text-center');
-        idCell.textContent = monster.id || '-';
-
-        const typeCell = document.createElement('td');
-        typeCell.classList.add('text-center');
-        typeCell.textContent = monster.type || '-';
-
-        row.appendChild(nameCell);
-        row.appendChild(hpCell);
-        row.appendChild(maxHpCell);
-        row.appendChild(depthCell);
-        row.appendChild(defenseCell);
-        row.appendChild(accuracyCell);
-        row.appendChild(damageCell);
-        row.appendChild(movementSpeedCell);
-        row.appendChild(attackSpeedCell);
-        row.appendChild(idCell);
-        row.appendChild(typeCell);
-        allTableBody.appendChild(row);
+        allTableBody.appendChild(createMonsterRow(monster, monster.is_dead));
     });
 }
 

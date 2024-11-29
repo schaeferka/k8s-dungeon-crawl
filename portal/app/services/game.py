@@ -83,7 +83,7 @@ class GameService:
     """
 
     @staticmethod
-    def update_game_state(data: dict):
+    def update_game_state(data: dict) -> dict:
         """
         Update the game state with the provided data.
 
@@ -119,7 +119,7 @@ class GameService:
             return {"status": "error", "message": str(e)}
 
     @staticmethod
-    def update_game_stats(data: dict):
+    def update_game_stats(data: dict) -> dict:
         """
         Update the game statistics with the provided data.
 
@@ -152,35 +152,45 @@ class GameService:
             return {"status": "error", "message": str(e)}
 
     @staticmethod
-    def reset_game_state():
+    def reset_game_state() -> dict:
         """
         Reset the game state for a new game.
 
         This method clears the in-memory storage for the game state, preparing the system for a
-        fresh game session.
+        fresh game session. It also resets the Prometheus metrics for the game state.
 
         Returns:
             dict: A dictionary containing the status of the reset operation.
         """
         game_state_data.clear()
+        reward_rooms_generated.set(0)
+        monster_spawn_fuse.set(0)
+        gold_generated.set(0)
+        absolute_turn_number.set(0)
+        milliseconds_since_launch.set(0)
+        game_has_ended.set(0)
         return {"status": "success", "message": "Game state reset successfully."}
 
     @staticmethod
-    def reset_game_stats():
+    def reset_game_stats() -> dict:
         """
         Reset the game statistics.
 
         This method clears the in-memory storage for game statistics, ensuring the metrics start
-        fresh for a new game session.
+        fresh for a new game session. It also resets the Prometheus metrics for the game statistics.
 
         Returns:
             dict: A dictionary containing the status of the reset operation.
         """
         game_stats_data.clear()
+        games_played.clear()
+        games_won.clear()
+        deepest_level_reached.set(0)
+        cumulative_gold_collected.set(0)
         return {"status": "success", "message": "Game stats reset successfully."}
 
     @staticmethod
-    def get_game_state():
+    def get_game_state() -> dict:
         """
         Retrieve the current game state.
 
@@ -192,7 +202,7 @@ class GameService:
         return game_state_data
 
     @staticmethod
-    def get_game_stats():
+    def get_game_stats() -> dict:
         """
         Retrieve the current game statistics.
 

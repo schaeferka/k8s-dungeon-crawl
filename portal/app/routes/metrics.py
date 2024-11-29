@@ -5,8 +5,11 @@ The blueprint exposes a single route that serves the application metrics in a fo
 suitable for Prometheus scraping. This allows Prometheus to collect and monitor the
 metrics exposed by the application.
 
+Endpoints:
+- /: Serves the Prometheus metrics.
+
 Returns:
-    None: This module does not return values directly but defines routes for Flask application.
+    None: This module does not return values directly but defines routes for the Flask application.
 """
 from flask import Blueprint
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
