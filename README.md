@@ -5,7 +5,7 @@ https://github.com/user-attachments/assets/ae13b259-fa0b-4161-b454-37eb7a2d2faf
 _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from your Grafana dashboard_
 
 ## Introduction
-Welcome to **K8s Dungeon Crawl**, a thrilling adventure that combines the excitement of rogue-like dungeon crawling with the power of cloud-native technologies. This project is a playful experiment that bridges the worlds of gaming and Kubernetes, showing how modern infrastructure can be adapted to novel use cases.
+Welcome to **K8s Dungeon Crawl**, a thrilling adventure that combines the excitement of rogue-like dungeon crawling with the power of cloud-native technologies. This project is a playful experiment that bridges the worlds of gaming and Kubernetes, showing how modern infrastructure can be adapted to novel use cases. Whether you're a Kubernetes wizard or a fan of rogue-like games, this project is an entertaining way to dive deep into cloud-native technologies while fighting monsters and exploring dungeons!
 
 At its core, K8s Dungeon Crawl uses a Kubernetes cluster to simulate and manage game elements, such as monsters and players, while integrating with tools like Grafana and Prometheus for visualization and metrics. It showcases Kubernetes custom resources, controllers, and validating and mutating webhooks.
 
@@ -14,6 +14,7 @@ Key features of the project:
 - **Dynamic Event Handling**: Game events, like monster creation and destruction, trigger automated infrastructure changes.
 - **Observability**: Prometheus and Grafana provide insights into the game’s state, displaying metrics such as player health, dungeon level, and monster counts.
 - **Cloud-Native Tools**: Integrations with NGINX and Kubernetes controllers make this a fully cloud-native experience.
+- **Modified BrogueCE Game**: The classic rouge-like dungeon crawler BrogueCE was adapted for this project. What could be better than mixing classic games with cloud-native technologies?
 
 ## Getting Started
 
@@ -23,6 +24,15 @@ To embark on this adventure, ensure you have the following installed:
 - **kubectl**: For Kubernetes commands
 - **Docker**: For building and running container images.
 - **Kubebuilder**: To manage the custom controller.
+
+If you don't already have them set up, you can get all the details at:
+
+- Install k3d
+- Install kubectl
+- Install Docker
+- Install Kubebuilder
+
+Note: I've only tested the project on an Apple Silicon Mac. Other setups may require adjustments in how you build and deploy the project.
 
 ### Installation Steps
 1. Clone the repository:
@@ -34,16 +44,14 @@ To embark on this adventure, ensure you have the following installed:
 2. Deploy the Kubernetes cluster and core components: 
 
    ```bash
-   npm i
-   ```
-
-   ```bash
-   npm run start
+   npm install  # Installs dependencies
+   npm run start  # Builds and deploys everything: cluster, resources, images
    ```
 
 ### Running the Project
 
 To start the entire project, you can use the following command:
+
 ```bash
 npm run start
 ```
@@ -52,6 +60,8 @@ This command performs the following steps:
 1. Reset the Cluster: Deletes any existing cluster named k8s-dungeon-crawl and creates a new one with the same name.
 2. Build and Import Images: Builds Docker images for the game, portal, and controller, and imports them into the cluster.
 3. Deploy Resources: Deploys the game, portal, Grafana, Prometheus, and controller resources to the cluster.
+
+Once the project is running, you can keep an eye on the game world through Grafana, the Portal at http://localhost:5000, and Prometheus dashboards. It’s like watching a dungeon unfold in real time… with added Kubernetes magic!
 
 ### Deployment Process
 Here is a breakdown of what each script does in the deployment process:
@@ -95,18 +105,50 @@ Checks if the required ports are available before starting the deployment.
 
 After running npm run start, you can access the following services:
 
-noVNC Viewer: [http://localhost:8090](http://localhost:8090)
+noVNC Viewer: [http://localhost:6080](http://localhost:6080)
+Play BrogueCE directly in your browser (no VNC client needed!).
 
 Grafana Dashboard: [http://localhost:3000](http://localhost:3000)
+Watch your dungeon adventure metrics unfold (health, gold, monster counts, and more) as you play the game directly from the dashboard.
 
 Prometheus UI: [http://localhost:9090](http://localhost:9090)
+Dive deep into the raw metrics powering your game.
 
 Portal Dashboard: [http://localhost:5000](http://localhost:5000)
+Flask powered dashboard with a monster tracker, player details (including equipped items and pack inventory), game state, and overall game stats. 
 
 Portal Metrics: [http://localhost:5000/metrics](http://localhost:5000/metrics)
+Easy access to key Portal endpoints.
 
 
 ## Architecture Overview
+
+```mermaid
+graph TD
+    A["`Game Server (Brogue Game)`"] --> B["`noVNC (Visual Output)`"]
+    A --> C["`Portal (API & Event Processor)`"]
+    C --> D["`Prometheus (Metrics Scraping)`"]
+    D --> E["`Grafana (Visualization)`"]
+    C --> F["`Monster CRD (Custom Resource)`"]
+    F --> G["`NGINX Deployment (Monster Page)`"]
+    G --> H["`Kubernetes Cluster (Controllers, Services, Deployments)`"]
+    H --> I["`Monster Controller (Watches CRD)`"]
+    I --> G
+    F --> I
+    C --> J["`Metrics Endpoint (for Prometheus)`"]
+    J --> D
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ccf,stroke:#333,stroke-width:2px
+    style C fill:#cfc,stroke:#333,stroke-width:2px
+    style D fill:#ffcc99,stroke:#333,stroke-width:2px
+    style E fill:#ffcc99,stroke:#333,stroke-width:2px
+    style F fill:#fcc,stroke:#333,stroke-width:2px
+    style G fill:#ccc,stroke:#333,stroke-width:2px
+    style H fill:#def,stroke:#333,stroke-width:2px
+    style I fill:#def,stroke:#333,stroke-width:2px
+    style J fill:#ff0,stroke:#333,stroke-width:2px
+```
 
 ### Core Components
 
@@ -128,8 +170,10 @@ The `Monster` custom resource represents monsters in the game. A Kubebuilder-bas
 - **Grafana**: Visualizes game state metrics on a custom dashboard.
 
 ### Event Flow
+Imagine you're playing Brogue. A kobold spawns in the game, and immediately, Kubernetes is alerted to deploy a new monster page with the kobold's details. Meanwhile, Prometheus is busy scraping the stats of your progress through the dungeon for Grafana to visualize, letting you track your progress in real time. Who says Kubernetes can't be a dungeon master?
+
 1. **Monster Creation**:
-   - The game server generates send a POST message to the Portal.
+   - The game server generates and sends a POST message to the Portal.
    - The Portal creates a CRD to represent the monster.
    - The Kubernetes controller then creates an NGINX deployment with customized content for the index page with information about the monster.
 
@@ -179,6 +223,8 @@ The controller:
 
 ## Observability
 
+Observe your dungeon in real time with Prometheus and Grafana. Watch your player’s health fluctuate and see the dungeon’s monster population grow. It’s like having a dungeon map with live updates.
+
 #### Grafana Dashboard
 - Player information such as health and gold are displayed as live metrics.
 - Dungeon level and monster counts are updated in real-time.
@@ -219,19 +265,21 @@ Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 
 ## Next Steps
 
-- [ ] Implement deleting monster in game if monster deployment deleted.
-- [ ] Implement creating monsters based on pods in "monstie" namespace.
-- [ ] Implement player bonuses based on killing monsties.
-- [ ] Add architecture diagram.
-- [ ] Add event flow diagram.
-- [ ] Implement persistent storage.
-- [ ] Add more detailed metrics for player actions.
-- [ ] Improve the Grafana dashboard with more visualizations.
-- [ ] Write more unit tests for the custom controller.
-- [ ] Document the API endpoints in detail.
+- [ ] Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game (because even monsters deserve a peaceful exit).
+- [ ] Implement creating monsters based on pods in "monstie" namespace (because randomly destroying real pods in your cluster is always fun).
+- [ ] Implement player bonuses based on killing monsties (because stat bonuses are always good).
+- [ ] Add architecture diagram (because understanding the dungeon’s structure is key to slaying the monsters).
+- [ ] Add event flow diagram (because even the dungeon’s chaos needs a bit of order).
+- [ ] Implement persistent storage (because the Dungeon of Doom shouldn't just disappear).
+- [ ] Add more detailed metrics for player actions (because everyone needs something to brag about to their gamer friends).
+- [ ] Improve the Grafana dashboard with more visualizations (because who wouldn't want to see more metrics).
+- [ ] Write more unit tests for the custom controller (because testing is fun).
+- [ ] Document the API endpoints in detail (because no one likes to hunt through source code to figure these things out).
+- [ ] Create Helm chart (because Kubernetes isn’t scary, it’s just a little bit of YAML).
+- [ ] Test deploying on AWS, Azure, and Google Cloud (because the Dungeon of Doom deserves to exist in the cloud and not just on your dev machine).
 
 ## Contributions
-Contributions are welcome! If you have ideas to expand the project or fix bugs, feel free to open an issue or submit a pull request.
+I'm always happy to have adventurers join my quest! If you’ve got ideas for expanding the game, fixing bugs, or just making things more epic, feel free to open an issue or submit a pull request. No experience with Kubernetes? No problem. Let’s tackle this dungeon together!
 
 ## License
 This project is licensed under the Apache License 2.0. See the LICENSE file for details.
