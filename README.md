@@ -1,5 +1,7 @@
 # K8s Dungeon Crawl
 
+[![K8s Dungeon Crawl - Grafana Dashboard](https://raw.githubusercontent.com/schaefer/k8s-dungeon-crawl/main/assets/Kubernetes_Dungeon_Crawl_Grafana_Dashboard.png)](https://raw.githubusercontent.com/schaeferka/k8s-dungeon-crawl/main/assets/Kubernetes_Dungeon_Crawl_Grafana_Dashboard.mov)
+
 ## Introduction
 Welcome to **K8s Dungeon Crawl**, a thrilling adventure that combines the excitement of rogue-like dungeon crawling with the power of cloud-native technologies. This project is a playful experiment that bridges the worlds of gaming and Kubernetes, showing how modern infrastructure can be adapted to novel use cases.
 
