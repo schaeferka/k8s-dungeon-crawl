@@ -10,7 +10,7 @@ async function fetchPlayerData() {
         const itemsData = await itemsResponse.json();
         const packData = await packResponse.json();
 
-        const combinedData = { ...playerData, ...itemsData, pack: packData.pack || {} };
+        const combinedData = { ...playerData, ...itemsData, pack:packData.pack || {} };
         
         updatePlayerInfo(combinedData);
     } catch (error) {

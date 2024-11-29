@@ -150,25 +150,16 @@ echo "Starting port forwarding for $RESOURCE..."
 
 # Example for Prometheus port-forwarding
 if [[ "$RESOURCE" == "prometheus" ]]; then
-    echo "Starting port forwarding for Grafana..."
-    tmux has-session -t prometheus_port_forward 2>/dev/null
-    if [ $? != 0 ]; then
-        tmux new-session -d -s prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-    else
-        tmux send-keys -t prometheus_port_forward "kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
-    fi
+    echo "Starting port forwarding for Prometheus..."
+    kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 &
     echo "Port forwarding started for $RESOURCE."
     echo "Prometheus service is available at http://localhost:$KDC_LOCAL_PORT_9090"
 fi
 
 # Example for Brogue service port-forwarding
 if [[ "$RESOURCE" == "game" ]]; then
-    tmux has-session -t game_port_forward 2>/dev/null
-    if [ $? != 0 ]; then
-        tmux new-session -d -s game_port_forward "kubectl port-forward service/game-service -n $NAMESPACE $KDC_LOCAL_PORT_8090:8090 $KDC_LOCAL_PORT_5910:5910 $KDC_LOCAL_PORT_8010:8010 > brogue-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-    else
-        tmux send-keys -t game_port_forward "kubectl port-forward service/game-service -n $NAMESPACE $KDC_LOCAL_PORT_8090:8090 $KDC_LOCAL_PORT_5910:5910 $KDC_LOCAL_PORT_8010:8010 > brogue-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
-    fi
+    echo "Starting port forwarding for Game..."
+    kubectl port-forward service/game-service -n $NAMESPACE $KDC_LOCAL_PORT_8090:8090 $KDC_LOCAL_PORT_5910:5910 $KDC_LOCAL_PORT_8010:8010 > brogue-port-forward.log 2>&1 &
     echo "Port forwarding started for $RESOURCE."
     echo "Game service is available at http://localhost:$KDC_LOCAL_PORT_8090"  # noVNC
     echo "Game is available with VNC at http://localhost:$KDC_LOCAL_PORT_5910"
@@ -177,24 +168,16 @@ fi
 
 # Example for Portal service port-forwarding
 if [[ "$RESOURCE" == "portal" ]]; then
-    tmux has-session -t portal_port_forward 2>/dev/null
-    if [ $? != 0 ]; then
-        tmux new-session -d -s portal_port_forward "kubectl port-forward service/portal-service -n $NAMESPACE $KDC_LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-    else
-        tmux send-keys -t portal_port_forward "kubectl port-forward service/portal-service -n $NAMESPACE $KDC_LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
-    fi
+    echo "Starting port forwarding for Portal..."
+    kubectl port-forward service/portal-service -n $NAMESPACE $KDC_LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 &
     echo "Port forwarding started for $RESOURCE."
     echo "Portal service is available at http://localhost:$KDC_LOCAL_PORT_5000"
 fi
 
 # Example for Grafana service port-forwarding
 if [[ "$RESOURCE" == "grafana" ]]; then
-    tmux has-session -t grafana_port_forward 2>/dev/null
-    if [ $? != 0 ]; then
-        tmux new-session -d -s grafana_port_forward "kubectl port-forward service/grafana-service -n $NAMESPACE $KDC_LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
-    else
-        tmux send-keys -t grafana_port_forward "kubectl port-forward service/grafana-service -n $NAMESPACE $KDC_LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log" C-m
-    fi
+    echo "Starting port forwarding for Grafana..."
+    kubectl port-forward service/grafana-service -n $NAMESPACE $KDC_LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 &
     echo "Port forwarding started for $RESOURCE."
     echo "Grafana service is available at http://localhost:$KDC_LOCAL_PORT_3000"
 fi

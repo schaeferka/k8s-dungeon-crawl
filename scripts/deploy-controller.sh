@@ -86,6 +86,7 @@ else
   exit 1
 fi
 
-tmux new-session -d -s traefik_port_forward "kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 || echo 'Port-forwarding failed' > tmux-error.log"
+kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 &
+
 
 echo "CRD and Controller deployment complete!"
