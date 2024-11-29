@@ -11,8 +11,11 @@
 #define BUFFER_SIZE 16384
 #define PACK_CAPACITY 26
 
-// Declare previous pack items
-static item previous_pack_items[PACK_CAPACITY] = {0};
+// Define inventory items
+InventoryItem inventoryItems[PACK_CAPACITY] = {0};
+
+// Declare previous inventory items
+static item previous_inventory_items[PACK_CAPACITY] = {0};
 
 // Declare previous equipped items
 static EquippedItems previous_equipped_items = {0};
@@ -57,6 +60,11 @@ void send_equipped_items_to_portal(void) {
         // Generate and send equipped items JSON
         char equipped_json[BUFFER_SIZE];
         generate_equipped_items_json(&items, equipped_json, sizeof(equipped_json));
+
+        printf("EQUIPPED Sending equipped items to portal...\n\n");
+        printf("%s\n\n", equipped_json);
+        send_pack_to_portal(equipped_json);
+
         send_items_to_portal(equipped_json);
 
         // Update previous equipped items
@@ -178,17 +186,18 @@ void generate_equipped_items_json(const EquippedItems *items, char *buffer, size
 }
 
 /**
- * @brief Check if the pack items have changed since the last update.
+ * @brief Check if the inventory items have changed since the last update.
  */
-static bool is_pack_items_changed(void) {
-    return (memcmp(packItems, previous_pack_items, sizeof(item) * PACK_CAPACITY) != 0);
+static bool is_inventory_items_changed(void) {
+    return (memcmp(inventoryItems, previous_inventory_items, sizeof(InventoryItem) * PACK_CAPACITY) != 0);
 }
 
 /**
- * @brief Sends the pack items to the portal.
+ * @brief Sends the inventory items to the portal.
  */
 void send_pack_items_to_portal(void) {
-    if (!rogue.gameHasEnded && is_pack_items_changed()) {
+    printf("PACK Sending pack items to portal...\n\n");
+    if (!rogue.gameHasEnded) {
         size_t buffer_size = 16384;
         char *post_data = malloc(buffer_size);
         if (post_data == NULL) {
@@ -196,17 +205,17 @@ void send_pack_items_to_portal(void) {
             return;
         }
 
-        snprintf(post_data, buffer_size, "{\"pack\":");
+        // Zero out the buffer to avoid leftover characters
+        memset(post_data, 0, buffer_size);
 
         generate_pack_items_json(post_data + strlen(post_data), buffer_size - strlen(post_data));
 
-        // Close JSON object
-        strncat(post_data, "}", buffer_size - strlen(post_data) - 1);
-
+        printf("PACK Sending pack items to portal...\n\n");
+        printf("%s\n\n", post_data);
         send_pack_to_portal(post_data);
 
-        // Update previous pack items
-        memcpy(previous_pack_items, packItems, sizeof(item) * PACK_CAPACITY);
+        // Update previous inventory items
+        memcpy(previous_inventory_items, inventoryItems, sizeof(InventoryItem) * PACK_CAPACITY);
 
         free(post_data);
     }
@@ -220,8 +229,8 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
         item *current_item = packItems;
         size_t offset = 0;
 
-        // Start the JSON array
-        offset += snprintf(buffer + offset, buffer_size - offset, "[");
+        // Start the JSON object and array
+        offset += snprintf(buffer + offset, buffer_size - offset, "{\"pack\":[");
 
         while (current_item && offset < buffer_size - 1) {
             const char *item_description = "No description available";
@@ -306,7 +315,7 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
             current_item = current_item->nextItem;
         }
 
-        // End the JSON array
-        snprintf(buffer + offset, buffer_size - offset, "]");
+        // End the JSON array and object
+        snprintf(buffer + offset, buffer_size - offset, "]}");
     }
 }

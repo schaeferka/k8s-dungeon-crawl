@@ -29,8 +29,8 @@ typedef struct {
     short quantity;
     char inventoryLetter;
     char inscription[DCOLS];
-} PackItem;
-extern PackItem packItem;
+} InventoryItem;
+extern InventoryItem inventoryItems[26];
 
 /**
  * @brief Updates all items and sends them to the portal if necessary.

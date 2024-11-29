@@ -10,7 +10,7 @@ async function fetchPlayerData() {
         const itemsData = await itemsResponse.json();
         const packData = await packResponse.json();
 
-        const combinedData = { ...playerData, ...itemsData, pack: packData.pack || [] };
+        const combinedData = { ...playerData, ...itemsData, pack: packData.pack || {} };
         
         updatePlayerInfo(combinedData);
     } catch (error) {
@@ -103,8 +103,8 @@ function updatePlayerInfo(playerInfo) {
     });
 
     // Populate Inventory section with items from the pack
-    if (playerInfo.pack && playerInfo.pack.length > 0) {
-        playerInfo.pack.forEach(item => {
+    if (playerInfo.pack && Object.keys(playerInfo.pack).length > 0) {
+        Object.values(playerInfo.pack).forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.classList.add('item-section');
             itemDiv.classList.add('border', 'p-4', 'rounded', 'my-2', 'shadow-lg');

@@ -14,7 +14,6 @@ Returns:
 """
 from typing import Optional, List
 from pydantic import BaseModel
-from flask import current_app
 
 class Damage(BaseModel):
     """
@@ -50,7 +49,8 @@ class Item(BaseModel):
         charges (Optional[int]): The number of charges left for items like scrolls or potions.
         times_enchanted (Optional[int]): The number of times the item has been enchanted.
         strength_required (Optional[int]): The strength required to equip the item.
-        inventory_letter (Optional[str]): The letter representing the item in the player's inventory.
+        inventory_letter (Optional[str]): The letter representing the item in the player's
+            inventory.
         origin_depth (Optional[int]): The depth at which the item was found in the game world.
         enchant1 (Optional[str]): The first enchantment applied to the item. Defaults to "None".
         enchant2 (Optional[str]): The second enchantment applied to the item. Defaults to "None".
@@ -133,4 +133,3 @@ class Items(BaseModel):
     """
     equipped_items: Optional[EquippedItems] = None
     pack_items: Optional[Pack] = None
-
