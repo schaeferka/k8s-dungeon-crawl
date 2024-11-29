@@ -1,6 +1,7 @@
 # K8s Dungeon Crawl
 
 https://github.com/user-attachments/assets/ae13b259-fa0b-4161-b454-37eb7a2d2faf
+
 _Yes, you really can play Brogue from your Grafana dashboard_
 
 ## Introduction
