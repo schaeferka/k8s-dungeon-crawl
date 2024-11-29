@@ -170,14 +170,33 @@ The controller:
 
 #### Prometheus Metrics
 The Portal exposes metrics in the following format:
-```json
-{
-  "gold": 50,
-  "health": 100,
-  "dungeon_level": 2,
-  "monster_count": 5
+```bash
+  # HELP brogue_player_gold Amount of gold collected by the player
+   # TYPE brogue_player_gold gauge
+   brogue_player_gold 247.0
+   # HELP brogue_depth_level Current depth level of the player
+   # TYPE brogue_depth_level gauge
+   brogue_depth_level 5.0
+   # HELP brogue_deepest_level Deepest level reached by the player
+   # TYPE brogue_deepest_level gauge
+   brogue_deepest_level 7.0
+   # HELP brogue_player_current_hp Current hit points of the player
+   # TYPE brogue_player_current_hp gauge
+   brogue_player_current_hp 23.0
+   # HELP brogue_player_max_hp Maximum hit points of the player
+   # TYPE brogue_player_max_hp gauge
+   brogue_player_max_hp 30.0
+   # HELP brogue_strength Player’s strength
+   # TYPE brogue_strength gauge
+   brogue_strength 13.0
+   # HELP brogue_stealth_range Distance from which monsters will notice the player
+   # TYPE brogue_stealth_range gauge
+   brogue_stealth_range 8.0
+   # HELP brogue_player_turns Total turns played by the player
+   # TYPE brogue_player_turns gauge
+   brogue_player_turns 435.0
+
   /// And many more metrics...
-}
 ```
 Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 
