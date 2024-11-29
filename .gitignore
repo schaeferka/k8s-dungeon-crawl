@@ -21,6 +21,7 @@ gmon.out
 
 # Ignore all .log files in any directory
 *.log
+log.file
 
 # Ignore all .env files in any directory
 *.env
