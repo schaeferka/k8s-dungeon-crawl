@@ -26,7 +26,9 @@ _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from y
 - [Monster CRD](#monster-crd)
 - [Custom Controller Logic](#custom-controller-logic)
 - [Observability](#observability)
+- [BrogueCE Modifications](#broguece-modifications)
 - [Next Steps](#next-steps)
+- [Inspiration](#inspiration)
 - [Contributions](#contributions)
 - [License](#license)
 
@@ -356,17 +358,6 @@ The controller:
 ## Observability
 
 Observe your dungeon in real time with Prometheus and Grafana. Watch your player’s health fluctuate and see the dungeon’s monster population grow. It’s like having a dungeon map with live updates.
-
-<div align="center">
-  <img src="./assets/KDC_Portal.png" alt="KDC Portal" style="width:30%; margin: 10px;">
-  <img src="./assets/KDC_Portal_Monster_Tracker.png" alt="KDC Portal Monster Tracker" style="width:30%; margin: 10px;">
-  <img src="./assets/KDC_Monster_Page.png" alt="KDC Monster Page" style="width:30%; margin: 10px;">
-</div>
-
-<div align="center">
-  <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:45%; margin: 10px;">
-  <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:45%; margin: 10px;">
-</div>
 
 #### Grafana Dashboard
 
