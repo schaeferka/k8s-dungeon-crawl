@@ -8,6 +8,28 @@ https://github.com/user-attachments/assets/ae13b259-fa0b-4161-b454-37eb7a2d2faf
 
 _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from your Grafana dashboard_
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation Steps](#installation-steps)
+  - [Running the Project](#running-the-project)
+  - [Deployment Process](#deployment-process)
+- [Accessing Services](#accessing-services)
+- [Architecture Overview](#architecture-overview)
+- [Core Components](#core-components)
+  - [The Game Server](#1-the-game-server)
+  - [The Portal](#2-the-portal)
+  - [Custom Resources and Controller](#3-custom-resources-and-controller)
+  - [Prometheus and Grafana](#3-prometheus-and-grafana)
+- [Event Flow](#event-flow)
+- [Monster CRD](#monster-crd)
+- [Custom Controller Logic](#custom-controller-logic)
+- [Observability](#observability)
+- [Next Steps](#next-steps)
+- [Contributions](#contributions)
+- [License](#license)
+
 ## Introduction
 
 Welcome to **K8s Dungeon Crawl**, a thrilling adventure that combines the excitement of rogue-like dungeon crawling with the power of cloud-native technologies. This project is a playful experiment that bridges the worlds of gaming and Kubernetes, showing how modern infrastructure can be adapted to novel use cases. Whether you're a Kubernetes wizard or a fan of rogue-like games, this project is an entertaining way to dive deep into cloud-native technologies while fighting monsters and exploring dungeons!
