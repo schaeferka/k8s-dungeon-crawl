@@ -422,7 +422,7 @@ This project wouldn't be possible without the amazing [BrogueCE](https://github.
 - [ ] Implement persistent storage (because the Dungeon of Doom shouldn't just disappear).
 - [ ] Add more detailed metrics for player actions (because everyone needs something to brag about to their gamer friends).
 - [ ] Improve the Grafana dashboard with more visualizations (because who wouldn't want to see more metrics).
-- [ ] Write more unit tests for the custom controller (because testing is fun).
+- [ ] Write more tests (because testing is fun).
 - [ ] Document the API endpoints in detail (because no one likes to hunt through source code to figure these things out).
 - [ ] Create Helm chart (because Kubernetes isn’t scary, it’s just a little bit of YAML).
 - [ ] Add mutating and validating webhooks (because such magic belongs in the Dungeon of Doom).
