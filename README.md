@@ -261,8 +261,8 @@ Also included are web pages to help you monitor what's happening in the game.
 </div>
 
 <div align="center">
-  <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:45%; margin: 10px;">
-  <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:45%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:30%; margin: 10px;">
 </div>
 
 #### **3. Custom Resources and Controller**
@@ -442,4 +442,4 @@ This project is licensed under the Apache License 2.0. See the LICENSE file for 
 
 ---
 
-<span style="font-size:2em; font-weight:bold;">Let the dungeon crawl begin!</span>
+# Let the dungeon crawl begin!
