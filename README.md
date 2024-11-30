@@ -417,6 +417,10 @@ The Portal exposes metrics in the following format:
 
 Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 
+## BrogueCE Modifications
+
+This project wouldn't be possible without the amazing [BrogueCE](https://github.com/tmewett/BrogueCE) game. Most of the modifications I made can be found in the [`./game/src/portal`](./game/src/portal/) folder with minor changes in other sections as needed to get everything up and running.
+
 ## Next Steps
 
 - [ ] Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game (because even monsters deserve a peaceful exit).
@@ -432,6 +436,10 @@ Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 - [ ] Create Helm chart (because Kubernetes isn’t scary, it’s just a little bit of YAML).
 - [ ] Add mutating and validating webhooks (because such magic belongs in the Dungeon of Doom).
 - [ ] Test deploying on AWS, Azure, and Google Cloud (because the Dungeon of Doom deserves to exist in the cloud and not just on your dev machine).
+
+## Inspiration
+
+Lately I've been spending a lot of time working with Kubernetes and cloud-native technologies. Along the way, I ran into [KubeDoom](https://github.com/storax/kubedoom) which inspired me to find a fun way to explore Kubernetes and cloud-native technologies. Being able to have fun with CRDs, controllers, and validating and mutating webhooks is an added bonus. One thing led to another and the result is K8s Dungeon Crawl.
 
 ## Contributions
 
