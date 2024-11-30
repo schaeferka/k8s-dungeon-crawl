@@ -3,42 +3,37 @@
 {% block title %}Player Information{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <h1 class="text-3xl font-bold text-gray-800 text-center">Player Information</h1>
+<div class="space-y-6">
+    <h1 class="text-2xl font-semibold text-gray-800 text-center">Player Information</h1>
 
-    <!-- Player Information Sections -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- First Column: Player Stats and Modifiers -->
-        <div class="space-y-6">
-            <div class="p-6 border rounded-lg bg-white shadow">
-                <h2 class="text-xl font-semibold text-gray-700 text-center">Player Stats</h2>
-                <div id="player-stats" class="mt-4">
-                    <!-- JavaScript will populate this area -->
-                </div>
+        <section class="bg-white p-6 rounded shadow" id="player-stats-section">
+            <h2 class="text-xl font-semibold text-gray-700 text-center mb-4">Player Stats</h2>
+            <div id="player-stats" class="text-gray-600 bg-gray-50 p-4 border rounded shadow-sm">
+                <!-- JavaScript will populate this area -->
             </div>
-            <div class="p-6 border rounded-lg bg-white shadow">
-                <h2 class="text-xl font-semibold text-gray-700 text-center">Modifiers</h2>
-                <div id="modifiers" class="mt-4">
-                    <!-- JavaScript will populate this area -->
-                </div>
+            <h2 class="text-xl font-semibold text-gray-700 text-center mt-6 mb-4">Modifiers</h2>
+            <div id="modifiers" class="text-gray-600 bg-gray-50 p-4 border rounded shadow-sm">
+                <!-- JavaScript will populate this area -->
             </div>
-        </div>
+        </section>
 
         <!-- Second Column: Equipped Items -->
-        <div class="p-6 border rounded-lg bg-white shadow">
-            <h2 class="text-xl font-semibold text-gray-700 text-center">Equipped Items</h2>
-            <div id="items" class="mt-4">
+        <section class="bg-white p-6 rounded shadow" id="items-section">
+            <h2 class="text-xl font-semibold text-gray-700 text-center mb-4">Equipped Items</h2>
+            <div id="items">
                 <!-- JavaScript will populate this area -->
             </div>
-        </div>
+        </section>
 
         <!-- Third Column: Inventory -->
-        <div class="p-6 border rounded-lg bg-white shadow">
-            <h2 class="text-xl font-semibold text-gray-700 text-center">Inventory</h2>
-            <div id="inventory-items" class="mt-4">
+        <section class="bg-white p-6 rounded shadow" id="inventory-section">
+            <h2 class="text-xl font-semibold text-gray-700 text-center mb-4">Pack Inventory</h2>
+            <div id="inventory-items">
                 <!-- JavaScript will populate this area -->
             </div>
-        </div>
+        </section>
     </div>
 </div>
 {% endblock %}

@@ -52,11 +52,22 @@ func generateHTMLContent(monster v1.Monster) string {
 				<div class="bg-white p-6 rounded-lg shadow-lg">
 					<h2 class="text-2xl font-bold text-blue-900 mb-4">Monster: %s</h2>
 					<ul class="list-disc pl-6 space-y-2">
-						<li><strong>ID:</strong> %s</li>
+						<li><strong>ID:</strong> %d</li>
 						<li><strong>Type:</strong> %s</li>
-						<li><strong>CurrentHP:</strong> %s</li>
-						<li><strong>MaxHP:</strong> %s</li>
-						<li><strong>Depth:</strong> %s</li>
+						<li><strong>CurrentHP:</strong> %d</li>
+						<li><strong>MaxHP:</strong> %d</li>
+						<li><strong>Depth:</strong> %d</li>
+						<li><strong>Accuracy:</strong> %d</li>
+						<li><strong>Attack Speed:</strong> %d</li>
+						<li><strong>Damage Max:</strong> %d</li>
+						<li><strong>Damage Min:</strong> %d</li>
+						<li><strong>Defense:</strong> %d</li>
+						<li><strong>Is Dead:</strong> %t</li>
+						<li><strong>Movement Speed:</strong> %d</li>
+						<li><strong>Position:</strong> (%d, %d)</li>
+						<li><strong>Turns Between Regen:</strong> %d</li>
+						<li><strong>Spawn Timestamp:</strong> %s</li>
+						<li><strong>Death Timestamp:</strong> %s</li>
 					</ul>
 				</div>
 			</main>
@@ -66,7 +77,7 @@ func generateHTMLContent(monster v1.Monster) string {
 			</footer>
 		</body>
 		</html>
-	`, monster.Name, monster.Name, fmt.Sprintf("%d", monster.Spec.ID), monster.Spec.Type, fmt.Sprintf("%d", monster.Spec.CurrentHP), fmt.Sprintf("%d", monster.Spec.MaxHP), fmt.Sprintf("%d", monster.Spec.Depth))
+	`, monster.Name, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp)
 }
 
 // generateNginxConfig generates the Nginx configuration content for the monster

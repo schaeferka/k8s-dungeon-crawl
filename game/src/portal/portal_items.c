@@ -316,3 +316,14 @@ void generate_pack_items_json(char *buffer, size_t buffer_size) {
         snprintf(buffer + offset, buffer_size - offset, "]}");
     }
 }
+
+/**
+ * @brief Resets the items data.
+ *
+ * This function resets the items data.
+ */
+void reset_items(void) {
+    // Reset the previous inventory and equipped items
+    memset(previous_inventory_items, 0, sizeof(previous_inventory_items));
+    memset(&previous_equipped_items, 0, sizeof(previous_equipped_items));
+}

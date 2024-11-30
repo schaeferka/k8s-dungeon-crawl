@@ -31,6 +31,7 @@ typedef struct {
     int reaping;
 } PlayerData;
 
+extern void reset_player(void);
 extern void update_player(void);
 
 char *generate_player_json(const PlayerData *player_data);

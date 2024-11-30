@@ -109,4 +109,14 @@ const char *get_gamestate_url(void);
  */
 const char *get_gamestats_url(void);
 
+/**
+ * @brief Get the URL for resetting gamestate data in the portal.
+ *
+ * This function generates the full URL for resetting gamestate data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for resetting gamestate data.
+ */
+const char *get_game_reset_url(void);
+
 #endif // PORTAL_URLS_H

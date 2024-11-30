@@ -112,6 +112,27 @@ class KubernetesService:
                 {namespace} - unable to create")
             return
 
+        # Convert keys in monster_data to camelCase
+        monster_data = {
+            "accuracy": monster_data.get("accuracy"),
+            "attackSpeed": monster_data.get("attack_speed"),
+            "damageMax": monster_data.get("damage_max"),
+            "damageMin": monster_data.get("damage_min"),
+            "deathTimestamp": monster_data.get("death_timestamp"),
+            "defense": monster_data.get("defense"),
+            "depth": monster_data.get("depth"),
+            "hp": monster_data.get("hp"),
+            "id": monster_data.get("id"),
+            "isDead": monster_data.get("is_dead"),
+            "maxHp": monster_data.get("max_hp"),
+            "movementSpeed": monster_data.get("movement_speed"),
+            "name": monster_data.get("name"),
+            "position": monster_data.get("position"),
+            "spawnTimestamp": monster_data.get("spawn_timestamp"),
+            "turnsBetweenRegen": monster_data.get("turns_between_regen"),
+            "type": monster_data.get("type"),
+        }
+
         monster_manifest = {
             "apiVersion": "kaschaefer.com/v1",
             "kind": "Monster",
@@ -151,6 +172,27 @@ class KubernetesService:
             current_app.logger.warning(f"Monster resource {name} does not exist in namespace \
                 {namespace} - unable to update")
             return
+
+        # Convert keys in monster_data to camelCase
+        monster_data = {
+            "accuracy": monster_data.get("accuracy"),
+            "attackSpeed": monster_data.get("attack_speed"),
+            "damageMax": monster_data.get("damage_max"),
+            "damageMin": monster_data.get("damage_min"),
+            "deathTimestamp": monster_data.get("death_timestamp"),
+            "defense": monster_data.get("defense"),
+            "depth": monster_data.get("depth"),
+            "hp": monster_data.get("hp"),
+            "id": monster_data.get("id"),
+            "isDead": monster_data.get("is_dead"),
+            "maxHp": monster_data.get("max_hp"),
+            "movementSpeed": monster_data.get("movement_speed"),
+            "name": monster_data.get("name"),
+            "position": monster_data.get("position"),
+            "spawnTimestamp": monster_data.get("spawn_timestamp"),
+            "turnsBetweenRegen": monster_data.get("turns_between_regen"),
+            "type": monster_data.get("type"),
+        }
 
         for attempt in range(retries):
             try:

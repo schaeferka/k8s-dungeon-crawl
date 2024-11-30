@@ -42,16 +42,16 @@ spec:
               accuracy:
                 description: Accuracy of the monster.
                 type: integer
-              attack_speed:
+              attackSpeed:
                 description: Attack speed of the monster.
                 type: integer
-              damage_max:
+              damageMax:
                 description: Maximum damage the monster can inflict.
                 type: integer
-              damage_min:
+              damageMin:
                 description: Minimum damage the monster can inflict.
                 type: integer
-              death_timestamp:
+              deathTimestamp:
                 description: Timestamp of the monster's death.
                 format: date-time
                 type: string
@@ -67,13 +67,13 @@ spec:
               id:
                 description: Unique identifier for the monster.
                 type: integer
-              is_dead:
+              isDead:
                 description: Indicates if the monster is dead.
                 type: boolean
-              max_hp:
+              maxHp:
                 description: Maximum health of the monster.
                 type: integer
-              movement_speed:
+              movementSpeed:
                 description: Movement speed of the monster.
                 type: integer
               name:
@@ -87,11 +87,11 @@ spec:
                   "y":
                     type: integer
                 type: object
-              spawn_timestamp:
+              spawnTimestamp:
                 description: Timestamp of the monster's spawn.
                 format: date-time
                 type: string
-              turns_between_regen:
+              turnsBetweenRegen:
                 description: Turns between health regeneration.
                 type: integer
               type:

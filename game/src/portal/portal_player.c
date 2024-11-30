@@ -69,6 +69,15 @@ void update_player(void) {
 }
 
 /**
+ * @brief Resets the player data.
+ *
+ * This function resets the player data to its initial state.
+ */
+void reset_player(void) {
+    memset(&cachedPlayerData, 0, sizeof(cachedPlayerData));
+}
+
+/**
  * @brief Generates the JSON string for the player data.
  *
  * This function takes in the relevant player data and formats it into a JSON string.
