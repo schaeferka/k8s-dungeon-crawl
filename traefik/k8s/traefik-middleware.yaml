@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: monster-errors
+  namespace: monsters
+spec:
+  errors:
+    status:
+      - "404"
+    query: /404.html
+    service:
+      name: error-page
+      port: 80
+      namespace: monsters

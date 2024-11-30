@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-middleware-binding
+subjects:
+  - kind: ServiceAccount
+    name: traefik-sa
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: traefik-middleware-role
+  apiGroup: rbac.authorization.k8s.io
