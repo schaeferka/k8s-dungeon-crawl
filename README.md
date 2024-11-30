@@ -231,23 +231,14 @@ The Portal serves as the central API and event processor:
 Also included are web pages to help you monitor what's happening in the game.
 
 <div align="center">
-  <img src="./assets/KDC_Portal.png" alt="K8s Brogue" style="width:30%;">
+  <img src="./assets/KDC_Portal.png" alt="KDC Portal" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Monster_Tracker.png" alt="KDC Portal Monster Tracker" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Monster_Page.png" alt="KDC Monster Page" style="width:30%; margin: 10px;">
 </div>
 
 <div align="center">
-  <img src="./assets/KDC_Porta_Monster_Tracker.png" alt="K8s Brogue" style="width:30%;">
-</div>
-
-<div align="center">
-  <img src="./assets/KDC_Portal_Monster_Page.png" alt="K8s Brogue" style="width:30%;">
-</div>
-
-<div align="center">
-  <img src="./assets/KDC_Portal_Player_Info.png" alt="K8s Brogue" style="width:30%;">
-</div>
-
-<div align="center">
-  <img src="./assets/K8s_Portal_Game_State.png" alt="K8s Brogue" style="width:30%;">
+  <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:45%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:45%; margin: 10px;">
 </div>
 
 #### **3. Custom Resources and Controller**
