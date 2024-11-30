@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"fmt"
 	"context"
-	"github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
+	"fmt"
+
+	v1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -33,8 +34,8 @@ func (r *MonsterReconciler) createOrUpdateIngress(ctx context.Context, monster v
 						HTTP: &networkingv1.HTTPIngressRuleValue{
 							Paths: []networkingv1.HTTPIngressPath{
 								{
-									Path:     fmt.Sprintf("/%s", monster.Name), // Dynamic path for each monster
-									PathType: func() *networkingv1.PathType {   // Use prefix path matching
+									Path: fmt.Sprintf("/%s", monster.Name), // Dynamic path for each monster
+									PathType: func() *networkingv1.PathType { // Use prefix path matching
 										pt := networkingv1.PathTypePrefix
 										return &pt
 									}(),

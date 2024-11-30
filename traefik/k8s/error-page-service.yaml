@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: error-page
+  namespace: monsters
+spec:
+  selector:
+    app: error-page
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
