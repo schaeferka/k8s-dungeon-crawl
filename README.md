@@ -272,6 +272,13 @@ Observe your dungeon in real time with Prometheus and Grafana. Watch your player
 - Cluster metrics are displayed.
 - A noVNC panel allows direct interaction with the game. Yes, you really can play Brogue from your Grafana dashboard!
 
+The default login information is:
+
+username: admin
+password: pass
+
+Please don't use these in a production environment.
+
 #### Prometheus Metrics
 
 The Portal exposes metrics in the following format:
