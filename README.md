@@ -327,6 +327,7 @@ Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 - [ ] Write more unit tests for the custom controller (because testing is fun).
 - [ ] Document the API endpoints in detail (because no one likes to hunt through source code to figure these things out).
 - [ ] Create Helm chart (because Kubernetes isn’t scary, it’s just a little bit of YAML).
+- [ ] Add mutating and validating webhooks (because such magic belongs in the Dungeon of Doom).
 - [ ] Test deploying on AWS, Azure, and Google Cloud (because the Dungeon of Doom deserves to exist in the cloud and not just on your dev machine).
 
 ## Contributions
