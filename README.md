@@ -24,6 +24,7 @@ Key features of the project:
 
 To embark on this adventure, ensure you have the following installed:
 
+- **Node.js**
 - **Kubernetes Cluster**: Tested with `k3d`.
 - **kubectl**: For Kubernetes commands
 - **Docker**: For building and running container images.
@@ -31,10 +32,11 @@ To embark on this adventure, ensure you have the following installed:
 
 If you don't already have them set up, you can get all the details at:
 
-- Install k3d
-- Install kubectl
-- Install Docker
-- Install Kubebuilder
+- Install [Node.js](https://nodejs.org/)  
+- Install [k3d](https://k3d.io/stable/#installation)
+- Install [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- Install [Docker](https://docs.docker.com/get-started/get-docker/)
+- Install [Kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
 
 Note: I've only tested the project on an Apple Silicon Mac. Other setups may require adjustments in how you build and deploy the project.
 
@@ -47,7 +49,21 @@ Note: I've only tested the project on an Apple Silicon Mac. Other setups may req
    cd k8s-dungeon-crawl
    ```
 
-2. Deploy the Kubernetes cluster and core components:
+2. Ensure all scripts in the scripts folder are executable:
+
+   ```bash
+   chmod +x scripts/*.sh
+   ```
+
+3. Create an `.env` file based on the `.env-example` file:
+
+   ```base
+   cp .env-example .env
+   ```
+
+   Copying the .env-example file to create a new .env file with the default values will help ensure that the necessary environment variables are set up correctly.
+
+4. Deploy the Kubernetes cluster and core components:
 
    ```bash
    npm install  # Installs dependencies
@@ -97,6 +113,44 @@ Builds and imports Docker images for the game, portal, and controller.
 **scripts/deploy-k8s-resources.sh:** Deploys Kubernetes resources for the game, portal, Grafana, and Prometheus. Sets up needed port-forwarding.
 
 **scripts/deploy-controller.sh**: Deploys the custom controller and its associated resources. Set up needed port-forwarding.
+
+#### _Port-Forwarding Setup_:
+
+The following port-forwarding configurations are set up by the scripts:
+
+- **Controller**: Access the custom controller at [http://localhost:8080](http://localhost:8080)
+  - Port-forwarding is set up by `deploy-controller.sh` or you can use:
+    ```bash
+    nohup kubectl port-forward deployment/${DEPLOYMENT_NAME} 8080:8080 -n ${NAMESPACE} > port-forward.log 2>&1 &
+    ```
+   - This is needed in order to view the monster index pages.
+
+- **Prometheus**: Access Prometheus at [http://localhost:9090](http://localhost:9090)
+  - Port-forwarding is set up by `deploy-k8s-resources.sh` or you can use:
+    ```bash
+    nohup kubectl port-forward deployment/prometheus-server 9090:9090 -n $NAMESPACE > prometheus-port-forward.log 2>&1 &
+    ```
+
+- **Grafana**: Access Grafana at [http://localhost:3000](http://localhost:3000)
+  - Port-forwarding is set up by `deploy-k8s-resources.sh` or you can use:
+    ```bash
+    nohup kubectl port-forward deployment/grafana 3000:3000 -n ${NAMESPACE} > grafana-port-forward.log 2>&1 &
+    ```
+
+- **Portal Dashboard**: Access the Portal dashboard at [http://localhost:5000](http://localhost:5000)
+  - Port-forwarding is set up by `deploy-k8s-resources.sh` or you can use:
+    ```bash
+    nohup kubectl port-forward deployment/portal 5000:5000 -n ${NAMESPACE} > portal-port-forward.log 2>&1 &
+    ```
+
+- **noVNC**: Access noVNC at [http://localhost:6080](http://localhost:6080)
+  - Port-forwarding is set up by `deploy-k8s-resources.sh` or you can use:
+    ```bash
+    nohup kubectl port-forward deployment/novnc 6080:6080 -n ${NAMESPACE} > novnc-port-forward.log 2>&1 &
+    ```
+   - This allows you to play the game through your browser.
+
+These scripts will set up the necessary port-forwarding to allow you to access the services running in your Kubernetes cluster from your local machine.
 
 #### _Environment Loading_:
 
