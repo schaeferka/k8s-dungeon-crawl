@@ -21,7 +21,7 @@ async function fetchPlayerData() {
 function createSectionElement(title, content) {
     const section = document.createElement('div');
     section.classList.add('item-section', 'border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
-    section.innerHTML = `<strong>${title}:</strong><br>${content}`;
+    section.innerHTML = title ? `<strong>${title}:</strong><br>${content}` : content;
     return section;
 }
 
