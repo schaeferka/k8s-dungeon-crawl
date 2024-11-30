@@ -1,5 +1,9 @@
 # K8s Dungeon Crawl
 
+<div align="center">
+  <img src="./assets/K8s_Brogue.png" alt="K8s Brogue" style="width:70%;">
+</div>
+
 https://github.com/user-attachments/assets/ae13b259-fa0b-4161-b454-37eb7a2d2faf
 
 _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from your Grafana dashboard_
@@ -169,6 +173,7 @@ After running npm run start, you can access the following services:
 
 noVNC Viewer: [http://localhost:6080](http://localhost:6080)
 Play BrogueCE directly in your browser (no VNC client needed!).
+You may see a disconnected message when you first load the page, refreshing the page will fix this.
 
 Grafana Dashboard: [http://localhost:3000](http://localhost:3000)
 Watch your dungeon adventure metrics unfold (health, gold, monster counts, and more) as you play the game directly from the dashboard.
@@ -224,6 +229,26 @@ The Portal serves as the central API and event processor:
 - **Event Relay**: Sends game events (e.g., monster creation/destruction) to the monster controller.
 
 Also included are web pages to help you monitor what's happening in the game.
+
+<div align="center">
+  <img src="./assets/KDC_Portal.png" alt="K8s Brogue" style="width:30%;">
+</div>
+
+<div align="center">
+  <img src="./assets/KDC_Porta_Monster_Tracker.png" alt="K8s Brogue" style="width:30%;">
+</div>
+
+<div align="center">
+  <img src="./assets/KDC_Portal_Monster_Page.png" alt="K8s Brogue" style="width:30%;">
+</div>
+
+<div align="center">
+  <img src="./assets/KDC_Portal_Player_Info.png" alt="K8s Brogue" style="width:30%;">
+</div>
+
+<div align="center">
+  <img src="./assets/K8s_Portal_Game_State.png" alt="K8s Brogue" style="width:30%;">
+</div>
 
 #### **3. Custom Resources and Controller**
 
@@ -319,6 +344,17 @@ The controller:
 
 Observe your dungeon in real time with Prometheus and Grafana. Watch your player’s health fluctuate and see the dungeon’s monster population grow. It’s like having a dungeon map with live updates.
 
+<div align="center">
+  <img src="./assets/KDC_Portal.png" alt="KDC Portal" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Monster_Tracker.png" alt="KDC Portal Monster Tracker" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Monster_Page.png" alt="KDC Monster Page" style="width:30%; margin: 10px;">
+</div>
+
+<div align="center">
+  <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:45%; margin: 10px;">
+  <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:45%; margin: 10px;">
+</div>
+
 #### Grafana Dashboard
 
 - Player information such as health and gold are displayed as live metrics.
@@ -394,4 +430,4 @@ This project is licensed under the Apache License 2.0. See the LICENSE file for 
 
 ---
 
-Let the dungeon crawl begin!
+<span style="font-size:2em; font-weight:bold;">Let the dungeon crawl begin!</span>
