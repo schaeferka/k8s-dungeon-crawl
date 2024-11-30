@@ -76,7 +76,7 @@ function createTableCell(content, className = 'text-center') {
     return cell;
 }
 
-function createMonsterRow(monster, isDead = false) {
+function createMonsterRow(monster, isDead = false, isActive = false) {
     const row = document.createElement('tr');
     if (isDead) {
         row.classList.add('bg-red-200');
@@ -84,11 +84,15 @@ function createMonsterRow(monster, isDead = false) {
 
     const nameCell = document.createElement('td');
     nameCell.classList.add('text-center');
-    const link = document.createElement('a');
-    link.href = 'http://localhost:8080/' + monster.name;
-    link.textContent = monster.name || 'Unknown';
-    link.classList.add('text-blue-500', 'hover:text-blue-700', 'transition-colors', 'no-underline');
-    nameCell.appendChild(link);
+    if (isActive) {
+        const link = document.createElement('a');
+        link.href = 'http://localhost:8080/' + monster.name;
+        link.textContent = monster.name || 'Unknown';
+        link.classList.add('text-blue-500', 'hover:text-blue-700', 'transition-colors', 'no-underline');
+        nameCell.appendChild(link);
+    } else {
+        nameCell.textContent = monster.name || 'Unknown';
+    }
 
     row.appendChild(nameCell);
     row.appendChild(createTableCell(monster.hp));
@@ -125,7 +129,7 @@ function updateTables(activeMonsters, deadMonsters, allMonsters) {
 
     // Update active monsters table
     activeMonsters.forEach(monster => {
-        activeTableBody.appendChild(createMonsterRow(monster));
+        activeTableBody.appendChild(createMonsterRow(monster, false, true));
     });
 
     // Update dead monsters table (similar to the above method)
@@ -140,7 +144,7 @@ function updateTables(activeMonsters, deadMonsters, allMonsters) {
 
     // Update all monsters table (similar to the above method)
     allMonsters.forEach(monster => {
-        allTableBody.appendChild(createMonsterRow(monster, monster.is_dead));
+        allTableBody.appendChild(createMonsterRow(monster, monster.is_dead, false));
     });
 }
 

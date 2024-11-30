@@ -20,8 +20,8 @@ async function fetchPlayerData() {
 
 function createSectionElement(title, content) {
     const section = document.createElement('div');
-    section.classList.add('item-section', 'border', 'p-4', 'rounded', 'my-2', 'shadow-lg');
-    section.innerHTML = title ? `<strong>${title}:</strong><br>${content}` : content;
+    section.classList.add('item-section', 'my-4', 'p-4', 'border', 'rounded', 'bg-gray-50', 'shadow-sm');
+    section.innerHTML = title ? `<span class="text-lg font-semibold text-gray-800">${title}</span>${content}` : content;
     return section;
 }
 
@@ -30,6 +30,7 @@ function populateSection(keys, data, container) {
     keys.forEach(key => {
         const value = key in data ? data[key] : "N/A";
         const item = document.createElement('p');
+        item.classList.add('text-gray-600');
         item.textContent = `${key}: ${value}`;
         container.appendChild(item);
     });
@@ -82,7 +83,7 @@ function updatePlayerInfo(playerInfo) {
     if (playerInfo.pack && Object.keys(playerInfo.pack).length > 0) {
         Object.values(playerInfo.pack).forEach(item => {
             const content = `
-                <strong>${item.kind || "Unknown Item"}</strong> (${item.category || "Unknown Category"}):<br>
+                <span class="text-lg font-semibold text-gray-800">${item.kind || "Unknown Item"} - (${item.category || "Unknown Category"})</span><br>
                 Quantity: ${item.quantity || 1}<br>
                 Armor: ${item.armor || 0}<br>
                 Damage: ${item.damage ? `${item.damage.min || 0} - ${item.damage.max || 0}` : 'N/A'}<br>
