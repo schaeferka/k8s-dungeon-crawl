@@ -127,3 +127,10 @@ void send_gamestate_to_portal(const char *gamestate_data) {
 void send_gamestats_to_portal(const char *gamestats_data) {
     send_data_to_portal(get_gamestats_url(), gamestats_data);
 }
+
+/**
+ * Sends a reset command for the items to the portal.
+ */
+void send_game_reset_to_portal(void) {
+    send_data_to_portal(get_game_reset_url(), NULL);
+}

@@ -7,6 +7,9 @@
 #include "Globals.h"
 #include "portal_gamestate.h"
 #include "portal.h"
+#include "portal_player.h"
+#include "portal_items.h"
+#include "portal_monsters.h"
 
 // Declare a previous game state variable
 static GameStateData previous_gamestate = {0};
@@ -101,4 +104,22 @@ void generate_gamestate_json(const GameStateData *gamestate, char *buffer, size_
         gamestate->gameInProgress ? "true" : "false", gamestate->gameHasEnded ? "true" : "false",
         gamestate->easyMode ? "true" : "false", gamestate->seed, gamestate->RNG,
         gamestate->absoluteTurnNumber, gamestate->milliseconds, gamestate->monsterSpawnFuse, gamestate->turns);
+}
+
+/**
+ * @brief Resets the game state and sends the reset command to the portal.
+ *
+ * This function resets the game state and sends a reset command to the portal.
+ */
+void reset_game(void) {
+    // Reset the previous game state
+    memset(&previous_gamestate, 0, sizeof(previous_gamestate));
+    
+    // Call reset functions for other components
+    reset_items();
+    reset_monsters();
+    reset_player();
+    
+    // Send the reset command to the portal
+    send_game_reset_to_portal();
 }

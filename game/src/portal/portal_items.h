@@ -69,4 +69,6 @@ extern void send_pack_items_to_portal(void);
  */
 extern void send_equipped_items_to_portal(void);
 
+extern void reset_items(void);
+
 #endif // PORTAL_ITEMS_H

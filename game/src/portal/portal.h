@@ -54,14 +54,6 @@ extern void send_player_death_to_portal(const char *player_data);
 extern void send_player_to_portal(const char *player_data);
 
 /**
- * @brief Sends a reset command to the portal.
- *
- * This function sends a reset command to the portal, instructing it to reset the state
- * of player data.
- */
-extern void send_player_reset_to_portal(void);
-
-/**
  * Sends the equipped items data to the portal.
  * 
  * @param items_data The JSON data representing the player.
@@ -88,5 +80,13 @@ extern void send_gamestate_to_portal(const char *gamestate_data);
  * @param gamestats_data The JSON data representing the gamestats.
  */
 extern void send_gamestats_to_portal(const char *gamestats_data);
+
+/**
+ * @brief Sends a game reset command to the portal.
+ *
+ * This function sends a reset command to the portal, instructing it to reset the state
+ * of all game data.
+ */
+extern void send_game_reset_to_portal(void);
 
 #endif // PORTAL_H

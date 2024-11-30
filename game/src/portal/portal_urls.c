@@ -149,3 +149,17 @@ const char *get_gamestats_url(void) {
     snprintf(url, sizeof(url), "%s/gamestats/update", PORTAL_BASE_URL);
     return url;
 }
+
+/**
+ * @brief Get the URL for resetting gamestate data in the portal.
+ *
+ * This function generates the full URL for resetting gamestate data by appending
+ * the endpoint to the base URL.
+ *
+ * @return The full URL for resetting gamestate data.
+ */
+const char *get_game_reset_url(void) {
+    static char url[256];
+    snprintf(url, sizeof(url), "%s/game/reset", PORTAL_BASE_URL);
+    return url;
+}

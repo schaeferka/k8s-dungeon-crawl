@@ -219,3 +219,9 @@ void generate_monster_json(const creature *monst, char *monster_data, size_t siz
         monst->info.damage.upperBound, monst->info.turnsBetweenRegen,
         monst->isDead ? 1 : 0);
 }
+
+
+void reset_monsters(void) {
+    // Reset the monster data and cache
+    reset_monster_cache();
+}

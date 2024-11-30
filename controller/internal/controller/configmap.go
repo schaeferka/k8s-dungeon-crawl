@@ -14,7 +14,7 @@ import (
 // createOrUpdateConfigMap ensures the ConfigMap is created or updated
 func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster kaschaeferv1.Monster) error {
 	// Generate index.html and nginx.conf content as before
-	indexHTML := generateHTMLContent(monster)
+	indexHTML := generateHTMLContent(monster) // Use the function from utils.go
 	nginxConf := generateNginxConfig(monster)
 
 	// Create or Update the ConfigMap for the monster

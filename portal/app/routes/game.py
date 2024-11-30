@@ -12,6 +12,11 @@ Returns:
 from flask import Blueprint, render_template, jsonify
 from app.routes.gamestate import get_game_state
 from app.routes.gamestats import get_game_stats
+from app.routes.player import player_data
+from app.routes.equipped_items import equipped_items
+from app.routes.gamestate import game_state_data
+from app.routes.pack_items import pack_items
+from app.routes.monsters import active_monsters, all_monsters, dead_monsters, k8s_service
 
 bp = Blueprint('game', __name__)
 
@@ -48,3 +53,34 @@ def game():
         print(f"Error loading game page: {e}")
         # Return a 500 Internal Server Error response with a generic error message
         return jsonify({"error": "Internal server error"}), 500
+
+@bp.route('/reset', methods=['POST'], strict_slashes=False)
+def reset_game():
+    """
+    Resets all game information including monsters, player, equipped items, game state, and pack items.
+
+    This route triggers the reset of all relevant game data, clearing in-memory storage and resetting
+    the game state for a new game session.
+
+    Returns:
+        Response: A JSON response indicating the status of the reset operation.
+    """
+    # Reset monsters
+    active_monsters.clear()
+    all_monsters.clear()
+    dead_monsters.clear()
+    k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
+
+    # Reset player data
+    player_data.clear()
+
+    # Reset equipped items
+    equipped_items.clear()
+
+    # Reset game state
+    game_state_data.clear()
+
+    # Reset pack items
+    pack_items.clear()
+
+    return jsonify({"status": "success"}), 200
