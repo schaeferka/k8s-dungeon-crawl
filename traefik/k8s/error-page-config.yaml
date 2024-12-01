@@ -27,19 +27,22 @@ data:
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="flex flex-col items-center text-lg text-gray-800">
-                        <span class="text-4xl mb-4">🏃‍♂️</span>
+                        <img src="../../assets/too-fast.png" alt="Too Fast" class="w-24 h-24 mb-4">
+                       
                         <div class="text-xl font-semibold">Adventuring too fast?</div>
                         <p class="mt-2 text-center">The monster page may still be conjuring.</br></p><p class="mt-2 text-center">Try refreshing and the beast might appear!</p>
                     </div>
 
                     <div class="flex flex-col items-center text-lg text-gray-800">
-                        <span class="text-4xl mb-4">💀</span>
+                        <img src="../../assets/dead.png" alt="Dead" class="w-24 h-24 mb-4">
+                        
                         <div class="text-xl font-semibold">The monster has met its doom</div>
                         <p class="mt-2 text-center">You won't find slain monsters in the Dungeon of Doom.</p>
                     </div>
 
                     <div class="flex flex-col items-center text-lg text-gray-800">
-                        <span class="text-4xl mb-4">🌴</span>
+                        <img src="../../assets/unknown.png" alt="Unknown" class="w-24 h-24 mb-4">
+                        
                         <div class="text-xl font-semibold">The monster went on vacation</div>
                         <p class="mt-2 text-center">It’s relaxing in the mysterious Monster Dimension. Sometimes these things just happen.</p>
                     </div>
