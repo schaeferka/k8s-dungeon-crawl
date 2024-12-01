@@ -1,27 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Monster Not Found</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; text-align: center; background-color: #1b1b1b; color: #f7f7f7; padding: 50px; }
-        h1 { font-size: 60px; color: #ff6347; }
-        p { font-size: 20px; margin: 20px 0; }
-        .cta { font-size: 22px; color: #90ee90; margin-top: 30px; }
-        .cta a { text-decoration: none; color: #90ee90; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <h1>404 - Monster Not Found</h1>
-    <p>Uh oh, it looks like the monster you’re looking for has either been slain, wandered off, or is chilling in another dimension!</p>
-    
-    <p><strong>Here’s what might have happened:</strong></p>
-    <ul>
-        <li>🏃‍♂️ Adventuring too fast? The monster page is still being conjured. Try refreshing and the beast might appear!</li>
-        <li>💀 The monster has met its doom or is relaxing in the mysterious Monster Dimension. Either way, you won't find it in the Dungeon of Doom.</li>
-    </ul>
-    
-    <p class="cta">Don't fret, adventurer! You can <a href="http://localhost:5000" title="Return to the K8s Dungeon Crawl Portal Dashboard">return to the K8s Dungeon Crawl Portal Dashboard</a> and continue your quest!</p>
-</body>
-</html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - Monster Not Found</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    </head>
+    <body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+        <header class="bg-blue-900 text-white p-6">
+            <div class="container mx-auto flex items-center justify-between">
+                <h1 class="text-4xl font-extrabold">K8s Dungeon Crawl</h1>
+            </div>
+        </header>
+
+        <main class="container mx-auto my-12 flex-grow">
+            <div class="bg-white p-8 rounded-lg shadow-xl">
+                <h2 class="text-5xl font-extrabold text-center text-blue-900 mb-6">404 - Monster Not Found</h2>
+                <p class="text-xl text-center mb-8">Uh oh, it looks like the monster you’re looking for isn't here. Here's what might have happened...</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="flex flex-col items-center text-lg text-gray-800">
+                        <img src="/images/image1.png" class="w-32 h-32 mb-4" alt="Adventuring too fast">
+                        <div class="text-xl font-semibold">Adventuring too fast?</div>
+                        <p class="mt-2 text-center">The monster page may still be conjuring. Try refreshing and the beast might appear!</p>
+                    </div>
+
+                    <div class="flex flex-col items-center text-lg text-gray-800">
+                        <img src="/images/image2.png" class="w-32 h-32 mb-4" alt="Slain monster">
+                        <div class="text-xl font-semibold">The monster has met its doom</div>
+                        <p class="mt-2 text-center">You won't find slain monsters in the Dungeon of Doom.</p>
+                    </div>
+
+                    <div class="flex flex-col items-center text-lg text-gray-800">
+                        <img src="/images/image3.png" class="w-32 h-32 mb-4" alt="Monster vacation">
+                        <div class="text-xl font-semibold">The monster went on vacation</div>
+                        <p class="mt-2 text-center">It’s relaxing in the mysterious Monster Dimension. Sometimes these things just happen.</p>
+                    </div>
+                </div>
+
+                <div class="text-xl mt-8 text-center">
+                    Don't fret, adventurer! You can <a href="http://localhost:5000" title="Return to the K8s Dungeon Crawl Portal Dashboard" class="text-blue-900 font-semibold hover:underline">return to the K8s Dungeon Crawl Portal Dashboard</a> and continue your quest!
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-blue-900 text-white p-6 text-center">
+            <p class="text-lg">&copy; 2024 K8s Dungeon Crawl</p>
+        </footer>
+    </body>
+    </html>
