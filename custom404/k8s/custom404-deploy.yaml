@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom404
+  namespace: monsters
+  labels:
+    app: custom404
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: custom404
+  template:
+    metadata:
+      labels:
+        app: custom404
+    spec:
+      serviceAccountName: traefik-sa
+      containers:
+      - name: nginx
+        image: custom404:latest
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 80
+

@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: error-page
+  name: custom404
   namespace: monsters
 spec:
   selector:
-    app: error-page
+    app: custom404
   ports:
     - protocol: TCP
       port: 80

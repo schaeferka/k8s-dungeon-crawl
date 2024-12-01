@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: error-page-ingress
+  name: custom404-ingress
   namespace: monsters
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
@@ -14,6 +14,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: error-page
+            name: custom404
             port:
               number: 80
