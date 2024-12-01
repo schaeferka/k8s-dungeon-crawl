@@ -27,6 +27,8 @@ spec:
         - name: nginx-config-volume
           mountPath: /etc/nginx/nginx.conf
           subPath: nginx.conf
+        - name: error-page-images
+          mountPath: /usr/share/nginx/html/images
       volumes:
       - name: error-page-volume
         configMap:
@@ -34,4 +36,7 @@ spec:
       - name: nginx-config-volume
         configMap:
           name: nginx-config
+      - name: error-page-images
+        configMap:
+          name: error-page-images
 
