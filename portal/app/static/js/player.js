@@ -55,6 +55,12 @@ function updatePlayerInfo(playerInfo) {
     populateSection(playerStatsKeys, playerInfo, playerStatsDiv);
 
     itemsDiv.innerHTML = '';
+    const icons = {
+        weapon: '<img src="/static/images/sword.png" alt="Weapon" class="inline-block w-10 h-10 mr-2">',
+        armor: '<img src="/static/images/armor.png" alt="Armor" class="inline-block w-10 h-10 mr-2">',
+        left_ring: '<img src="/static/images/ring.png" alt="Left Ring" class="inline-block w-10 h-10 mr-2">',
+        right_ring: '<img src="/static/images/ring.png" alt="Right Ring" class="inline-block w-10 h-10 mr-2">'
+    };
     itemKeys.forEach(key => {
         const item = playerInfo[key];
         const titleMap = {
@@ -62,12 +68,6 @@ function updatePlayerInfo(playerInfo) {
             armor: "Armor",
             left_ring: "Left Ring",
             right_ring: "Right Ring"
-        };
-        const icons = {
-            weapon: "⚔️",
-            armor: "🛡️",
-            left_ring: "💍",
-            right_ring: "💍"
         };
 
         let content = item && item.inventory_letter && item.category !== "Unknown" ? `

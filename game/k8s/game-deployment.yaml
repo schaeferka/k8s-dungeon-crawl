@@ -20,11 +20,11 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           limits:
+            memory: "2048Mi"
+            cpu: "2000m"
+          requests:
             memory: "1024Mi"
             cpu: "1000m"
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
         securityContext:
           privileged: true
         ports:

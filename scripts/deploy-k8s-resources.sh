@@ -25,6 +25,14 @@ case "$RESOURCE" in
         NAMESPACE_FILE="$KDC_CONTROLLER_NAMESPACE_FILE"
         IFS=' ' read -r -a DEPLOYMENT_FILES <<< "$KDC_CONTROLLER_DEPLOYMENT_FILES"
         ;;
+    traefik)
+        NAMESPACE_FILE="$KDC_TRAEFIK_NAMESPACE_FILE"
+        IFS=' ' read -r -a DEPLOYMENT_FILES <<< "$KDC_TRAEFIK_DEPLOYMENT_FILES"
+        ;;
+    custom404)
+        NAMESPACE_FILE="$KDC_CUSTOM404_NAMESPACE_FILE"
+        IFS=' ' read -r -a DEPLOYMENT_FILES <<< "$KDC_CUSTOM404_DEPLOYMENT_FILES"
+        ;;
     prometheus)
         NAMESPACE_FILE="$KDC_PROMETHEUS_NAMESPACE_FILE"
         IFS=' ' read -r -a DEPLOYMENT_FILES <<< "$KDC_PROMETHEUS_DEPLOYMENT_FILES"
@@ -34,7 +42,7 @@ case "$RESOURCE" in
         IFS=' ' read -r -a DEPLOYMENT_FILES <<< "$KDC_GRAFANA_DEPLOYMENT_FILES"
         ;;
     *)
-        echo "Error: Invalid resource specified. Valid options are: game, portal, controller, prometheus, grafana."
+        echo "Error: Invalid resource specified. Valid options are: game, portal, controller, traefik, custom404, prometheus, grafana."
         exit 1
         ;;
 esac
@@ -128,21 +136,22 @@ if [[ "$RESOURCE" != "prometheus" ]]; then
     done
 
     # Wait for the pod to be created
-    echo "Waiting for pod to be created..."
-    until kubectl get pods -n $NAMESPACE -l app=$RESOURCE -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
+    if [[ "$RESOURCE" != "traefik" ]]; then
         echo "Waiting for pod to be created..."
-        sleep 2
-    done
+        until kubectl get pods -n $NAMESPACE -l app=$RESOURCE -o jsonpath="{.items[0].metadata.name}" 2>/dev/null; do
+            echo "Waiting for pod to be created..."
+            sleep 2
+        done
 
-    POD_NAME=$(kubectl get pods -n $NAMESPACE -l app=$RESOURCE -o jsonpath="{.items[0].metadata.name}")
-    echo "Pod $POD_NAME created. Waiting for it to be ready..."
+        POD_NAME=$(kubectl get pods -n $NAMESPACE -l app=$RESOURCE -o jsonpath="{.items[0].metadata.name}")
+        echo "Pod $POD_NAME created. Waiting for it to be ready..."
 
-    until [[ $(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
-        echo "Waiting for pod $POD_NAME to be ready..."
-        sleep 2
-    done
-    echo "Pod $POD_NAME is ready."
-    
+        until [[ $(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.status.containerStatuses[0].ready}') == "true" ]]; do
+            echo "Waiting for pod $POD_NAME to be ready..."
+            sleep 2
+        done
+        echo "Pod $POD_NAME is ready."
+    fi
 fi
 
 # Start port forwarding for the selected resource

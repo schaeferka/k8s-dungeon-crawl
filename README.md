@@ -263,6 +263,7 @@ Also included are web pages to help you monitor what's happening in the game.
 <div align="center">
   <img src="./assets/KDC_Portal_Player_Info.png" alt="KDC Portal Player Info" style="width:30%; margin: 10px;">
   <img src="./assets/KDC_Portal_Game_State.png" alt="KDC Portal Game State" style="width:30%; margin: 10px;">
+  <img src="./assets/KDC_Custom404.png" alt="KDC Portal Game State" style="width:30%; margin: 10px;">
 </div>
 
 #### **3. Custom Resources and Controller**
@@ -413,6 +414,8 @@ Prometheus scrapes this endpoint and makes the metrics available for Grafana.
 This project wouldn't be possible without the amazing [BrogueCE](https://github.com/tmewett/BrogueCE) game. Most of the modifications I made can be found in the [`./game/src/portal`](./game/src/portal/) folder with minor changes in other sections as needed to get everything up and running.
 
 ## Next Steps
+
+> **Current Development Focus**: Implementing having the Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game.
 
 - [ ] Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game (because even monsters deserve a peaceful exit).
 - [ ] Implement creating monsters based on pods in "monstie" namespace (because randomly destroying real pods in your cluster is always fun).

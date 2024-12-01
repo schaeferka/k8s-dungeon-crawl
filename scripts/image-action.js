@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const logger = require('./logger');
-const envArg = process.argv[2];  // game, portal, or controller
+const envArg = process.argv[2];  // game, portal, controller, custom404
 const actionArg = process.argv[3];  // Action to perform: build or import
 
 if (!envArg || !actionArg) {
@@ -29,6 +29,11 @@ switch (envArg) {
         IMAGE_NAME = process.env.KDC_CONTROLLER_IMAGE || 'controller:latest';
         BUILD_DIR = process.env.KDC_CONTROLLER_DIR || './controller';
         NAMESPACE = process.env.KDC_CONTROLLER_NS || 'dungeon-master-service';
+        break;
+    case 'custom404':
+        IMAGE_NAME = process.env.KDC_CUSTOM404_IMAGE || 'custom404:latest';
+        BUILD_DIR = process.env.KDC_CUSTOM404_DIR || './custom404';
+        NAMESPACE = process.env.KDC_CUSTOM404_NS || 'monsters';
         break;
     default:
         logger.error(`Invalid environment argument "${envArg}". Please specify "game", "portal", or "controller".`);

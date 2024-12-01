@@ -1,0 +1,13 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom404-images
+  namespace: monsters
+data:
+  dead.png: |
+    # Base64 encoded content of dead.png
+  time.png: |
+    # Base64 encoded content of time.png
+  unknown.png: |
+    # Base64 encoded content of unknown.png

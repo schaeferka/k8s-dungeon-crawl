@@ -15,6 +15,9 @@ RUN useradd --create-home --home-dir /home/appuser appuser
 USER appuser
 
 COPY . .
+COPY app/static/images/armor.png /app/static/images/
+COPY app/static/images/ring.png /app/static/images/
+COPY app/static/images/sword.png /app/static/images/
 
 EXPOSE 5000
 
