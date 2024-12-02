@@ -9,7 +9,7 @@ spec:
   type: ClusterIP
   ports:
   - name: novnc
-    port: 8090  
+    port: 6080 
     targetPort: 16080  # Match container port for noVNC
   - name: vnc
     port: 5910
