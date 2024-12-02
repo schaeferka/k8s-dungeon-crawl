@@ -17,7 +17,7 @@ _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from y
   - [The Game Server](#1-the-game-server)
   - [The Portal](#2-the-portal)
   - [Custom Resources and Controller](#3-custom-resources-and-controller)
-  - [Prometheus and Grafana](#3-prometheus-and-grafana)
+  - [Prometheus and Grafana](#4-prometheus-and-grafana)
 - [Event Flow](#event-flow)
 - [Monster CRD](#monster-crd)
 - [Custom Controller Logic](#custom-controller-logic)
