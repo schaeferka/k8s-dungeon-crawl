@@ -266,7 +266,7 @@ Also included are web pages to help you monitor what's happening in the game.
 
 The `Monster` custom resource represents monsters in the game. A Kubebuilder-based controller listens to changes in these resources and manages corresponding Kubernetes resources, such as NGINX deployments for each monster.
 
-#### **3. Prometheus and Grafana**
+#### **4. Prometheus and Grafana**
 
 - **Prometheus**: Scrapes metrics exposed by the Portal.
 - **Grafana**: Visualizes game state metrics on a custom dashboard.
