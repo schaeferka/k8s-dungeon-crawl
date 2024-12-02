@@ -2,14 +2,29 @@
 
 source ./.env
 
+# Initialize variables
+SILENT=false
+
+# Parse arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --silent) SILENT=true ;;
+        *) 
+            if [ -z "$RESOURCE" ]; then
+                RESOURCE=$1
+            else
+                CLUSTER_NAME=$1
+            fi
+            ;;
+    esac
+    shift
+done
+
 # Check if the resource argument is provided
-if [ -z "$1" ]; then
-    echo "Error: No resource argument provided. Usage: ./deploy-k8s-resources.sh <resource>"
+if [ -z "$RESOURCE" ]; then
+    echo "Error: No resource argument provided. Usage: ./deploy-k8s-resources.sh <resource> [--silent] [<cluster_name>]"
     exit 1
 fi
-
-# Set the resource argument (game, portal, controller, etc.)
-RESOURCE=$1
 
 # Set the appropriate namespace and deployment files based on the resource argument
 case "$RESOURCE" in
@@ -48,7 +63,6 @@ case "$RESOURCE" in
 esac
 
 # Check if a cluster name is provided as an argument, otherwise default to the environment variable KDC_CLUSTER_NAME
-CLUSTER_NAME=$2  # The second argument for the cluster name (optional)
 if [ -z "$CLUSTER_NAME" ]; then
     CLUSTER_NAME="$KDC_CLUSTER_NAME"  # Default to the cluster name from the environment
 fi
@@ -189,4 +203,9 @@ if [[ "$RESOURCE" == "grafana" ]]; then
     kubectl port-forward service/grafana-service -n $NAMESPACE $KDC_LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 &
     echo "Port forwarding started for $RESOURCE."
     echo "Grafana service is available at http://localhost:$KDC_LOCAL_PORT_3000"
+fi
+
+# Suppress output if --silent flag is set
+if [ "$SILENT" = true ]; then
+    exec > /dev/null 2>&1
 fi
