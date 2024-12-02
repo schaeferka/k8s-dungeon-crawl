@@ -43,7 +43,7 @@
     "namespaces:prometheus": "node --disable-warning=DEP0040  ./scripts/namespace-action.js prometheus --silent",
     "namespaces:monsters": "node --disable-warning=DEP0040 ./scripts/namespace-action.js monsters --silent",
     "namespaces:monsties": "node --disable-warning=DEP0040 ./scripts/namespace-action.js monsties --silent",
-    "start": "npm run cluster:reset --silent && npm run images --silent && npm run deploy:game --silent && npm run deploy:portal --silent && npm run deploy:grafana --silent && npm run deploy:prometheus --silent && npm run deploy:controller --silent && npm run deploy:traefik --silent && npm run deploy:custom404 --silent --silent",
+    "start": "npm run cluster:reset --silent && npm run images --silent && npm run deploy:game --silent && npm run deploy:portal --silent && npm run deploy:grafana --silent && npm run deploy:prometheus --silent && npm run deploy:controller --silent && npm run deploy:traefik --silent && npm run deploy:custom404 --silent && node ./scripts/log.js info 'The Dungeon of Doom is ready for adventuring!'",
     "test": "npm run test:game --silent && npm run test:controller --silent && npm run test:portal --silent",
     "test:game": "cd game && make test --silent",
     "test:controller": "cd controller && go test --silent",

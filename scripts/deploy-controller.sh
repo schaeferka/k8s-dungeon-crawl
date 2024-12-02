@@ -9,38 +9,44 @@ CRD_FILE="./controller/config/crd/bases/kaschaefer.com_monsters.yaml"
 
 check_namespace() {
   if kubectl get namespace "$1" >/dev/null 2>&1; then
-    echo "Namespace $1 exists."
+    node ./scripts/log.js info "Namespace $1 exists."
   else
-    echo "Namespace $1 does not exist. Creating it..."
-    kubectl create namespace "$1"
+    node ./scripts/log.js info "Namespace $1 does not exist. Creating it..."
+    kubectl_output=$(kubectl create namespace "$1" 2>&1)
+    node ./scripts/log.js info "$kubectl_output"
   fi
 }
 
-kubectl apply -f ./controller/config/rbac/configmap_role_binding.yaml
-kubectl apply -f ./controller/config/rbac/configmap_role.yaml
-
+kubectl_output=$(kubectl apply -f ./controller/config/rbac/configmap_role_binding.yaml 2>&1)
+node ./scripts/log.js info "$kubectl_output"
+kubectl_output=$(kubectl apply -f ./controller/config/rbac/configmap_role.yaml 2>&1)
+node ./scripts/log.js info "$kubectl_output"
 
 # Step 1: Generate CRD manifest
-echo "Generating CRD manifest..."
+node ./scripts/log.js info "Generating CRD manifest..."
 cd ./controller || exit
-make manifests
+make_output=$(make manifests 2>&1)
+while IFS= read -r line; do
+    node ../scripts/log.js info "$line"
+done <<< "$make_output"
 cd ..
 
 # Step 2: Deploy the CRD
-echo "Deploying CRD..."
+node ./scripts/log.js info "Deploying CRD..."
 if [[ -f "$CRD_FILE" ]]; then
-  kubectl apply -f "$CRD_FILE"
+  kubectl_output=$(kubectl apply -f "$CRD_FILE" 2>&1)
+  node ./scripts/log.js info "$kubectl_output"
 else
-  echo "CRD file $CRD_FILE not found. Exiting."
+  node ./scripts/log.js error "CRD file $CRD_FILE not found. Exiting."
   exit 1
 fi
 
 # Step 3: Verify CRD deployment
-echo "Verifying CRD deployment..."
+node ./scripts/log.js info "Verifying CRD deployment..."
 if kubectl get crds | grep -q "monsters.kaschaefer.com"; then
-  echo "CRD monsters.kaschaefer.com successfully deployed."
+  node ./scripts/log.js info "CRD monsters.kaschaefer.com successfully deployed."
 else
-  echo "CRD monsters.kaschaefer.com not found. Exiting."
+  node ./scripts/log.js error "CRD monsters.kaschaefer.com not found. Exiting."
   exit 1
 fi
 
@@ -50,39 +56,53 @@ check_namespace "$MONSTERS_NAMESPACE"
 check_namespace "$MONSTIES_NAMESPACE"
 
 # Step 5: Build the local controller image
-echo "Building local controller image..."
-make docker-build IMG="$IMAGE_NAME"  
+node ./scripts/log.js info "Building local controller image..."
+make_output=$(make docker-build IMG="$IMAGE_NAME" 2>&1)
+while IFS= read -r line; do
+    node ./scripts/log.js info "$line"
+done <<< "$make_output"
 
-echo "Local controller image built: $IMAGE_NAME"
-echo "Loading the local image into the cluster..."
-k3d image import controller:latest -c k8s-dungeon-crawl
-echo "Local image loaded into the cluster."
+node ./scripts/log.js info "Local controller image built: $IMAGE_NAME"
 
-# Step 6: Deploy the controller using the local image
-echo "Deploying the controller with the local image..."
+# Step 6: Import the image into the k3d cluster
+node ./scripts/log.js info "Starting to import Docker image '$IMAGE_NAME' into k3d cluster 'k8s-dungeon-crawl'..."
+
+k3d_output=$(k3d image import "$IMAGE_NAME" -c k8s-dungeon-crawl 2>&1)
+while IFS= read -r line; do
+    node ./scripts/log.js info "$line"
+done <<< "$k3d_output"
+
+node ./scripts/log.js info "Docker image '$IMAGE_NAME' imported successfully into the k3d cluster 'k8s-dungeon-crawl'."
+
+# Step 7: Deploy the controller using the local image
+node ./scripts/log.js info "Deploying the controller with the local image..."
 cd controller || exit
-make deploy IMG="$IMAGE_NAME"  
+make_output=$(make deploy IMG="$IMAGE_NAME" 2>&1)
+while IFS= read -r line; do
+    node ../scripts/log.js info "$line"
+done <<< "$make_output"
 cd ..
 
-# Step 7: Verify controller deployment
-echo "Verifying controller deployment..."
+# Step 8: Verify controller deployment
+node ./scripts/log.js info "Verifying controller deployment..."
 
 # Check if the controller pod exists
 if kubectl get pods -n "$NAMESPACE" | grep -q "controller-manager"; then
-  echo "Controller pod found. Waiting for it to be ready..."
+  node ./scripts/log.js info "Controller pod found. Waiting for it to be ready..."
 
   # Wait for the controller pod to be ready
-  kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=120s
+  kubectl_output=$(kubectl wait --for=condition=ready pod -l control-plane=controller-manager,app=controller-manager  -n "$NAMESPACE" --timeout=120s 2>&1)
+  node ./scripts/log.js info "$kubectl_output"
 
   # Check if the kubectl wait command was successful
   if [ $? -eq 0 ]; then
-    echo "Controller pod is ready."
+    node ./scripts/log.js info "Controller pod is ready."
   else
-    echo "Controller pod did not become ready within the timeout period."
+    node ./scripts/log.js error "Controller pod did not become ready within the timeout period."
     exit 1
   fi
 else
-  echo "Controller pod not found. Check the deployment."
+  node ./scripts/log.js error "Controller pod not found. Check the deployment."
   exit 1
 fi
 
@@ -92,4 +112,4 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update > /dev/null 2>&1
 helm install prometheus prometheus-community/kube-prometheus-stack --namespace prometheus > /dev/null 2>&1
 
-echo "CRD and Controller deployment complete!"
+node ./scripts/log.js info "CRD and Controller deployment complete!"
