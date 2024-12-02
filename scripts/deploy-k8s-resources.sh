@@ -152,8 +152,47 @@ if [[ "$RESOURCE" == "prometheus" ]]; then
     sleep 10
 fi
 
+# Apply the Monster CRD
+if [[ "$RESOURCE" == "controller" ]]; then
+    # Generate CRD manifest
+    node ./scripts/log.js info "Generating CRD manifest..."
+    cd ./controller || exit
+    make_output=$(make manifests 2>&1)
+    while IFS= read -r line; do
+        node ../scripts/log.js info "$line"
+    done <<< "$make_output"
+    cd ..
+
+    # Deploy the CRD
+    node ./scripts/log.js info "Deploying CRD..."
+    if [[ -f "$CRD_FILE" ]]; then
+    kubectl_output=$(kubectl apply -f "$CRD_FILE" 2>&1)
+    node ./scripts/log.js info "$kubectl_output"
+    else
+    node ./scripts/log.js error "CRD file $CRD_FILE not found. Exiting."
+    exit 1
+    fi
+
+    # Verify CRD deployment
+    node ./scripts/log.js info "Verifying CRD deployment..."
+    if kubectl get crds | grep -q "monsters.kaschaefer.com"; then
+    node ./scripts/log.js info "CRD monsters.kaschaefer.com successfully deployed."
+    else
+    node ./scripts/log.js error "CRD monsters.kaschaefer.com not found. Exiting."
+    exit 1
+    fi
+
+    node ./scripts/log.js info "Deploying the controller with the local image..."
+    cd controller || exit
+    make_output=$(make deploy IMG="$KDC_CONTROLLER_IMAGE" 2>&1)
+    while IFS= read -r line; do
+        node ../scripts/log.js info "$line"
+    done <<< "$make_output"
+    cd ..
+fi
+
 # Apply Kubernetes resources for the selected resource if not Prometheus
-if [[ "$RESOURCE" != "prometheus" ]]; then
+if [[ "$RESOURCE" != "prometheus" && "$RESOURCE" != "controller" ]]; then
     node ./scripts/log.js info "Applying Kubernetes resources for $RESOURCE..."
     for file in "${DEPLOYMENT_FILES[@]}"; do
         kubectl_output=$(kubectl apply -f "$file" 2>&1)
@@ -162,7 +201,7 @@ if [[ "$RESOURCE" != "prometheus" ]]; then
         done <<< "$kubectl_output"
     done
 
-    # Wait for the pod to be created
+    # Special handling for Traefik resources
     if [[ "$RESOURCE" != "traefik" ]]; then
         node ./scripts/log.js info "Waiting for pod to be created..."
         until POD_NAME=$(kubectl get pods -n $NAMESPACE -l app=$RESOURCE -o jsonpath="{.items[0].metadata.name}" 2>/dev/null); do
@@ -183,7 +222,7 @@ fi
 # Start port forwarding for the selected resource
 node ./scripts/log.js info "Starting port forwarding for $RESOURCE..."
 
-# Example for Prometheus port-forwarding
+# Prometheus port-forwarding
 if [[ "$RESOURCE" == "prometheus" ]]; then
     node ./scripts/log.js info "Starting port forwarding for Prometheus..."
     kubectl_output=$(kubectl port-forward service/prometheus-kube-prometheus-prometheus -n $NAMESPACE $KDC_LOCAL_PORT_9090:9090 > prometheus-port-forward.log 2>&1 &)
@@ -191,17 +230,16 @@ if [[ "$RESOURCE" == "prometheus" ]]; then
     node ./scripts/log.js info "Prometheus service is available at http://localhost:$KDC_LOCAL_PORT_9090"
 fi
 
-# Example for Brogue service port-forwarding
+# Game  service port-forwarding
 if [[ "$RESOURCE" == "game" ]]; then
     node ./scripts/log.js info "Starting port forwarding for Game..."
-    kubectl_output=$(kubectl port-forward service/game-service -n $NAMESPACE $KDC_LOCAL_PORT_8090:8090 $KDC_LOCAL_PORT_5910:5910 $KDC_LOCAL_PORT_8010:8010 > brogue-port-forward.log 2>&1 &)
+    kubectl_output=$(kubectl port-forward service/game-service -n $NAMESPACE $KDC_LOCAL_PORT_6080:6080 $KDC_LOCAL_PORT_5910:5910 $KDC_LOCAL_PORT_8010:8010 > brogue-port-forward.log 2>&1 &)
     node ./scripts/log.js info "Port forwarding started for $RESOURCE."
-    node ./scripts/log.js info "Game service is available at http://localhost:$KDC_LOCAL_PORT_8090"  # noVNC
     node ./scripts/log.js info "Game is available with VNC at http://localhost:$KDC_LOCAL_PORT_5910"
-    node ./scripts/log.js info "Game is available with noVNC at http://localhost:$KDC_LOCAL_PORT_8090"
+    node ./scripts/log.js info "Game is available with noVNC at http://localhost:$KDC_LOCAL_PORT_6080"
 fi
 
-# Example for Portal service port-forwarding
+# Portal service port-forwarding
 if [[ "$RESOURCE" == "portal" ]]; then
     node ./scripts/log.js info "Starting port forwarding for Portal..."
     kubectl_output=$(kubectl port-forward service/portal-service -n $NAMESPACE $KDC_LOCAL_PORT_5000:5000 > portal-port-forward.log 2>&1 &)
@@ -209,12 +247,20 @@ if [[ "$RESOURCE" == "portal" ]]; then
     node ./scripts/log.js info "Portal service is available at http://localhost:$KDC_LOCAL_PORT_5000"
 fi
 
-# Example for Grafana service port-forwarding
+# Grafana service port-forwarding
 if [[ "$RESOURCE" == "grafana" ]]; then
     node ./scripts/log.js info "Starting port forwarding for Grafana..."
     kubectl_output=$(kubectl port-forward service/grafana-service -n $NAMESPACE $KDC_LOCAL_PORT_3000:3000 > grafana-port-forward.log 2>&1 &)
     node ./scripts/log.js info "Port forwarding started for $RESOURCE."
     node ./scripts/log.js info "Grafana service is available at http://localhost:$KDC_LOCAL_PORT_3000"
+fi
+
+# Traefik service port-forwarding
+if [[ "$RESOURCE" == "traefik" ]]; then
+    node ./scripts/log.js info "Starting port forwarding for Traefik/controller..."
+    kubectl_output=$(kubectl port-forward service/traefik -n kube-system $KDC_LOCAL_PORT_8080:80 > traefik-port-forward.log 2>&1 &)
+    node ./scripts/log.js info "Port forwarding started for $RESOURCE."
+    node ./scripts/log.js info "Traefik service is available at http://localhost:$KDC_LOCAL_PORT_8080"
 fi
 
 # Suppress output if --silent flag is set

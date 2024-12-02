@@ -18,7 +18,7 @@ if (!actionArg) {
 
 async function createCluster() {
     logger.info(`Cluster '${clusterName}' is being created`);
-    const command = `k3d cluster create ${clusterName} --port "$KDC_LOCAL_PORT_8090:16080@loadbalancer" --port "$KDC_LOCAL_PORT_8010:38010@loadbalancer" --port "$KDC_LOCAL_PORT_5910:35910@loadbalancer" --port "$KDC_LOCAL_PORT_5000:35000@loadbalancer"
+    const command = `k3d cluster create ${clusterName} --port "$KDC_LOCAL_PORT_6080:16080@loadbalancer" --port "$KDC_LOCAL_PORT_8010:38010@loadbalancer" --port "$KDC_LOCAL_PORT_5910:35910@loadbalancer" --port "$KDC_LOCAL_PORT_5000:35000@loadbalancer"
 `;
     exec(command, (error, stdout, stderr) => {
         if (error) {
