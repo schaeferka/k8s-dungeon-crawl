@@ -77,7 +77,7 @@ async function buildImage() {
             logger.error(`stderr: ${stderr}`);
             process.exit(1);
         }
-        logger.info(`Docker image '${IMAGE_NAME}' built successfully!`);
+        logger.info(`Docker image '${IMAGE_NAME}' built successfully`);
     });
 }
 
@@ -104,7 +104,7 @@ async function importImage() {
             logger.error(`stderr: ${stderr}`);
             process.exit(1);
         }
-        logger.info(`Docker image '${IMAGE_NAME}' imported successfully into the k3d cluster '${clusterName}'!`);
+        logger.info(`Docker image '${IMAGE_NAME}' imported successfully into the k3d cluster '${clusterName}'`);
     });
 }
 

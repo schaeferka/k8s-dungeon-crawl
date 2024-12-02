@@ -88,8 +88,8 @@ if [[ "$RESOURCE" == "prometheus" ]]; then
 
     # Add Prometheus Helm repository
     echo "Adding Prometheus community Helm chart repository..."
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts > /dev/null 2>&1
+    helm repo update > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
         echo "Error adding/updating Prometheus Helm repository."
         exit 1
@@ -97,7 +97,7 @@ if [[ "$RESOURCE" == "prometheus" ]]; then
 
     # Install Prometheus using Helm
     echo "Installing Prometheus..."
-    helm install prometheus prometheus-community/kube-prometheus-stack --namespace $NAMESPACE
+    helm install prometheus prometheus-community/kube-prometheus-stack --namespace $NAMESPACE > /dev/null 2>&1
 
     if [[ $? -ne 0 ]]; then
         echo "Error installing Prometheus."

@@ -88,5 +88,8 @@ fi
 
 kubectl port-forward service/traefik -n kube-system 8080:80 > port-forward.log 2>&1 &
 
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts > /dev/null 2>&1
+helm repo update > /dev/null 2>&1
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace prometheus > /dev/null 2>&1
 
 echo "CRD and Controller deployment complete!"
