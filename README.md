@@ -1,9 +1,5 @@
 # K8s Dungeon Crawl
 
-<div align="center">
-  <img src="./assets/K8s_Brogue.png" alt="K8s Brogue" style="width:70%;">
-</div>
-
 https://github.com/user-attachments/assets/ae13b259-fa0b-4161-b454-37eb7a2d2faf
 
 _Yes, you really can search the Dungeons of Doom for the Amulet of Yendor from your Grafana dashboard_
