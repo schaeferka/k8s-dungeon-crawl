@@ -53,6 +53,7 @@ To embark on this adventure, ensure you have the following installed:
 - **kubectl**: For Kubernetes commands
 - **Docker**: For building and running container images.
 - **Kubebuilder**: To manage the custom controller.
+- **Helm**: For deploying Helm charts.
 
 If you don't already have them set up, you can get all the details at:
 
@@ -61,6 +62,7 @@ If you don't already have them set up, you can get all the details at:
 - Install [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - Install [Docker](https://docs.docker.com/get-started/get-docker/)
 - Install [Kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
+- Install [Helm](https://helm.sh/docs/intro/install/)
 
 Note: I've only tested the project on an Apple Silicon Mac. Other setups may require adjustments in how you build and deploy the project.
 
