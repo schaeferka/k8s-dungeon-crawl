@@ -18,7 +18,7 @@ if (!actionArg) {
 
 async function createCluster() {
     logger.info(`Cluster '${clusterName}' is being created`);
-    const command = `k3d cluster create ${clusterName} --port "$KDC_LOCAL_PORT_8090:16080@loadbalancer" --port "$KDC_LOCAL_PORT_8010:38010@loadbalancer" --port "$KDC_LOCAL_PORT_5910:35910@loadbalancer" --port "$KDC_LOCAL_PORT_5000:35000@loadbalancer"
+    const command = `k3d cluster create ${clusterName} --port "$KDC_LOCAL_PORT_6080:16080@loadbalancer" --port "$KDC_LOCAL_PORT_8010:38010@loadbalancer" --port "$KDC_LOCAL_PORT_5910:35910@loadbalancer" --port "$KDC_LOCAL_PORT_5000:35000@loadbalancer"
 `;
     exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -30,7 +30,7 @@ async function createCluster() {
             process.exit(1);
         }
 
-        logger.info(`Cluster '${clusterName}' created successfully.`);
+        logger.info(`Cluster '${clusterName}' created successfully`);
         checkClusterReady(clusterName); 
     });
 }
@@ -49,7 +49,7 @@ async function deleteCluster() {
             process.exit(1);
         }
 
-        logger.info(`Cluster '${clusterName}' deleted successfully.`);
+        logger.info(`Cluster '${clusterName}' deleted successfully`);
     });
 }
 
@@ -67,7 +67,7 @@ async function startCluster() {
             process.exit(1);
         }
 
-        logger.info(`Cluster '${clusterName}' started successfully.`);
+        logger.info(`Cluster '${clusterName}' started successfully`);
         checkClusterReady(clusterName);  
     });
 }
@@ -86,7 +86,7 @@ async function stopCluster() {
             process.exit(1);
         }
 
-        logger.info(`Cluster '${clusterName}' stopped successfully.`);
+        logger.info(`Cluster '${clusterName}' stopped successfully`);
     });
 }
 
@@ -173,7 +173,7 @@ async function checkClusterReady(clusterName) {
         logger.error(`Cluster '${clusterName}' failed to become ready after ${retries} attempts.`);
         process.exit(1);
     } else {
-        logger.info(`Cluster '${clusterName}' is now ready!`);
+        logger.info(`Cluster '${clusterName}' is ready`);
     }
 }
 
