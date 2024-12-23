@@ -65,7 +65,7 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				// Remove the finalizer from the latest version
 				latestMonster.Finalizers = removeString(latestMonster.Finalizers, "kaschaefer.com/cleanup")
 				if err := r.Update(ctx, latestMonster); err != nil {
-					log.Error(err, "reconciler unable to remove finalizer from Monster", "name", monster.Name)
+					//log.Error(err, "reconciler unable to remove finalizer from Monster", "name", monster.Name)
 					return err
 				}
 
