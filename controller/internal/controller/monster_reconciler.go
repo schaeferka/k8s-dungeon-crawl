@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
+    "sigs.k8s.io/controller-runtime/pkg/log"
+    "k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,67 +18,106 @@ type MonsterReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
 func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
+    log := log.FromContext(ctx)
 
-	// Fetch the Monster object
-	var monster v1.Monster
-	if err := r.Get(ctx, req.NamespacedName, &monster); err != nil {
-		log.Error(err, "unable to fetch Monster")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+    // Fetch the Monster object
+    var monster v1.Monster
+    if err := r.Get(ctx, req.NamespacedName, &monster); err != nil {
+        if client.IgnoreNotFound(err) != nil {
+            log.Error(err, "unable to fetch Monster")
+        } else {
+            log.Info("Monster not found, might have been deleted", "name", req.NamespacedName)
+        }
+        return ctrl.Result{}, client.IgnoreNotFound(err)
+    }
 
-	// Handle deletion logic
-	if monster.ObjectMeta.DeletionTimestamp != nil {
-		if containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
-			if err := r.handleFinalizerForMonster(ctx, &monster); err != nil {
-				log.Error(err, "unable to handle finalizer for Monster")
-				return ctrl.Result{}, err
-			}
-			controllerutil.RemoveFinalizer(&monster, "kaschaefer.com/cleanup")
-			if err := r.Update(ctx, &monster); err != nil {
-				log.Error(err, "unable to remove finalizer from Monster")
-				return ctrl.Result{}, err
-			}
-		}
-		return ctrl.Result{}, nil
-	}
+    // Handle deletion logic
+    if monster.ObjectMeta.DeletionTimestamp != nil {
+        if containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
+            log.Info("Handling finalizer for Monster", "name", monster.Name)
 
-	// Add finalizer if needed
-	if !containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
-		controllerutil.AddFinalizer(&monster, "kaschaefer.com/cleanup")
-		if err := r.Update(ctx, &monster); err != nil {
-			log.Error(err, "unable to add finalizer to Monster")
-			return ctrl.Result{}, err
-		}
-	}
+            // Handle finalizer logic
+            if err := r.handleFinalizerForMonster(ctx, &monster); err != nil {
+                log.Error(err, "unable to handle finalizer for Monster", "name", monster.Name)
+                return ctrl.Result{}, err
+            }
 
-	// Create or Update resources
-	if err := r.createOrUpdateConfigMap(ctx, monster); err != nil {
-		log.Error(err, "unable to create or update ConfigMap for Monster")
-		return ctrl.Result{}, err
-	}
+			// Retry removing the finalizer to handle conflicts
+			log.Info("Removing finalizer for Monster", "name", monster.Name)
+			err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				latestMonster := &v1.Monster{}
+				if err := r.Get(ctx, client.ObjectKey{Name: monster.Name, Namespace: monster.Namespace}, latestMonster); err != nil {
+					if client.IgnoreNotFound(err) != nil {
+						log.Error(err, "unable to fetch latest Monster for finalizer removal", "name", monster.Name)
+						return err
+					}
+					log.Info("Monster not found, assuming already deleted", "name", monster.Name)
+					return nil
+				}
 
-	if err := r.createOrUpdateService(ctx, monster); err != nil {
-		log.Error(err, "unable to create or update Service for Monster")
-		return ctrl.Result{}, err
-	}
+				// Check if the finalizer is still present
+				if !containsString(latestMonster.Finalizers, "kaschaefer.com/cleanup") {
+					log.Info("Finalizer already removed or Monster deleted", "name", monster.Name)
+					return nil
+				}
 
-	if err := r.createOrUpdateDeployment(ctx, monster); err != nil {
-		log.Error(err, "unable to create or update Deployment for Monster")
-		return ctrl.Result{}, err
-	}
+				// Remove the finalizer from the latest version
+				latestMonster.Finalizers = removeString(latestMonster.Finalizers, "kaschaefer.com/cleanup")
+				if err := r.Update(ctx, latestMonster); err != nil {
+					log.Error(err, "reconciler unable to remove finalizer from Monster", "name", monster.Name)
+					return err
+				}
 
-	if err := r.createOrUpdateIngress(ctx, monster); err != nil {
-		log.Error(err, "unable to create or update Ingress for Monster")
-		return ctrl.Result{}, err
-	}
+				log.Info("Finalizer successfully removed", "name", monster.Name)
+				return nil
+            })
+            if err != nil {
+                return ctrl.Result{}, err
+            }
+            return ctrl.Result{}, nil
+        }
+        return ctrl.Result{}, nil
+    }
 
-	// Return success
-	return ctrl.Result{}, nil
+    // Add finalizer if needed
+    if !containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
+        log.Info("Adding finalizer to Monster", "name", monster.Name)
+        controllerutil.AddFinalizer(&monster, "kaschaefer.com/cleanup")
+        if err := r.Update(ctx, &monster); err != nil {
+            log.Error(err, "unable to add finalizer to Monster", "name", monster.Name)
+            return ctrl.Result{}, err
+        }
+    }
+
+    // Create or Update resources
+    if err := r.createOrUpdateConfigMap(ctx, monster); err != nil {
+        log.Error(err, "unable to create or update ConfigMap for Monster", "name", monster.Name)
+        return ctrl.Result{}, err
+    }
+
+    if err := r.createOrUpdateService(ctx, monster); err != nil {
+        log.Error(err, "unable to create or update Service for Monster", "name", monster.Name)
+        return ctrl.Result{}, err
+    }
+
+    if err := r.createOrUpdateDeployment(ctx, monster); err != nil {
+        log.Error(err, "unable to create or update Deployment for Monster", "name", monster.Name)
+        return ctrl.Result{}, err
+    }
+
+    if err := r.createOrUpdateIngress(ctx, monster); err != nil {
+        log.Error(err, "unable to create or update Ingress for Monster", "name", monster.Name)
+        return ctrl.Result{}, err
+    }
+
+    // Return success
+    //log.Info("Successfully reconciled Monster", "name", monster.Name)
+    return ctrl.Result{}, nil
 }
+
+
+
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MonsterReconciler) SetupWithManager(mgr ctrl.Manager) error {

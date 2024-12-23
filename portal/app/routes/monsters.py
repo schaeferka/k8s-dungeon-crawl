@@ -173,9 +173,9 @@ def get_monster_timestamps():
         for monster in all_monsters.values():
             timestamps.append({
                 "name": monster.name,
-                "spawnTimestamp": 
+                "spawnTimestamp":
                     monster.spawn_timestamp.isoformat() if monster.spawn_timestamp else "Unknown",
-                "deathTimestamp": 
+                "deathTimestamp":
                     monster.death_timestamp.isoformat() if monster.death_timestamp else "Unknown",
             })
 
@@ -345,16 +345,24 @@ def receive_monster_death():
     if monster.is_dead:
         return jsonify({"error": f"Monster with ID {monster.id} is already dead."}), 400
 
-    # Mark monster as dead and update the Prometheus metrics
+    # Mark monster as dead
     monster.is_dead = True
     monster.death_timestamp = datetime.now(timezone.utc)
-    dead_monsters[monster_id] = monster
+
+    # Update the Prometheus metrics
     monster_death_count.inc()
     active_monsters.pop(monster.id, None)
+    dead_monsters[monster_id] = monster
 
+    # Log the updated monster status
+    current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster.id}")
+
+    # Call the Kubernetes service to delete the monster resource
     try:
         k8s_service.delete_monster_resource(
-            name=monster.name, namespace="dungeon-master-system")
+            name=monster.name, namespace="dungeon-master-system"
+        )
+        current_app.logger.info(f"Successfully deleted Monster resource: {monster.name}")
     except KubernetesError as e:
         current_app.logger.error(f"Failed to delete Monster resource: {monster.name} due to {e}")
         return jsonify({"error": f"Failed to delete Monster resource: {monster.name}"}), 500
@@ -381,3 +389,29 @@ def reset_current_game_monsters():
 
     current_app.logger.info("Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
+
+
+@bp.route('/notify-deletion', methods=['POST'], strict_slashes=False)
+def notify_deletion():
+    """
+    Receives a notification that a monster has been deleted.
+
+    Returns:
+        Response: A JSON response indicating the status of the notification.
+    """
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No JSON payload received"}), 400
+
+        monster_name = data.get("monsterName", "Unknown")
+        monster_id = data.get("monsterID", "Unknown")
+        namespace = data.get("namespace", "Unknown")
+
+        current_app.logger.info(f"Received deletion notification: Name={monster_name}, ID={monster_id}, Namespace={namespace}")
+
+        return jsonify({"message": "Deletion notification received by portal"}), 200
+
+    except (ValueError, TypeError, KeyError) as e:
+        current_app.logger.error(f"Error processing deletion notification: {e}")
+        return jsonify({"error": "Failed to process deletion notification", "details": str(e)}), 500
