@@ -3,7 +3,8 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
+
+	v1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	log "sigs.k8s.io/controller-runtime/pkg/log"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // int32Ptr returns a pointer to an int32 value
@@ -20,6 +22,14 @@ func int32Ptr(i int32) *int32 {
 
 // createOrUpdateDeployment ensures the Nginx Deployment is created or updated
 func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monster v1.Monster) error {
+	log.FromContext(ctx).Info("Deployment - Creating or Updating Deployment", "monster", monster.Name)
+
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Deployment update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	// Fetch the existing ConfigMap to generate a hash for triggering rolling update
 	var cm corev1.ConfigMap
 	err := r.Get(ctx, client.ObjectKey{
@@ -39,6 +49,12 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("nginx-%s", monster.Name),
 			Namespace: "monsters",
+			Labels: map[string]string{
+				"owner": monster.Name,
+			},
+			//OwnerReferences: []metav1.OwnerReference{
+			//	*metav1.NewControllerRef(&monster, v1.GroupVersion.WithKind("Monster")),
+			//},
 			Annotations: map[string]string{
 				"configHash": cmHash, // Add a hash of the ConfigMap to trigger rolling update
 			},
@@ -78,7 +94,7 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 								{
 									Name:      "nginx-config",
 									MountPath: "/etc/nginx/nginx.conf", // Mount the nginx.conf
-									SubPath:   "nginx.conf",             // Only mount the specific nginx config
+									SubPath:   "nginx.conf",            // Only mount the specific nginx config
 								},
 							},
 						},
@@ -148,3 +164,30 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteDeployment(ctx context.Context, name, namespace string) error {
+	// Prepend 'nginx-' to the monster name
+	name = fmt.Sprintf("nginx-%s", name)
+	log.FromContext(ctx).Info("Deployment - Starting deleteDeployment for Monster", "name", name)
+
+	// Fetch the deployment
+	deployment := &appsv1.Deployment{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.FromContext(ctx).Info("Deployment - Already deleted", "name", name)
+			return nil // Not an error if already deleted
+		}
+		log.FromContext(ctx).Error(err, "Deployment - Unable to fetch Deployment for Monster", "name", name)
+		return err
+	}
+
+	// Delete the deployment
+	log.FromContext(ctx).Info("Deployment - Deleting Deployment for Monster", "name", name)
+	if err := r.Delete(ctx, deployment); err != nil {
+		log.FromContext(ctx).Error(err, "Deployment - Unable to delete Deployment for Monster", "name", name)
+		return err
+	}
+
+	return nil
+}
+

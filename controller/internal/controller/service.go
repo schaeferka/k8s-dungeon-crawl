@@ -14,6 +14,12 @@ import (
 
 // createOrUpdateService creates or updates the service for the monster's Nginx deployment
 func (r *MonsterReconciler) createOrUpdateService(ctx context.Context, monster kaschaeferv1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Service update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("nginx-%s", monster.Name),
@@ -61,3 +67,33 @@ func (r *MonsterReconciler) createOrUpdateService(ctx context.Context, monster k
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteService(ctx context.Context, name, namespace string) error {
+	// Prepend 'nginx-' to the name for Service naming
+	name = fmt.Sprintf("nginx-%s", name)
+
+	// Fetch the Service
+	service := &corev1.Service{}
+	err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, service)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			// Log and return if the Service is not found
+			log.FromContext(ctx).Info("Service already deleted or not found", "name", name)
+			return nil
+		}
+		// Log and return the error if it's not a NotFound error
+		log.FromContext(ctx).Error(err, "unable to fetch Service for Monster", "name", name)
+		return err
+	}
+
+	// Delete the Service
+	err = r.Delete(ctx, service)
+	if err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete Service for Monster", "name", name)
+		return err
+	}
+
+	log.FromContext(ctx).Info("Successfully deleted Service for Monster", "name", name)
+	return nil
+}
+

@@ -1,119 +1,107 @@
 package controller
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"net/http"
+
+	v1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 	log "sigs.k8s.io/controller-runtime/pkg/log"
-    "net/http"
-    "encoding/json"
-    "bytes"
-    "k8s.io/client-go/util/retry"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 func sendDeletionNotification(monsterName string, monsterID int) error {
-    portalURL := "http://portal-service.portal.svc.cluster.local:5000/monsters/notify-deletion"
-    payload := map[string]interface{}{
-        "monsterName": monsterName,
-        "monsterID":   monsterID,
-        "namespace":   "monsters",
-    }
+	portalURL := "http://portal-service.portal.svc.cluster.local:5000/monsters/notify-deletion"
+	payload := map[string]interface{}{
+		"monsterName": monsterName,
+		"monsterID":   monsterID,
+		"namespace":   "monsters",
+	}
 
-    jsonData, err := json.Marshal(payload)
-    if err != nil {
-        return fmt.Errorf("failed to marshal notification payload: %v", err)
-    }
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal notification payload: %v", err)
+	}
 
-    resp, err := http.Post(portalURL, "application/json", bytes.NewBuffer(jsonData))
-    if err != nil {
-        return fmt.Errorf("failed to send notification: %v", err)
-    }
-    defer resp.Body.Close()
+	resp, err := http.Post(portalURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to send notification: %v", err)
+	}
+	defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusOK {
-        return fmt.Errorf("received non-OK response from portal: %v", resp.Status)
-    }
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("received non-OK response from portal: %v", resp.Status)
+	}
 
-    return nil
+	return nil
 }
 
 func (r *MonsterReconciler) handleFinalizerForMonster(ctx context.Context, monster *v1.Monster) error {
-    log := log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
-    // If the Monster is being deleted, skip adding the finalizer
-    if monster.DeletionTimestamp != nil && !containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
-        log.Info("Skipping finalizer addition as Monster is being deleted", "name", monster.Name)
-        return nil
-    }
+	// Notify the portal
+	log.Info("Finalizer - Sending deletion notification to the portal", "name", monster.Name)
+	if err := sendDeletionNotification(monster.Name, monster.Spec.ID); err != nil {
+		log.Error(err, "Finalizer - Unable to notify portal", "name", monster.Name)
+		// Proceed with other cleanup steps even if notification fails
+	}
 
-    // Notify the portal of the deletion
-    log.Info("Sending deletion notification to the portal", "name", monster.Name)
-    if err := sendDeletionNotification(monster.Name, monster.Spec.ID); err != nil {
-        log.Error(err, "unable to notify portal of Monster deletion", "name", monster.Name)
-        return err
-    }
+	// Delete associated Deployment
+	log.Info("Finalizer - Deleting associated Deployment for Monster", "name", monster.Name)
+	if err := r.deleteDeployment(ctx, monster.Name, "monsters"); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("Finalizer - Deployment already deleted", "name", monster.Name)
+		} else {
+			log.Error(err, "Finalizer - Unable to delete Deployment", "name", monster.Name)
+			return err
+		}
+	}
 
-    // Cleanup associated resources (e.g., delete deployment)
-    log.Info("Deleting associated Deployment for Monster", "name", monster.Name)
-    if err := r.deleteDeployment(ctx, monster.Name, "monsters"); err != nil {
-        log.Error(err, "unable to delete Deployment for Monster", "name", monster.Name)
-        return err
-    }
+	// Delete associated resources (Service, ConfigMap, etc.)
+	log.Info("Finalizer - Deleting associated Service for Monster", "name", monster.Name)
+	if err := r.deleteService(ctx, monster.Name, "monsters"); err != nil {
+		log.Error(err, "Finalizer - Unable to delete Service", "name", monster.Name)
+		return err
+	}
 
-    // Retry removing the finalizer to handle conflicts
-    log.Info("Removing finalizer for Monster", "name", monster.Name)
-    return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-        latestMonster := &v1.Monster{}
-        if err := r.Get(ctx, client.ObjectKey{Name: monster.Name, Namespace: monster.Namespace}, latestMonster); err != nil {
-            if client.IgnoreNotFound(err) != nil {
-                log.Error(err, "unable to fetch latest Monster for finalizer removal", "name", monster.Name)
-                return err
-            }
-            log.Info("Monster not found, assuming already deleted", "name", monster.Name)
-            return nil
-        }
+	log.Info("Finalizer - Deleting associated Ingress for Monster", "name", monster.Name)
+	if err := r.deleteIngress(ctx, monster.Name, "monsters"); err != nil {
+		log.Error(err, "Finalizer - Unable to delete Ingress", "name", monster.Name)
+		return err
+	}
 
-        // Remove the finalizer from the latest version
-        latestMonster.Finalizers = removeString(latestMonster.Finalizers, "kaschaefer.com/cleanup")
-        if err := r.Update(ctx, latestMonster); err != nil {
-            log.Error(err, "finalizer unable to remove finalizer from Monster", "name", monster.Name)
-            return err
-        }
+	log.Info("Finalizer - Deleting associated ConfigMap for Monster", "name", monster.Name)
+	if err := r.deleteConfigMap(ctx, monster.Name, "monsters"); err != nil {
+		log.Error(err, "Finalizer - Unable to delete ConfigMap", "name", monster.Name)
+		return err
+	}
 
-        log.Info("Finalizer successfully removed", "name", monster.Name)
-        return nil
-    })
+	// Remove the finalizer to allow the CRD to be deleted
+	log.Info("Finalizer - Removing finalizer from Monster", "name", monster.Name)
+	controllerutil.RemoveFinalizer(monster, "kaschaefer.com/cleanup")
+	if err := r.Update(ctx, monster); err != nil {
+		log.Error(err, "Finalizer - Unable to remove finalizer", "name", monster.Name)
+		return err
+	}
+
+	log.Info("Finalizer - Finalizer successfully removed", "name", monster.Name)
+	return nil
 }
 
 
+
 // removeString removes a string from a slice of strings
-func removeString(slice []string, s string) []string {
+/* func removeString(slice []string, s string) []string {
 	for i, item := range slice {
 		if item == s {
 			return append(slice[:i], slice[i+1:]...)
 		}
 	}
 	return slice
-}
+} */
 
-func (r *MonsterReconciler) deleteDeployment(ctx context.Context, name, namespace string) error {
-	// Prepend 'nginx-' to the monster name
-	name = fmt.Sprintf("nginx-%s", name)
 
-	// Delete the Nginx deployment associated with the monster
-	deployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to fetch Deployment for Monster")
-		return err
-	}
 
-	// Delete the deployment
-	if err := r.Delete(ctx, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to delete Deployment for Monster")
-		return err
-	}
-
-	return nil
-}

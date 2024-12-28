@@ -13,6 +13,12 @@ import (
 
 // createOrUpdateConfigMap ensures the ConfigMap is created or updated
 func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster kaschaeferv1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping ConfigMap update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	// Generate index.html and nginx.conf content as before
 	indexHTML := generateHTMLContent(monster) // Use the function from utils.go
 	nginxConf := generateNginxConfig(monster)
@@ -57,3 +63,33 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteConfigMap(ctx context.Context, name, namespace string) error {
+	// Prepend 'monster-' to the name for ConfigMap naming
+	name = fmt.Sprintf("monster-%s", name)
+
+	// Fetch the ConfigMap
+	configMap := &corev1.ConfigMap{}
+	err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, configMap)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			// Log and return if the ConfigMap is not found
+			log.FromContext(ctx).Info("ConfigMap already deleted or not found", "name", name)
+			return nil
+		}
+		// Log and return the error if it's not a NotFound error
+		log.FromContext(ctx).Error(err, "unable to fetch ConfigMap for Monster", "name", name)
+		return err
+	}
+
+	// Delete the ConfigMap
+	err = r.Delete(ctx, configMap)
+	if err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete ConfigMap for Monster", "name", name)
+		return err
+	}
+
+	log.FromContext(ctx).Info("Successfully deleted ConfigMap for Monster", "name", name)
+	return nil
+}
+

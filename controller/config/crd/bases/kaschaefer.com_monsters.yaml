@@ -100,6 +100,12 @@ spec:
             type: object
           status:
             description: MonsterStatus defines the observed state of Monster.
+            properties:
+              phase:
+                description: |-
+                  Phase indicates the current lifecycle phase of the Monster.
+                  Possible values: "Initializing", "Active", "Deleting".
+                type: string
             type: object
         type: object
     served: true

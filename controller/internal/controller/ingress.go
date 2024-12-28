@@ -19,6 +19,12 @@ func stringPtr(s string) *string {
 
 // createOrUpdateIngress creates or updates the Ingress for the monster's page
 func (r *MonsterReconciler) createOrUpdateIngress(ctx context.Context, monster v1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Ingress update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	// Define the Ingress resource for the monster
 	ingress := &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
@@ -85,3 +91,33 @@ func (r *MonsterReconciler) createOrUpdateIngress(ctx context.Context, monster v
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteIngress(ctx context.Context, name, namespace string) error {
+	// Prepend 'nginx-' to the monster name for ingress naming
+	name = fmt.Sprintf("nginx-%s-ingress", name)
+
+	// Fetch the ingress
+	ingress := &networkingv1.Ingress{}
+	err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, ingress)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			// Log and return if the Ingress is not found
+			log.FromContext(ctx).Info("Ingress already deleted or not found", "name", name)
+			return nil
+		}
+		// Log and return the error if it's not a NotFound error
+		log.FromContext(ctx).Error(err, "unable to fetch Ingress for Monster", "name", name)
+		return err
+	}
+
+	// Delete the ingress
+	err = r.Delete(ctx, ingress)
+	if err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete Ingress for Monster", "name", name)
+		return err
+	}
+
+	log.FromContext(ctx).Info("Successfully deleted Ingress for Monster", "name", name)
+	return nil
+}
+
