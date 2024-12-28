@@ -51,9 +51,9 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 			Labels: map[string]string{
 				"owner": monster.Name,
 			},
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(&monster, v1.GroupVersion.WithKind("Monster")),
-			},
+			//OwnerReferences: []metav1.OwnerReference{
+			//	*metav1.NewControllerRef(&monster, v1.GroupVersion.WithKind("Monster")),
+			//},
 			Annotations: map[string]string{
 				"configHash": cmHash, // Add a hash of the ConfigMap to trigger rolling update
 			},
