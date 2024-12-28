@@ -13,6 +13,12 @@ import (
 
 // createOrUpdateConfigMap ensures the ConfigMap is created or updated
 func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster kaschaeferv1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping ConfigMap update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+	
 	// Generate index.html and nginx.conf content as before
 	indexHTML := generateHTMLContent(monster) // Use the function from utils.go
 	nginxConf := generateNginxConfig(monster)

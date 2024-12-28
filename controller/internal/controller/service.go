@@ -14,6 +14,12 @@ import (
 
 // createOrUpdateService creates or updates the service for the monster's Nginx deployment
 func (r *MonsterReconciler) createOrUpdateService(ctx context.Context, monster kaschaeferv1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Service update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("nginx-%s", monster.Name),

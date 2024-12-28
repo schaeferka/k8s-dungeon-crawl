@@ -3,7 +3,8 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
+
+	v1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +21,12 @@ func int32Ptr(i int32) *int32 {
 
 // createOrUpdateDeployment ensures the Nginx Deployment is created or updated
 func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monster v1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Deployment update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	// Fetch the existing ConfigMap to generate a hash for triggering rolling update
 	var cm corev1.ConfigMap
 	err := r.Get(ctx, client.ObjectKey{
@@ -78,7 +85,7 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 								{
 									Name:      "nginx-config",
 									MountPath: "/etc/nginx/nginx.conf", // Mount the nginx.conf
-									SubPath:   "nginx.conf",             // Only mount the specific nginx config
+									SubPath:   "nginx.conf",            // Only mount the specific nginx config
 								},
 							},
 						},

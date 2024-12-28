@@ -19,6 +19,12 @@ func stringPtr(s string) *string {
 
 // createOrUpdateIngress creates or updates the Ingress for the monster's page
 func (r *MonsterReconciler) createOrUpdateIngress(ctx context.Context, monster v1.Monster) error {
+	// Skip updates if Monster is being deleted
+	if monster.DeletionTimestamp != nil {
+		log.FromContext(ctx).Info("Skipping Ingress update as Monster is being deleted", "name", monster.Name)
+		return nil
+	}
+
 	// Define the Ingress resource for the monster
 	ingress := &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
