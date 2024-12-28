@@ -17,3 +17,6 @@ spec:
   - name: metrics
     port: 8010
     targetPort: 38010  # Match container port for Metrics
+  - name: mongoose-server
+    port: 8000  # Expose mongoose server
+    targetPort: 8000  # Match container port for Mongoose server

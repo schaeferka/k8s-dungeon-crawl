@@ -172,7 +172,7 @@ void update_monsters(void) {
         if (has_changes) {
             send_monsters_to_portal(monster_json);
         } else {
-            printf("No changes detected in monster data; skipping portal update.\n");
+            //printf("No changes detected in monster data; skipping portal update.\n");
         }
     }
 }

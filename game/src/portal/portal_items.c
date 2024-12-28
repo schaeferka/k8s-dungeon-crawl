@@ -61,8 +61,8 @@ void send_equipped_items_to_portal(void) {
         char equipped_json[BUFFER_SIZE];
         generate_equipped_items_json(&items, equipped_json, sizeof(equipped_json));
 
-        printf("EQUIPPED Sending equipped items to portal...\n\n");
-        printf("%s\n\n", equipped_json);
+        //printf("EQUIPPED Sending equipped items to portal...\n\n");
+        //printf("%s\n\n", equipped_json);
         send_items_to_portal(equipped_json);
 
         // Update previous equipped items
@@ -207,8 +207,8 @@ void send_pack_items_to_portal(void) {
 
         generate_pack_items_json(post_data + strlen(post_data), buffer_size - strlen(post_data));
 
-        printf("PACK Sending pack items to portal...\n\n");
-        printf("%s\n\n", post_data);
+        //printf("PACK Sending pack items to portal...\n\n");
+        //printf("%s\n\n", post_data);
         send_pack_to_portal(post_data);
 
         // Update previous inventory items
