@@ -132,6 +132,7 @@ func (r *MonsterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ConfigMap{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&networkingv1.Ingress{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }
 
