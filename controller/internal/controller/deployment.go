@@ -12,6 +12,7 @@ import (
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	log "sigs.k8s.io/controller-runtime/pkg/log"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // int32Ptr returns a pointer to an int32 value
@@ -167,19 +168,26 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 func (r *MonsterReconciler) deleteDeployment(ctx context.Context, name, namespace string) error {
 	// Prepend 'nginx-' to the monster name
 	name = fmt.Sprintf("nginx-%s", name)
+	log.FromContext(ctx).Info("Deployment - Starting deleteDeployment for Monster", "name", name)
 
-	// Delete the Nginx deployment associated with the monster
+	// Fetch the deployment
 	deployment := &appsv1.Deployment{}
 	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to fetch Deployment for Monster")
+		if apierrors.IsNotFound(err) {
+			log.FromContext(ctx).Info("Deployment - Already deleted", "name", name)
+			return nil // Not an error if already deleted
+		}
+		log.FromContext(ctx).Error(err, "Deployment - Unable to fetch Deployment for Monster", "name", name)
 		return err
 	}
 
 	// Delete the deployment
+	log.FromContext(ctx).Info("Deployment - Deleting Deployment for Monster", "name", name)
 	if err := r.Delete(ctx, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to delete Deployment for Monster")
+		log.FromContext(ctx).Error(err, "Deployment - Unable to delete Deployment for Monster", "name", name)
 		return err
 	}
 
 	return nil
 }
+

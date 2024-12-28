@@ -7,12 +7,20 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	networkingv1 "k8s.io/api/networking/v1"
 	"fmt"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"k8s.io/client-go/util/workqueue"
+	"time"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 // MonsterReconciler reconciles a Monster object
@@ -51,13 +59,25 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// Ensure the status.phase field is initialized
 	if monster.Status.Phase == "" {
-		log.Info("Reconcile - Setting status.phase to Initializing", "name", monster.Name)
+		log.Info("Reconcile - Initializing status.phase", "name", monster.Name)
 		monster.Status.Phase = "Initializing"
 		if err := r.Status().Update(ctx, &monster); err != nil {
 			log.Error(err, "Reconcile - unable to set status.phase to Initializing", "name", monster.Name)
 			return ctrl.Result{}, err
 		}
-		// Skip further processing until phase is set
+		// Allow update to take effect before further processing
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer if needed
+	if !containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
+		log.Info("Reconcile - Adding finalizer", "name", monster.Name)
+		controllerutil.AddFinalizer(&monster, "kaschaefer.com/cleanup")
+		if err := r.Update(ctx, &monster); err != nil {
+			log.Error(err, "Reconcile - unable to add finalizer", "name", monster.Name)
+			return ctrl.Result{}, err
+		}
+		// Allow finalizer addition to take effect before further processing
 		return ctrl.Result{}, nil
 	}
 
@@ -66,28 +86,21 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		var deployment appsv1.Deployment
 		deploymentName := fmt.Sprintf("nginx-%s", monster.Name)
 		if err := r.Get(ctx, client.ObjectKey{Namespace: "monsters", Name: deploymentName}, &deployment); err != nil {
-			if client.IgnoreNotFound(err) == nil {
+			if apierrors.IsNotFound(err) {
 				log.Info("Reconcile - Deployment missing, triggering cleanup", "name", deploymentName)
-				if err := r.cleanupMissingDeployment(ctx, &monster); err != nil {
-					log.Error(err, "Reconcile - unable to clean up missing Deployment for Monster", "name", monster.Name)
-					return ctrl.Result{}, err
+				if cleanupErr := r.cleanupMissingDeployment(ctx, &monster); cleanupErr != nil {
+					log.Error(cleanupErr, "Reconcile - unable to clean up resources after Deployment deletion", "name", monster.Name)
+					return ctrl.Result{}, cleanupErr
 				}
+				// Stop further reconciliation as the Monster will be cleaned up
 				return ctrl.Result{}, nil
+			} else {
+				log.Error(err, "Reconcile - error fetching Deployment", "name", deploymentName)
+				return ctrl.Result{}, err
 			}
-			log.Error(err, "Reconcile - error fetching Deployment for Monster", "name", monster.Name)
-			return ctrl.Result{}, err
 		}
-	}	
+	} 
 
-	// Add finalizer if needed
-	if !containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
-		log.Info("Adding finalizer to Monster", "name", monster.Name)
-		controllerutil.AddFinalizer(&monster, "kaschaefer.com/cleanup")
-		if err := r.Update(ctx, &monster); err != nil {
-			log.Error(err, "Reconcile - unable to add finalizer to Monster", "name", monster.Name)
-			return ctrl.Result{}, err
-		}
-	}
 
 	// Handle regular reconciliation logic (create/update resources)
 	if err := r.createOrUpdateConfigMap(ctx, monster); err != nil {
@@ -128,53 +141,76 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager sets up the controller with the Manager.
 func (r *MonsterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1.Monster{}). // Watch for Monster changes
-		Owns(&corev1.ConfigMap{}).
-		Owns(&appsv1.Deployment{}).
-		Owns(&networkingv1.Ingress{}).
-		Owns(&corev1.Service{}).
+	WithOptions(controller.Options{
+		RateLimiter: workqueue.NewTypedItemExponentialFailureRateLimiter[ctrl.Request](5*time.Millisecond, 1000*time.Second), // Rate limiter
+	}).
+		For(&v1.Monster{}). // Watch for changes to Monster resources
+		Watches(
+			&appsv1.Deployment{},
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []ctrl.Request {
+				deployment, ok := obj.(*appsv1.Deployment)
+				if !ok {
+					return nil
+				}
+
+				// Extract the Monster name from the Deployment labels
+				monsterName, found := deployment.Labels["owner"]
+				if !found || deployment.Namespace != "monsters" {
+					return nil
+				}
+
+				// Return a request to reconcile the corresponding Monster
+				return []ctrl.Request{
+					{
+						NamespacedName: types.NamespacedName{
+							Name:      monsterName,
+							Namespace: "dungeon-master-system",
+						},
+					},
+				}
+			}),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}), // Only reconcile if resource version changes
+		).
+		Owns(&corev1.ConfigMap{}). // Watch ConfigMaps created by this controller
+		Owns(&corev1.Service{}).   // Watch Services created by this controller
+		Owns(&networkingv1.Ingress{}). // Watch Ingresses created by this controller
 		Complete(r)
 }
+
 
 
 func (r *MonsterReconciler) cleanupMissingDeployment(ctx context.Context, monster *v1.Monster) error {
 	log := log.FromContext(ctx)
 
 	// Ensure cleanup only applies to Active Monsters
-	if monster.Status.Phase != "Active" {
+	if (monster.Status.Phase != "Active") {
 		log.Info("Cleanup - Skipping cleanup for non-Active Monster", "name", monster.Name)
 		return nil
 	}
 
 	// Notify the portal
-	log.Info("Cleanup - Notifying portal about missing Deployment", "name", monster.Name)
+	log.Info("Cleanup - Notifying portal about deleted Deployment", "name", monster.Name)
 	if err := sendDeletionNotification(monster.Name, monster.Spec.ID); err != nil {
 		log.Error(err, "Cleanup - unable to notify portal", "name", monster.Name)
 		return err
 	}
 
-	// Delete associated Service
-	log.Info("Cleanup - Deleting associated Service for Monster", "name", monster.Name)
+	// Delete associated resources in the monsters namespace
+	log.Info("Cleanup - Deleting associated resources in monsters namespace", "name", monster.Name)
 	if err := r.deleteService(ctx, monster.Name, "monsters"); err != nil {
 		log.Error(err, "Cleanup - unable to delete Service for Monster", "name", monster.Name)
 		return err
 	}
-
-	// Delete associated Ingress
-	log.Info("Cleanup - Deleting associated Ingress for Monster", "name", monster.Name)
 	if err := r.deleteIngress(ctx, monster.Name, "monsters"); err != nil {
 		log.Error(err, "Cleanup - unable to delete Ingress for Monster", "name", monster.Name)
 		return err
 	}
-
-	// Delete associated ConfigMap
-	log.Info("Cleanup - Deleting associated ConfigMap for Monster", "name", monster.Name)
 	if err := r.deleteConfigMap(ctx, monster.Name, "monsters"); err != nil {
 		log.Error(err, "Cleanup - unable to delete ConfigMap for Monster", "name", monster.Name)
 		return err
 	}
 
-	// Delete Monster CRD
+	// Delete the Monster CRD in dungeon-master-system namespace
 	log.Info("Cleanup - Deleting Monster CRD", "name", monster.Name)
 	if err := r.Delete(ctx, monster); err != nil {
 		log.Error(err, "Cleanup - unable to delete Monster CRD", "name", monster.Name)

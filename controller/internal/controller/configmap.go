@@ -65,22 +65,31 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster
 }
 
 func (r *MonsterReconciler) deleteConfigMap(ctx context.Context, name, namespace string) error {
-	// Prepend 'monster-' to the monster name for configmap naming
+	// Prepend 'monster-' to the name for ConfigMap naming
 	name = fmt.Sprintf("monster-%s", name)
 
-	// Delete the configmap associated with the monster
+	// Fetch the ConfigMap
 	configMap := &corev1.ConfigMap{}
-	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, configMap); err != nil {
-		log.FromContext(ctx).Error(err, "unable to fetch ConfigMap for Monster")
+	err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, configMap)
+	if err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			// Log and return if the ConfigMap is not found
+			log.FromContext(ctx).Info("ConfigMap already deleted or not found", "name", name)
+			return nil
+		}
+		// Log and return the error if it's not a NotFound error
+		log.FromContext(ctx).Error(err, "unable to fetch ConfigMap for Monster", "name", name)
 		return err
 	}
 
-	// Delete the configmap
-	if err := r.Delete(ctx, configMap); err != nil {
-		log.FromContext(ctx).Error(err, "unable to delete ConfigMap for Monster")
+	// Delete the ConfigMap
+	err = r.Delete(ctx, configMap)
+	if err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete ConfigMap for Monster", "name", name)
 		return err
 	}
 
 	log.FromContext(ctx).Info("Successfully deleted ConfigMap for Monster", "name", name)
 	return nil
 }
+
