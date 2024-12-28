@@ -21,6 +21,8 @@ func int32Ptr(i int32) *int32 {
 
 // createOrUpdateDeployment ensures the Nginx Deployment is created or updated
 func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monster v1.Monster) error {
+	log.FromContext(ctx).Info("Deployment - Creating or Updating Deployment", "monster", monster.Name)
+
 	// Skip updates if Monster is being deleted
 	if monster.DeletionTimestamp != nil {
 		log.FromContext(ctx).Info("Skipping Deployment update as Monster is being deleted", "name", monster.Name)
@@ -46,6 +48,12 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("nginx-%s", monster.Name),
 			Namespace: "monsters",
+			Labels: map[string]string{
+				"owner": monster.Name,
+			},
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(&monster, v1.GroupVersion.WithKind("Monster")),
+			},
 			Annotations: map[string]string{
 				"configHash": cmHash, // Add a hash of the ConfigMap to trigger rolling update
 			},
@@ -154,4 +162,24 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 	}
 
 	return err
+}
+
+func (r *MonsterReconciler) deleteDeployment(ctx context.Context, name, namespace string) error {
+	// Prepend 'nginx-' to the monster name
+	name = fmt.Sprintf("nginx-%s", name)
+
+	// Delete the Nginx deployment associated with the monster
+	deployment := &appsv1.Deployment{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
+		log.FromContext(ctx).Error(err, "unable to fetch Deployment for Monster")
+		return err
+	}
+
+	// Delete the deployment
+	if err := r.Delete(ctx, deployment); err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete Deployment for Monster")
+		return err
+	}
+
+	return nil
 }

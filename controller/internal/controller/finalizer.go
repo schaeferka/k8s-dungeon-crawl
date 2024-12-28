@@ -8,11 +8,10 @@ import (
 	"net/http"
 
 	v1 "github.com/schaeferka/k8s-dungeon-crawl/dungeon-master/api/v1"
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	log "sigs.k8s.io/controller-runtime/pkg/log"
-	corev1 "k8s.io/api/core/v1"
+	
 )
 
 func sendDeletionNotification(monsterName string, monsterID int) error {
@@ -100,44 +99,5 @@ func removeString(slice []string, s string) []string {
 	return slice
 }
 
-func (r *MonsterReconciler) deleteDeployment(ctx context.Context, name, namespace string) error {
-	// Prepend 'nginx-' to the monster name
-	name = fmt.Sprintf("nginx-%s", name)
 
-	// Delete the Nginx deployment associated with the monster
-	deployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to fetch Deployment for Monster")
-		return err
-	}
-
-	// Delete the deployment
-	if err := r.Delete(ctx, deployment); err != nil {
-		log.FromContext(ctx).Error(err, "unable to delete Deployment for Monster")
-		return err
-	}
-
-	return nil
-}
-
-func (r *MonsterReconciler) deleteService(ctx context.Context, name, namespace string) error {
-	// Prepend 'nginx-' to the monster name
-	name = fmt.Sprintf("nginx-%s", name)
-
-	// Delete the service associated with the monster
-	service := &corev1.Service{}
-	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, service); err != nil {
-		log.FromContext(ctx).Error(err, "unable to fetch Service for Monster")
-		return err
-	}
-
-	// Delete the service
-	if err := r.Delete(ctx, service); err != nil {
-		log.FromContext(ctx).Error(err, "unable to delete Service for Monster")
-		return err
-	}
-
-	log.FromContext(ctx).Info("Successfully deleted Service for Monster", "name", name)
-	return nil
-}
 

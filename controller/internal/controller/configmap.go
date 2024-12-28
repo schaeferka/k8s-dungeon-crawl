@@ -18,7 +18,7 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster
 		log.FromContext(ctx).Info("Skipping ConfigMap update as Monster is being deleted", "name", monster.Name)
 		return nil
 	}
-	
+
 	// Generate index.html and nginx.conf content as before
 	indexHTML := generateHTMLContent(monster) // Use the function from utils.go
 	nginxConf := generateNginxConfig(monster)
@@ -62,4 +62,25 @@ func (r *MonsterReconciler) createOrUpdateConfigMap(ctx context.Context, monster
 	}
 
 	return err
+}
+
+func (r *MonsterReconciler) deleteConfigMap(ctx context.Context, name, namespace string) error {
+	// Prepend 'monster-' to the monster name for configmap naming
+	name = fmt.Sprintf("monster-%s", name)
+
+	// Delete the configmap associated with the monster
+	configMap := &corev1.ConfigMap{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, configMap); err != nil {
+		log.FromContext(ctx).Error(err, "unable to fetch ConfigMap for Monster")
+		return err
+	}
+
+	// Delete the configmap
+	if err := r.Delete(ctx, configMap); err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete ConfigMap for Monster")
+		return err
+	}
+
+	log.FromContext(ctx).Info("Successfully deleted ConfigMap for Monster", "name", name)
+	return nil
 }

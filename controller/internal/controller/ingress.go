@@ -91,3 +91,24 @@ func (r *MonsterReconciler) createOrUpdateIngress(ctx context.Context, monster v
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteIngress(ctx context.Context, name, namespace string) error {
+	// Prepend 'nginx-' to the monster name for ingress naming
+	name = fmt.Sprintf("nginx-%s-ingress", name)
+
+	// Delete the ingress associated with the monster
+	ingress := &networkingv1.Ingress{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, ingress); err != nil {
+		log.FromContext(ctx).Error(err, "unable to fetch Ingress for Monster")
+		return err
+	}
+
+	// Delete the ingress
+	if err := r.Delete(ctx, ingress); err != nil {
+		log.FromContext(ctx).Error(err, "unable to delete Ingress for Monster")
+		return err
+	}
+
+	log.FromContext(ctx).Info("Successfully deleted Ingress for Monster", "name", name)
+	return nil
+}

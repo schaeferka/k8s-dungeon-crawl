@@ -82,8 +82,9 @@ type Position struct {
 
 // MonsterStatus defines the observed state of Monster.
 type MonsterStatus struct {
-	// Add status fields here to track observed state.
-	// For example, current health, last seen location, etc.
+	// Phase indicates the current lifecycle phase of the Monster.
+	// Possible values: "Initializing", "Active", "Deleting".
+	Phase string `json:"phase,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -67,3 +67,29 @@ func (r *MonsterReconciler) createOrUpdateService(ctx context.Context, monster k
 
 	return err
 }
+
+func (r *MonsterReconciler) deleteService(ctx context.Context, name, namespace string) error {
+	log := log.FromContext(ctx)
+
+	name = fmt.Sprintf("nginx-%s", name) // Prepend 'nginx-' to match service naming
+
+	// Fetch the service
+	service := &corev1.Service{}
+	if err := r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: name}, service); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			log.Error(err, "unable to fetch Service for Monster", "name", name)
+			return err
+		}
+		log.Info("Service already deleted or not found", "name", name)
+		return nil
+	}
+
+	// Delete the service
+	if err := r.Delete(ctx, service); err != nil {
+		log.Error(err, "unable to delete Service for Monster", "name", name)
+		return err
+	}
+
+	log.Info("Successfully deleted Service for Monster", "name", name)
+	return nil
+}
