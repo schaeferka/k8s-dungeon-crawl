@@ -6,22 +6,34 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data) {
     if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 
-        mg_http_reply(c, 200, "Content-Type: text/plain\r\n", "{%m:%m}\n",  MG_ESC("monsterName"), "monstie");
+        printf("MONSTIES Received request to %.*s\n", (int) hm->uri.len, hm->uri.buf);
+        printf("MONSTIES Request body: %.*s\n", (int) hm->body.len, hm->body.buf);
+
         // Check if the request is for /monster-deleted
         if (mg_match(hm->uri, mg_str("/monster-deleted"), NULL)) {
-            char *monsterName = mg_json_get_str(hm->body, "$.monsterName");
+            //char *monsterID[128] = {0};
+            //char *monsterName[128] = {0};
 
-            if (monsterName == NULL) {
-                mg_http_reply(c, 400, "Content-Type: text/plain\r\n", "No monsterName\n", (int) c->recv.len);
-            } else {  
-                mg_http_reply(c, 200, "Content-Type: text/plain\r\n", "{%m:%m}\n",  MG_ESC("monsterName"), monsterName);
-            }
+            // Parse JSON payload to extract monster_id and monster_name
+            //mg_json_get(hm->body, "$.monster_id", monsterID);
+            //mg_json_get(hm->body, "$.monster_name", monsterName);
+
+            char *monsterID = mg_json_get_str(hm->body, "$.monster_id");
+            char *monsterName = mg_json_get_str(hm->body, "$.monster_name");
+
+            // Log and process the received payload
+            //printf("Monster deleted: ID=%s, Name=%s\n", monsterID, monsterName);
+
+            // Construct the response JSON
+            char response[256];
+            snprintf(response, sizeof(response), "{\"status\":\"success\",\"monsterID\":\"%s\",\"monsterName\":\"%s\"}", monsterID, monsterName);
+
+            // Respond to the portal
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", response);
         } else {
             // Respond with 404 for other endpoints
             mg_http_reply(c, 404, "Content-Type: text/plain\r\n", "Not Found\n");
         }
-    } else {
-        mg_http_reply(c, 500, "Content-Type: text/plain\r\n", "Internal Server Error\n");
     }
 }
 
