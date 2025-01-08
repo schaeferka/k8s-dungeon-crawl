@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y \
     net-tools \
     x11-xserver-utils \
     libcurl4-openssl-dev \
+    git \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
@@ -41,6 +44,14 @@ RUN apt update && apt install -y git python3 python3-pip && \
 
 RUN ln -s /opt/noVNC/vnc_lite.html /opt/noVNC/index.html
 
+# Install Mongoose library
+RUN curl -LO https://github.com/cesanta/mongoose/archive/refs/tags/7.16.tar.gz \
+    && tar -xzf 7.16.tar.gz \
+    && mkdir -p /app/src/third_party/mongoose \
+    && mv mongoose-7.16/mongoose.c /app/src/third_party/mongoose/mongoose.c \
+    && mv mongoose-7.16/mongoose.h /app/src/third_party/mongoose/mongoose.h \
+    && rm -rf mongoose-7.16 7.16.tar.gz
+
 WORKDIR /app
 
 COPY . /app
@@ -55,8 +66,8 @@ RUN mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml && \
 
 RUN make clean && make
 
-# Expose the VNC, noVNC, and metrics HTTP ports
-EXPOSE 38010 35910 16080
+# Expose the VNC, noVNC, and HTTP ports
+EXPOSE 38010 35910 16080 8000
 
 # Set environment variables to center the Brogue window
 ENV SDL_VIDEO_WINDOW_POS=0,0

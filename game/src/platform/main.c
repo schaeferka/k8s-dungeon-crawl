@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include "portal_server.h"
+
 #ifndef DATADIR
 #error "The DATADIR macro is undefined."
 #endif
@@ -352,6 +354,8 @@ int main(int argc, char *argv[])
     // call, whether true or false
     graphicsMode = setGraphicsMode(initialGraphics);
 
+    server_main();
+    
     loadKeymap();
     currentConsole.gameLoop();
 

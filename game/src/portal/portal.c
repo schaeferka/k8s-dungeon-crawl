@@ -12,8 +12,8 @@
  * @param data The JSON data to send. If NULL, no data is sent.
  */
 void send_data_to_portal(const char *url, const char *data) {
-    printf("Getting ready to send data to %s\n", url);
-    printf("Data: %s\n", data);
+    //printf("Getting ready to send data to %s\n", url);
+    //printf("Data: %s\n", data);
     CURL *curl = curl_easy_init();  // Initialize the CURL session
     if (curl) {
         struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
@@ -24,14 +24,14 @@ void send_data_to_portal(const char *url, const char *data) {
 
         CURLcode res = curl_easy_perform(curl);  // Perform the request
 
-        printf("Response from portal: %d\n", res);
+        //printf("Response from portal: %d\n", res);
         if (res != CURLE_OK) {
             // Print error message if the request fails
             fprintf(stderr, "Failed to send data to portal: %s\n", curl_easy_strerror(res));
             printf("Curl response data: %s\n", curl_easy_strerror(res));
         } else {
             // Success message if request is successful
-            printf("Successfully sent data to %s\n", url);
+            //printf("Successfully sent data to %s\n", url);
         }
 
         curl_slist_free_all(headers);  // Free the headers list

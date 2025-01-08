@@ -20,6 +20,8 @@ from app.services.k8s_service import KubernetesService
 from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
+import requests
+import json
 
 bp = Blueprint('monsters', __name__)
 
@@ -390,27 +392,76 @@ def reset_current_game_monsters():
     current_app.logger.info("Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
+def sanitize_string(input_str):
+    if isinstance(input_str, str):
+        # Replace control characters with safe placeholders
+        return ''.join(ch for ch in input_str if ch.isprintable())
+    return input_str
 
 @bp.route('/notify-deletion', methods=['POST'], strict_slashes=False)
 def notify_deletion():
     """
-    Receives a notification that a monster has been deleted.
+    Receives a notification that a monster has been deleted and relays the information to the game.
 
     Returns:
-        Response: A JSON response indicating the status of the notification.
+        Response: A JSON response indicating the status of the notification and relay.
     """
     try:
-        data = request.json
+        # Log raw incoming data for debugging
+        raw_data = request.data.decode('utf-8')
+        current_app.logger.info(f"Raw payload: {raw_data}")
+
+        data = json.loads(raw_data, strict=False)
         if not data:
+            current_app.logger.warning("No JSON payload received.")
             return jsonify({"error": "No JSON payload received"}), 400
 
-        monster_name = data.get("monsterName", "Unknown")
-        monster_id = data.get("monsterID", "Unknown")
-        namespace = data.get("namespace", "Unknown")
+        monster_name = sanitize_string(data.get("monsterName", "Unknown"))
+        monster_id = sanitize_string(data.get("monsterID", "Unknown"))
+        namespace = sanitize_string(data.get("namespace", "Unknown"))
 
-        current_app.logger.info(f"Received deletion notification: Name={monster_name}, ID={monster_id}, Namespace={namespace}")
+        # Log the received deletion notification
+        current_app.logger.info(
+            f"Received deletion notification: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
+        )
 
-        return jsonify({"message": "Deletion notification received by portal"}), 200
+        # Construct the payload for the game
+        payload = {
+            "monsterID": monster_id,
+            "monsterName": monster_name
+        }
+        
+        current_app.logger.info(f"Relaying deletion notification to game: {payload}")
+
+        # Relay the deletion notification to the game
+        portal_url = "http://game-service.game:8000/monster/delete"  # Replace with your actual portal server URL
+        response = requests.post(portal_url, json=payload, timeout=10)
+
+        # Log the relay response
+        if response.status_code == 200:
+            current_app.logger.info(f"Successfully relayed deletion notification to game: {response.json()}")
+            return jsonify({"message": "Deletion notification relayed to game"}), 200
+        else:
+            current_app.logger.error(
+                f"Failed to relay deletion notification to game: {response.status_code} {response.text}"
+            )
+            return jsonify({
+                "error": "Failed to relay deletion notification to game",
+                "status_code": response.status_code,
+                "details": response.text
+            }), 500
+
+    except json.JSONDecodeError as e:
+        current_app.logger.error(f"JSON decoding error: {e}")
+        return jsonify({"error": "Invalid JSON payload", "details": str(e)}), 400
+
+    except requests.Timeout:
+        current_app.logger.error("Request to game timed out.")
+        return jsonify({"error": "Request to game timed out"}), 504
+    
+    except requests.RequestException as e:
+        current_app.logger.error(f"RequestException: {e}")
+        return jsonify({"error": "Failed to relay deletion notification", "details": str(e)}), 500
 
     except (ValueError, TypeError, KeyError) as e:
         current_app.logger.error(f"Error processing deletion notification: {e}")

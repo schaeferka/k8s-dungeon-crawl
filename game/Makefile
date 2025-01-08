@@ -5,17 +5,26 @@ cflags := -Isrc/brogue -Isrc/platform -Isrc/variants -Isrc/portal -std=c18 \
 	-Wformat -Werror=format-security -Wshift-overflow -Wmissing-prototypes \
 	-I$(shell brew --prefix curl)/include \
 	-I/opt/homebrew/opt/cmocka/include \
-	-I$(shell brew --prefix ncurses)/include
+	-I$(shell brew --prefix ncurses)/include \
+	-Isrc/third_party/mongoose \
+	-D_GNU_SOURCE
 libs := -lm -lmicrohttpd \
 	-L$(shell brew --prefix curl)/lib -lcurl \
 	-lcmocka \
-	-L$(shell brew --prefix ncurses)/lib -lncurses
+	-L$(shell brew --prefix ncurses)/lib -lncurses 
 
 cppflags := -DDATADIR=$(DATADIR)
 
 # Define the sources, excluding test files
-sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(wildcard src/portal/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c)
-objects :=
+sources := $(wildcard src/brogue/*.c) $(wildcard src/variants/*.c) $(wildcard src/portal/*.c) $(addprefix src/platform/,main.c platformdependent.c null-platform.c )
+objects := 
+
+# Special rule for compiling mongoose.c without -Werror
+src/third_party/mongoose/mongoose.o: src/third_party/mongoose/mongoose.c
+	$(CC) $(cflags) $(cppflags) -Wno-error -c $< -o $@
+
+# Include mongoose.o in objects
+objects += src/third_party/mongoose/mongoose.o
 
 # Only include test files when `make test` is called
 ifeq ($(MAKECMDGOALS),test)
