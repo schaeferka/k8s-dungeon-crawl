@@ -434,7 +434,7 @@ def notify_deletion():
         current_app.logger.info(f"Relaying deletion notification to game: {payload}")
 
         # Relay the deletion notification to the game
-        portal_url = "http://game-service.game:8000/monster-deleted"  # Replace with your actual portal server URL
+        portal_url = "http://game-service.game:8000/monster/delete"  # Replace with your actual portal server URL
         response = requests.post(portal_url, json=payload, timeout=10)
 
         # Log the relay response
