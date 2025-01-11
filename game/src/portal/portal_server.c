@@ -49,7 +49,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data)
                 // Construct the response JSON
                 char response[256];
                 snprintf(response, sizeof(response), "{\"status\":\"success\",\"monsterID\":%d,\"monsterName\":\"%s\"}", monsterID, monsterName);
-
+                
                 // Respond to the portal
                 mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", response);
             }
