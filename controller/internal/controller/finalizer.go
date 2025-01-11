@@ -14,7 +14,7 @@ import (
 )
 
 func sendDeletionNotification(monsterName string, monsterID int) error {
-	portalURL := "http://portal-service.portal.svc.cluster.local:5000/monsters/notify-deletion"
+	portalURL := "http://portal-service.portal.svc.cluster.local:5000/monsters/admin-kill"
 	payload := map[string]interface{}{
 		"monsterName": monsterName,
 		"monsterID":   monsterID,

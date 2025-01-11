@@ -14,6 +14,7 @@ This blueprint includes routes for:
 Returns:
     None: This module defines routes for the Flask app to manage monsters and Prometheus metrics.
 """
+import json
 from datetime import datetime, timezone
 from app.models.monsters import Monster
 from app.services.k8s_service import KubernetesService
@@ -21,7 +22,6 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
 import requests
-import json
 
 bp = Blueprint('monsters', __name__)
 
@@ -393,18 +393,28 @@ def reset_current_game_monsters():
     return jsonify({"status": "success"}), 200
 
 def sanitize_string(input_str):
+    """
+    Sanitizes a string by removing control characters.
+    
+    Args:
+        Input string with control characters to be removed.
+
+    Returns:
+       Sanitized string with control characters removed.
+    """
     if isinstance(input_str, str):
         # Replace control characters with safe placeholders
         return ''.join(ch for ch in input_str if ch.isprintable())
     return input_str
 
-@bp.route('/notify-deletion', methods=['POST'], strict_slashes=False)
-def notify_deletion():
+@bp.route('/admin-kill', methods=['POST'], strict_slashes=False)
+def admin_kill():
     """
-    Receives a notification that a monster has been deleted and relays the information to the game.
+    Receives a notice that a monster has been admin killed.
+    Relays the information to the game.
 
     Returns:
-        Response: A JSON response indicating the status of the notification and relay.
+        Response: A JSON response indicating the status of the notice and relay.
     """
     try:
         # Log raw incoming data for debugging
@@ -420,9 +430,9 @@ def notify_deletion():
         monster_id = sanitize_string(data.get("monsterID", "Unknown"))
         namespace = sanitize_string(data.get("namespace", "Unknown"))
 
-        # Log the received deletion notification
+        # Log the received admin kill notification
         current_app.logger.info(
-            f"Received deletion notification: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
+            f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
         )
 
         # Construct the payload for the game
@@ -430,23 +440,23 @@ def notify_deletion():
             "monsterID": monster_id,
             "monsterName": monster_name
         }
-        
-        current_app.logger.info(f"Relaying deletion notification to game: {payload}")
 
-        # Relay the deletion notification to the game
-        portal_url = "http://game-service.game:8000/monster/delete"  # Replace with your actual portal server URL
+        current_app.logger.info(f"Relaying admin kill notice to game: {payload}")
+
+        # Relay the admin kill notification to the game
+        portal_url = "http://game-service.game:8000/monsters/admin-kill"
         response = requests.post(portal_url, json=payload, timeout=10)
 
         # Log the relay response
         if response.status_code == 200:
-            current_app.logger.info(f"Successfully relayed deletion notification to game: {response.json()}")
-            return jsonify({"message": "Deletion notification relayed to game"}), 200
+            current_app.logger.info(f"Successfully relayed admin kill to game: {response.json()}")
+            return jsonify({"message": "Admin kill notice relayed to game"}), 200
         else:
             current_app.logger.error(
-                f"Failed to relay deletion notification to game: {response.status_code} {response.text}"
+                f"Failed to relay admin kill to game: {response.status_code} {response.text}"
             )
             return jsonify({
-                "error": "Failed to relay deletion notification to game",
+                "error": "Failed to relay admin kill notice to game",
                 "status_code": response.status_code,
                 "details": response.text
             }), 500
@@ -458,11 +468,11 @@ def notify_deletion():
     except requests.Timeout:
         current_app.logger.error("Request to game timed out.")
         return jsonify({"error": "Request to game timed out"}), 504
-    
+
     except requests.RequestException as e:
         current_app.logger.error(f"RequestException: {e}")
-        return jsonify({"error": "Failed to relay deletion notification", "details": str(e)}), 500
+        return jsonify({"error": "Failed to relay adnin kill notice", "details": str(e)}), 500
 
     except (ValueError, TypeError, KeyError) as e:
-        current_app.logger.error(f"Error processing deletion notification: {e}")
-        return jsonify({"error": "Failed to process deletion notification", "details": str(e)}), 500
+        current_app.logger.error(f"Error processing admin kill notice: {e}")
+        return jsonify({"error": "Failed to process admin kill notice", "details": str(e)}), 500
