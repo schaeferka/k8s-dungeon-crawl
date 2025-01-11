@@ -50,6 +50,7 @@ last_monster_death = Gauge(
 active_monsters = {}
 all_monsters = {}
 dead_monsters = {}
+admin_kills = {}
 
 k8s_service = KubernetesService()
 
@@ -386,10 +387,11 @@ def reset_current_game_monsters():
     active_monsters.clear()
     all_monsters.clear()
     dead_monsters.clear()
+    admin_kills.clear()  # Reset the admin_kills list
 
     k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
 
-    current_app.logger.info("Monster data has been reset for a new game.")
+    current_app.logger.info("RESET Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
 def sanitize_string(input_str):
@@ -419,7 +421,6 @@ def admin_kill():
     try:
         # Log raw incoming data for debugging
         raw_data = request.data.decode('utf-8')
-        current_app.logger.info(f"Raw payload: {raw_data}")
 
         data = json.loads(raw_data, strict=False)
         if not data:
@@ -434,6 +435,17 @@ def admin_kill():
         current_app.logger.info(
             f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
         )
+
+        # Add the monster to the admin_kills list if it isn't already there
+        if monster_id not in admin_kills:
+            admin_kills[monster_id] = {
+                "monsterName": monster_name,
+                "namespace": namespace,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            current_app.logger.info(
+                f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}"
+            )
 
         # Construct the payload for the game
         payload = {
@@ -471,7 +483,7 @@ def admin_kill():
 
     except requests.RequestException as e:
         current_app.logger.error(f"RequestException: {e}")
-        return jsonify({"error": "Failed to relay adnin kill notice", "details": str(e)}), 500
+        return jsonify({"error": "Failed to relay admin kill notice", "details": str(e)}), 500
 
     except (ValueError, TypeError, KeyError) as e:
         current_app.logger.error(f"Error processing admin kill notice: {e}")
