@@ -436,42 +436,61 @@ def admin_kill():
             f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
         )
 
-        # Add the monster to the admin_kills list if it isn't already there
-        if monster_id not in admin_kills:
-            admin_kills[monster_id] = {
-                "monsterName": monster_name,
-                "namespace": namespace,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+        # Check if the monster is in the active_monsters list
+        if monster_id in active_monsters:
+            # Add the monster to the admin_kills list if it isn't already there
+            if monster_id not in admin_kills:
+                admin_kills[monster_id] = {
+                    "monsterName": monster_name,
+                    "namespace": namespace,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                current_app.logger.info(
+                    f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}"
+                )
+
+            # Move the monster from active_monsters to dead_monsters
+            monster = active_monsters.pop(monster_id)
+            monster.is_dead = True
+            monster.death_timestamp = datetime.now(timezone.utc)
+            dead_monsters[monster_id] = monster
+            current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster_id}")
+
+            # Construct the payload for the game
+            payload = {
+                "monsterID": monster_id,
+                "monsterName": monster_name
             }
-            current_app.logger.info(
-                f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}"
-            )
 
-        # Construct the payload for the game
-        payload = {
-            "monsterID": monster_id,
-            "monsterName": monster_name
-        }
+            current_app.logger.info(f"Relaying admin kill notice to game: {payload}")
 
-        current_app.logger.info(f"Relaying admin kill notice to game: {payload}")
+            # Relay the admin kill notification to the game
+            portal_url = "http://game-service.game:8000/monsters/admin-kill"
+            response = requests.post(portal_url, json=payload, timeout=10)
 
-        # Relay the admin kill notification to the game
-        portal_url = "http://game-service.game:8000/monsters/admin-kill"
-        response = requests.post(portal_url, json=payload, timeout=10)
-
-        # Log the relay response
-        if response.status_code == 200:
-            current_app.logger.info(f"Successfully relayed admin kill to game: {response.json()}")
-            return jsonify({"message": "Admin kill notice relayed to game"}), 200
+            # Log the relay response
+            if response.status_code == 200:
+                current_app.logger.info(f"Successfully relayed admin kill to game: {response.json()}")
+                return jsonify({"message": "Admin kill notice relayed to game"}), 200
+            else:
+                current_app.logger.error(
+                    f"Failed to relay admin kill to game: {response.status_code} {response.text}"
+                )
+                return jsonify({
+                    "error": "Failed to relay admin kill notice to game",
+                    "status_code": response.status_code,
+                    "details": response.text
+                }), 500
         else:
-            current_app.logger.error(
-                f"Failed to relay admin kill to game: {response.status_code} {response.text}"
-            )
-            return jsonify({
-                "error": "Failed to relay admin kill notice to game",
-                "status_code": response.status_code,
-                "details": response.text
-            }), 500
+            current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
+
+        # Log the current state of the lists
+        current_app.logger.info(f"All monsters: {[monster.name for monster in all_monsters.values()]}")
+        current_app.logger.info(f"Active monsters: {[monster.name for monster in active_monsters.values()]}")
+        current_app.logger.info(f"Dead monsters: {[monster.name for monster in dead_monsters.values()]}")
+        current_app.logger.info(f"Admin kills: {[monster['monsterName'] for monster in admin_kills.values()]}")
+
+        return jsonify({"message": "Admin kill notice processed"}), 200
 
     except json.JSONDecodeError as e:
         current_app.logger.error(f"JSON decoding error: {e}")
