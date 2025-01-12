@@ -10,7 +10,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data)
     {
         struct mg_http_message *hm = (struct mg_http_message *)ev_data;
 
-        if (mg_match(hm->uri, mg_str("/monster/delete"), NULL))
+        if (mg_match(hm->uri, mg_str("/monsters/admin-kill"), NULL))
         {
             int monsterID = 0;
             char monsterName[128] = {0};
@@ -49,7 +49,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *ev_data)
                 // Construct the response JSON
                 char response[256];
                 snprintf(response, sizeof(response), "{\"status\":\"success\",\"monsterID\":%d,\"monsterName\":\"%s\"}", monsterID, monsterName);
-
+                
                 // Respond to the portal
                 mg_http_reply(c, 200, "Content-Type: application/json\r\n", "%s", response);
             }

@@ -46,7 +46,7 @@ def receive_pack_items():
         for new_item in items.pack:
             pack_items[new_item.inventory_letter] = new_item
 
-        return jsonify({"status": "success", "received": items.dict()}), 200
+        return jsonify({"status": "success", "message": "pack items received"}), 200
 
     except (ValueError, TypeError, KeyError) as e:
         current_app.logger.error(f"Error processing pack item data: {e}")

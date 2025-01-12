@@ -68,8 +68,8 @@ def receive_equipped_items():
         if items.armor:
             item_armor_defense.set(items.armor.armor)
 
-        # Return a success response along with the received item metrics data
-        return jsonify({"status": "success", "received": items.model_dump()}), 200
+        # Return a success response along with the received equipped items data
+        return jsonify({"status": "success", "message": "equipped items received"}), 200
 
     except (ValueError, TypeError, KeyError) as e:
         # Log the error and return a failure response if an error occurs

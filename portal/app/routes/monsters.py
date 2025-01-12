@@ -1,3 +1,4 @@
+# fmt: off
 """
 This module defines the `monsters` blueprint for managing monsters in the game.
 
@@ -14,6 +15,7 @@ This blueprint includes routes for:
 Returns:
     None: This module defines routes for the Flask app to manage monsters and Prometheus metrics.
 """
+import json
 from datetime import datetime, timezone
 from app.models.monsters import Monster
 from app.services.k8s_service import KubernetesService
@@ -21,7 +23,6 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
 import requests
-import json
 
 bp = Blueprint('monsters', __name__)
 
@@ -50,6 +51,7 @@ last_monster_death = Gauge(
 active_monsters = {}
 all_monsters = {}
 dead_monsters = {}
+admin_kills = {}
 
 k8s_service = KubernetesService()
 
@@ -148,6 +150,39 @@ def get_dead_monsters():
     return jsonify([monster.dict() for monster in dead_monsters.values()])
 
 
+@bp.route("/admin-kills", methods=["GET"])
+def get_admin_kill_monsters():
+    """
+    Returns a list of admin kill monsters.
+
+    This route retrieves all monsters that are marked as admin kill.
+
+    Returns:
+        Response: A JSON response containing the list of admin kill monsters.
+    """
+    try:
+        current_app.logger.info(f"Admin kills: {admin_kills}")
+        return jsonify([kill for kill in admin_kills.values()])
+    except (AttributeError, KeyError, TypeError) as e:
+        current_app.logger.error(f"Error fetching admin kill monsters data: {e}")
+        return jsonify({"error": "Error fetching data"}), 500
+
+
+@bp.route("/admin-kills/<int:monster_id>", methods=["GET"], strict_slashes=False)
+def is_admin_kill(monster_id):
+    """
+    Checks if a monster is in the admin_kills list.
+
+    Args:
+        monster_id (int): The ID of the monster to check.
+
+    Returns:
+        Response: A JSON response indicating if the monster is in the admin_kills list.
+    """
+    is_id_admin_kill = monster_id in admin_kills
+    return jsonify({"is_admin_kill": is_id_admin_kill})
+
+
 @bp.route("/timestamps", methods=["GET"], strict_slashes=False)
 def get_monster_timestamps():
     """
@@ -215,8 +250,7 @@ def create():
 
         monster_id = monster.id
         if monster_id is None:
-            current_app.logger.warning(
-                f"Skipping monster entry without 'id': {monster_data}")
+            current_app.logger.warning(f"Skipping monster entry without 'id': {monster_data}")
             continue
 
         if monster_id not in all_monsters:
@@ -228,7 +262,7 @@ def create():
 
         update_monster_status(monster)
 
-    return jsonify({"status": "success", "received": received_data}), 200
+    return jsonify({"status": "success", "message": "monster update data received"}), 200
 
 
 def handle_new_monster(monster: Monster):
@@ -256,11 +290,9 @@ def handle_new_monster(monster: Monster):
             namespace="dungeon-master-system",
             monster_data=monster.model_dump()
         )
-        current_app.logger.info(
-            f"Monster resource created for {monster.name}.")
+        current_app.logger.info(f"Monster resource created for {monster.name}.")
     except KubernetesError as e:
-        current_app.logger.error(
-            f"Failed to create Monster resource for {monster.name}: {e}")
+        current_app.logger.error(f"Failed to create Monster resource for {monster.name}: {e}")
         return jsonify({"error": "Failed to create Monster resource", "message": str(e)}), 500
 
     return None
@@ -288,11 +320,9 @@ def handle_existing_monster(monster: Monster):
                 namespace="dungeon-master-system",
                 monster_data=monster.model_dump()
             )
-            current_app.logger.info(
-                f"Monster resource updated for {monster.name}.")
+            current_app.logger.info(f"Monster resource updated for {monster.name}.")
         except KubernetesError as e:
-            current_app.logger.error(
-                f"Failed to update Monster resource for {monster.name}: {e}")
+            current_app.logger.error(f"Failed to update Monster resource for {monster.name}: {e}")
             return jsonify({"error": "Failed to update Monster resource", "message": str(e)}), 500
 
 
@@ -386,30 +416,42 @@ def reset_current_game_monsters():
     active_monsters.clear()
     all_monsters.clear()
     dead_monsters.clear()
+    admin_kills.clear()  # Reset the admin_kills list
 
     k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
 
-    current_app.logger.info("Monster data has been reset for a new game.")
+    current_app.logger.info("RESET Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
+
 def sanitize_string(input_str):
+    """
+    Sanitizes a string by removing control characters.
+
+    Args:
+        Input string with control characters to be removed.
+
+    Returns:
+       Sanitized string with control characters removed.
+    """
     if isinstance(input_str, str):
         # Replace control characters with safe placeholders
         return ''.join(ch for ch in input_str if ch.isprintable())
     return input_str
 
-@bp.route('/notify-deletion', methods=['POST'], strict_slashes=False)
-def notify_deletion():
+
+@bp.route('/admin-kill', methods=['POST'], strict_slashes=False)
+def admin_kill():
     """
-    Receives a notification that a monster has been deleted and relays the information to the game.
+    Receives a notice that a monster has been admin killed.
+    Relays the information to the game.
 
     Returns:
-        Response: A JSON response indicating the status of the notification and relay.
+        Response: A JSON response indicating the status of the notice and relay.
     """
     try:
         # Log raw incoming data for debugging
         raw_data = request.data.decode('utf-8')
-        current_app.logger.info(f"Raw payload: {raw_data}")
 
         data = json.loads(raw_data, strict=False)
         if not data:
@@ -420,36 +462,59 @@ def notify_deletion():
         monster_id = sanitize_string(data.get("monsterID", "Unknown"))
         namespace = sanitize_string(data.get("namespace", "Unknown"))
 
-        # Log the received deletion notification
-        current_app.logger.info(
-            f"Received deletion notification: Name={monster_name}, ID={monster_id}, Namespace={namespace}"
-        )
+        # Log the received admin kill notification
+        current_app.logger.info(f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}")
 
-        # Construct the payload for the game
-        payload = {
-            "monsterID": monster_id,
-            "monsterName": monster_name
-        }
-        
-        current_app.logger.info(f"Relaying deletion notification to game: {payload}")
+        # Check if the monster is in the active_monsters list
+        if monster_id in active_monsters:
+            # Add the monster to the admin_kills list if it isn't already there
+            if monster_id not in admin_kills:
+                admin_kills[monster_id] = {
+                    "monster_name": monster_name,
+                    "monster_id": monster_id,
+                    "namespace": namespace,
+                    # Ensure ISO format
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                current_app.logger.info(f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}")
 
-        # Relay the deletion notification to the game
-        portal_url = "http://game-service.game:8000/monster/delete"  # Replace with your actual portal server URL
-        response = requests.post(portal_url, json=payload, timeout=10)
+            # Move the monster from active_monsters to dead_monsters
+            monster = active_monsters.pop(monster_id)
+            monster.is_dead = True
+            monster.death_timestamp = datetime.now(timezone.utc)
+            dead_monsters[monster_id] = monster
+            current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster_id}")
 
-        # Log the relay response
-        if response.status_code == 200:
-            current_app.logger.info(f"Successfully relayed deletion notification to game: {response.json()}")
-            return jsonify({"message": "Deletion notification relayed to game"}), 200
+            # Construct the payload for the game
+            payload = {
+                "monsterID": monster_id,
+                "monsterName": monster_name
+            }
+
+            current_app.logger.info(f"Relaying admin kill notice to game: {payload}")
+
+            # Relay the admin kill notification to the game
+            portal_url = "http://game-service.game:8000/monsters/admin-kill"
+            response = requests.post(portal_url, json=payload, timeout=10)
+
+            # Log the relay response
+            if response.status_code == 200:
+                current_app.logger.info(f"Successfully relayed admin kill to game: {response.json()}")
+                return jsonify({"message": "Admin kill notice relayed to game"}), 200
+            else:
+                current_app.logger.error(f"Failed to relay admin kill to game: {response.status_code} {response.text}")
+                return jsonify({
+                    "error": "Failed to relay admin kill notice to game",
+                    "status_code": response.status_code,
+                    "details": response.text
+                }), 500
         else:
-            current_app.logger.error(
-                f"Failed to relay deletion notification to game: {response.status_code} {response.text}"
-            )
-            return jsonify({
-                "error": "Failed to relay deletion notification to game",
-                "status_code": response.status_code,
-                "details": response.text
-            }), 500
+            current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
+
+        # Log the current state of the lists
+        current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
+
+        return jsonify({"message": "Admin kill notice processed"}), 200
 
     except json.JSONDecodeError as e:
         current_app.logger.error(f"JSON decoding error: {e}")
@@ -458,11 +523,11 @@ def notify_deletion():
     except requests.Timeout:
         current_app.logger.error("Request to game timed out.")
         return jsonify({"error": "Request to game timed out"}), 504
-    
+
     except requests.RequestException as e:
         current_app.logger.error(f"RequestException: {e}")
-        return jsonify({"error": "Failed to relay deletion notification", "details": str(e)}), 500
+        return jsonify({"error": "Failed to relay admin kill notice", "details": str(e)}), 500
 
     except (ValueError, TypeError, KeyError) as e:
-        current_app.logger.error(f"Error processing deletion notification: {e}")
-        return jsonify({"error": "Failed to process deletion notification", "details": str(e)}), 500
+        current_app.logger.error(f"Error processing admin kill notice: {e}")
+        return jsonify({"error": "Failed to process admin kill notice", "details": str(e)}), 500

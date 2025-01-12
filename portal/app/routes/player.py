@@ -178,7 +178,8 @@ def receive_player():
         # Validate the player data using the Player model
         new_player = Player(**data)
         player_data.update(data)
-        return jsonify({"status": "success", "received": new_player.model_dump()}), 200
+        current_app.logger.info(f"Player data received: {new_player.model_dump()}")
+        return jsonify({"status": "success", "portal message": "player data received"}), 200
     except ValueError as e:
         current_app.logger.error(f"Error processing player data: {str(e)}")
         return jsonify({"error": str(e)}), 400
