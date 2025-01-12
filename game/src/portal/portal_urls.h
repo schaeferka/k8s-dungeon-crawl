@@ -119,4 +119,9 @@ const char *get_gamestats_url(void);
  */
 const char *get_game_reset_url(void);
 
+/**
+ * 
+ */
+const char *get_is_admin_kill_url(int monster_id);
+
 #endif // PORTAL_URLS_H

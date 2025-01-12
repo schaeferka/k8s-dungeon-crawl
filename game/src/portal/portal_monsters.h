@@ -74,7 +74,6 @@ extern void report_monster_death(creature *monst);
  */
 void generate_monster_json(const creature *monst, char *monster_data, size_t size);
 
-
 extern void initialize_monsters(void);
 extern void reset_monster_cache(void);
 extern void monster_cleanup(void);

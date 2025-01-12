@@ -163,3 +163,18 @@ const char *get_game_reset_url(void) {
     snprintf(url, sizeof(url), "%s/game/reset", PORTAL_BASE_URL);
     return url;
 }
+
+/**
+ * @brief Get the URL for checking if a monster is in the admin_kills list.
+ *
+ * This function generates the full URL for checking if a monster is in the admin_kills list
+ * by appending the endpoint to the base URL.
+ *
+ * @param monster_id The ID of the monster to check.
+ * @return The full URL for checking if a monster is in the admin_kills list.
+ */
+const char *get_is_admin_kill_url(int monster_id) {
+    static char url[256];
+    snprintf(url, sizeof(url), "%s/admin-kills/%d", PORTAL_BASE_URL, monster_id);
+    return url;
+}

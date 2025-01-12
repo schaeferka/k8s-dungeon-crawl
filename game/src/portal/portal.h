@@ -2,6 +2,7 @@
 #define PORTAL_H
 
 #include "portal_items.h"
+#include <stdbool.h>
 
 void send_data_to_portal(const char *url, const char *data);
 
@@ -88,5 +89,15 @@ extern void send_gamestats_to_portal(const char *gamestats_data);
  * of all game data.
  */
 extern void send_game_reset_to_portal(void);
+
+/**
+ * @brief Checks if a monster is in admin kills list.
+ *
+ * This function sends a monster_id to the portal to check if it is in the 
+ * admin_kills list.
+ */
+bool is_monster_in_admin_kills(int monster_id);
+
+static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
 
 #endif // PORTAL_H
