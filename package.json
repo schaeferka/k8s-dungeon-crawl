@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@kubernetes/client-node": "^0.22.3",
-    "express": "^4.17.1",
+    "express": "^4.21.2",
     "pino": "^9.5.0",
     "pino-pretty": "^13.0.0"
   },
