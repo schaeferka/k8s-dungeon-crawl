@@ -38,7 +38,7 @@ async function fetchAdminKillsData() {
         // Fetch admin kills data
         const adminKillsResponse = await fetch('/monsters/admin-kills');
         adminKillsData = await adminKillsResponse.json();
-        updateAdminKillsTable(adminKillsData); // Update the admin kills table
+        applyFilters(); // Apply filters after fetching data
     } catch (error) {
         console.error('Error fetching admin kills data:', error);
     }
@@ -71,9 +71,16 @@ function applyFilters() {
         return matchesType && matchesDepth;
     });
 
+    const filteredAdminKills = adminKillsData.filter(kill => {
+        const matchesType = kill.monster_name.toLowerCase().includes(typeFilter);
+        const matchesDepth = depthFilter ? kill.depth == parseInt(depthFilter) : true;
+        return matchesType && matchesDepth;
+    });
+
     // Update tables with filtered data
     updateTables(filteredActiveMonsters, filteredDeadMonsters, filteredAllMonsters);
-}
+    updateAdminKillsTable(filteredAdminKills);
+}   
 
 function resetFilters() {
     /**
@@ -82,7 +89,7 @@ function resetFilters() {
     // Clear filter inputs and reset tables
     document.getElementById('monster-type-filter').value = '';
     document.getElementById('depth-filter').value = '';
-    updateTables(activeMonstersData, deadMonstersData, allMonstersData); // Reset tables with full data
+    updateTables(activeMonstersData, deadMonstersData, allMonstersData, adminKillsData); // Reset tables with full data
 }
 
 function createTableCell(content, className = 'text-center') {
@@ -129,6 +136,7 @@ function createMonsterRow(monster, isDead = false, isActive = false) {
 function createAdminKillRow(kill) {
     const row = document.createElement('tr');
     row.appendChild(createTableCell(kill.monster_name));
+    row.appendChild(createTableCell(kill.depth));
     row.appendChild(createTableCell(kill.namespace));
     row.appendChild(createTableCell(new Date(kill.timestamp).toUTCString())); // Format the timestamp
     row.appendChild(createTableCell(kill.monster_id));
@@ -137,12 +145,13 @@ function createAdminKillRow(kill) {
 
 function updateTables(activeMonsters, deadMonsters, allMonsters) {
     /**
-     * Updates the tables for live monsters, dead monsters, and all monsters with the provided
+     * Updates the tables for live monsters, dead monsters, all monsters, and admin kills with the provided
      * data.
      * 
      * @param {Array} activeMonsters - List of live monsters to display.
      * @param {Array} deadMonsters - List of dead monsters to display.
      * @param {Array} allMonsters - List of all monsters (live and dead) to display.
+     * 
      */
     const activeTableBody = document.getElementById('active-monsters-body');
     const deadTableBody = document.getElementById('dead-monsters-body');
