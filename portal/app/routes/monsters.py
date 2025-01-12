@@ -461,9 +461,10 @@ def admin_kill():
         monster_name = sanitize_string(data.get("monsterName", "Unknown"))
         monster_id = sanitize_string(data.get("monsterID", "Unknown"))
         namespace = sanitize_string(data.get("namespace", "Unknown"))
+        depth = sanitize_string(data.get("depth", "Unknown"))
 
         # Log the received admin kill notification
-        current_app.logger.info(f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}")
+        current_app.logger.info(f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
 
         # Check if the monster is in the active_monsters list
         if monster_id in active_monsters:
@@ -473,10 +474,11 @@ def admin_kill():
                     "monster_name": monster_name,
                     "monster_id": monster_id,
                     "namespace": namespace,
+                    "depth": depth,
                     # Ensure ISO format
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
-                current_app.logger.info(f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}")
+                current_app.logger.info(f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
 
             # Move the monster from active_monsters to dead_monsters
             monster = active_monsters.pop(monster_id)

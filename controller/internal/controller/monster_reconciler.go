@@ -190,7 +190,7 @@ func (r *MonsterReconciler) cleanupMissingDeployment(ctx context.Context, monste
 
 	// Notify the portal
 	log.Info("Cleanup - Notifying portal about deleted Deployment", "name", monster.Name)
-	if err := sendDeletionNotification(monster.Name, monster.Spec.ID); err != nil {
+	if err := sendDeletionNotification(monster.Name, monster.Spec.ID, monster.Spec.Depth); err != nil {
 		log.Error(err, "Cleanup - unable to notify portal", "name", monster.Name)
 		return err
 	}

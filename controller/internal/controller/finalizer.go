@@ -13,12 +13,13 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-func sendDeletionNotification(monsterName string, monsterID int) error {
+func sendDeletionNotification(monsterName string, monsterID int, depth int) error {
 	portalURL := "http://portal-service.portal.svc.cluster.local:5000/monsters/admin-kill"
 	payload := map[string]interface{}{
 		"monsterName": monsterName,
 		"monsterID":   monsterID,
 		"namespace":   "monsters",
+		"depth":       depth,
 	}
 
 	jsonData, err := json.Marshal(payload)
@@ -44,7 +45,7 @@ func (r *MonsterReconciler) handleFinalizerForMonster(ctx context.Context, monst
 
 	// Notify the portal
 	log.Info("Finalizer - Sending deletion notification to the portal", "name", monster.Name)
-	if err := sendDeletionNotification(monster.Name, monster.Spec.ID); err != nil {
+	if err := sendDeletionNotification(monster.Name, monster.Spec.ID, monster.Spec.Depth); err != nil {
 		log.Error(err, "Finalizer - Unable to notify portal", "name", monster.Name)
 		// Proceed with other cleanup steps even if notification fails
 	}
