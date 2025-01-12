@@ -475,7 +475,6 @@ def admin_kill():
                     "monster_id": monster_id,
                     "namespace": namespace,
                     "depth": depth,
-                    # Ensure ISO format
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
                 current_app.logger.info(f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
@@ -486,30 +485,6 @@ def admin_kill():
             monster.death_timestamp = datetime.now(timezone.utc)
             dead_monsters[monster_id] = monster
             current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster_id}")
-
-            # Construct the payload for the game
-            payload = {
-                "monsterID": monster_id,
-                "monsterName": monster_name
-            }
-
-            current_app.logger.info(f"Relaying admin kill notice to game: {payload}")
-
-            # Relay the admin kill notification to the game
-            portal_url = "http://game-service.game:8000/monsters/admin-kill"
-            response = requests.post(portal_url, json=payload, timeout=10)
-
-            # Log the relay response
-            if response.status_code == 200:
-                current_app.logger.info(f"Successfully relayed admin kill to game: {response.json()}")
-                return jsonify({"message": "Admin kill notice relayed to game"}), 200
-            else:
-                current_app.logger.error(f"Failed to relay admin kill to game: {response.status_code} {response.text}")
-                return jsonify({
-                    "error": "Failed to relay admin kill notice to game",
-                    "status_code": response.status_code,
-                    "details": response.text
-                }), 500
         else:
             current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
 
