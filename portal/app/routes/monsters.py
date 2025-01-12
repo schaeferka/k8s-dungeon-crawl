@@ -148,6 +148,22 @@ def get_dead_monsters():
     """
     return jsonify([monster.dict() for monster in dead_monsters.values()])
 
+@bp.route("/admin-kills", methods=["GET"])
+def get_admin_kill_monsters():
+    """
+    Returns a list of admin kill monsters.
+
+    This route retrieves all monsters that are marked as admin kill.
+
+    Returns:
+        Response: A JSON response containing the list of admin kill monsters.
+    """
+    try:
+        return jsonify([monster for monster in admin_kills.values()])
+    except (AttributeError, KeyError, TypeError) as e:
+        current_app.logger.error(f"Error fetching admin kill monsters data: {e}")
+        return jsonify({"error": "Error fetching data"}), 500
+
 
 @bp.route("/timestamps", methods=["GET"], strict_slashes=False)
 def get_monster_timestamps():
@@ -229,7 +245,7 @@ def create():
 
         update_monster_status(monster)
 
-    return jsonify({"status": "success", "received": received_data}), 200
+    return jsonify({"status": "success", "message": "monster update data received"}), 200
 
 
 def handle_new_monster(monster: Monster):
@@ -485,10 +501,10 @@ def admin_kill():
             current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
 
         # Log the current state of the lists
-        current_app.logger.info(f"All monsters: {[monster.name for monster in all_monsters.values()]}")
-        current_app.logger.info(f"Active monsters: {[monster.name for monster in active_monsters.values()]}")
-        current_app.logger.info(f"Dead monsters: {[monster.name for monster in dead_monsters.values()]}")
-        current_app.logger.info(f"Admin kills: {[monster['monsterName'] for monster in admin_kills.values()]}")
+        #current_app.logger.info(f"All monsters: {[monster.model_dump() for monster in all_monsters.values()]}")
+        #current_app.logger.info(f"Active monsters: {[monster.model_dump() for monster in active_monsters.values()]}")
+        #current_app.logger.info(f"Dead monsters: {[monster.model_dump() for monster in dead_monsters.values()]}")
+        current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
 
         return jsonify({"message": "Admin kill notice processed"}), 200
 

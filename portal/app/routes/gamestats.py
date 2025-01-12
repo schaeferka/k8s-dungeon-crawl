@@ -74,7 +74,7 @@ def receive_game_stats():
         game_stats_data.update(game_stats.model_dump())
 
         # Return the updated game stats in the response
-        return jsonify({"status": "success", "received": game_stats.model_dump()}), 200
+        return jsonify({"status": "success", "message": "game stats received"}), 200
     except ValueError as e:
         # Return an error response if validation fails or if there's any issue processing the data
         return jsonify({"error": str(e)}), 400
