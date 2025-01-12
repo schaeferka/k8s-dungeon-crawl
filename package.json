@@ -53,7 +53,7 @@
     "load-env": "node ./scripts/load-env.js --print "
   },
   "dependencies": {
-    "@kubernetes/client-node": "^0.22.3",
+    "@kubernetes/client-node": "^1.0.0",
     "express": "^4.21.2",
     "pino": "^9.5.0",
     "pino-pretty": "^13.0.0"
