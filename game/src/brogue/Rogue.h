@@ -1102,6 +1102,8 @@ enum monsterTypes
     MK_PHOENIX_EGG,
     MK_ANCIENT_SPIRIT,
 
+    MK_MONSTIE,
+
     NUMBER_MONSTER_KINDS
 };
 
