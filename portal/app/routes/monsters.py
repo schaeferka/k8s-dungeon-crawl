@@ -422,7 +422,7 @@ def reset_current_game_monsters():
 
     k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
 
-    current_app.logger.info("RESET Monster data has been reset for a new game.")
+    current_app.logger.info("Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
 
@@ -491,7 +491,7 @@ def admin_kill():
             current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
 
         # Log the current state of the lists
-        current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
+        #current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
 
         return jsonify({"message": "Admin kill notice processed"}), 200
 

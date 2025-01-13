@@ -124,4 +124,9 @@ const char *get_game_reset_url(void);
  */
 const char *get_is_admin_kill_url(int monster_id);
 
+/**
+ * 
+ */
+const char *get_update_monsties_url(void);
+
 #endif // PORTAL_URLS_H

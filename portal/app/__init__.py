@@ -26,6 +26,7 @@ def create_app(config_name=None):
     from app.routes.equipped_items import bp as items_bp  # Import from items.py
     from app.routes.pack_items import bp as pack_bp  # Import from pack.py
     from app.routes.game import bp as game_bp  # Import from game
+    from app.routes.monsties import bp as monsties_bp  # Import from monsties.py
 
     app.register_blueprint(index_bp)  # Register index blueprint
     app.register_blueprint(monsters_bp, url_prefix="/monsters")  # Register monsters blueprint
@@ -36,6 +37,7 @@ def create_app(config_name=None):
     app.register_blueprint(items_bp, url_prefix="/items")  # Register items blueprint
     app.register_blueprint(pack_bp, url_prefix="/pack")  # Register pack blueprint
     app.register_blueprint(game_bp, url_prefix="/game")  # Register game blueprint
+    app.register_blueprint(monsties_bp, url_prefix="/monsties")  # Register monties
 
     # Setup logging (pass the app to the logger)
     configure_logger(app)  # Pass the app to the logger setup

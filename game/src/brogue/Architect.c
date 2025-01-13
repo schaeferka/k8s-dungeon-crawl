@@ -1602,7 +1602,7 @@ boolean buildAMachine(enum machineTypes bp,
                             if (monst) {
                                 killCreature(monst, true); // If there's already a monster here, quietly bury the body.
                             }
-                            monst = generateMonster(feature->monsterID, true, true);
+                            monst = generateMonster(feature->monsterID, true, true, NULL);
                             if (monst) {
                                 monst->loc = (pos){ .x = featX, .y = featY };
                                 pmapAt(monst->loc)->flags |= HAS_MONSTER;

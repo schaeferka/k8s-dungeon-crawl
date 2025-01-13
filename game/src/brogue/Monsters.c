@@ -62,7 +62,7 @@ void mutateMonster(creature *monst, short mutationIndex)
 // is not given a map location here!
 // TODO: generateMonster is convenient, but probably it should not add the monster to
 // any global lists. The caller can do this, to avoid needlessly moving them elsewhere.
-creature *generateMonster(short monsterID, boolean itemPossible, boolean mutationPossible)
+creature *generateMonster(short monsterID, boolean itemPossible, boolean mutationPossible, const char *podName)
 {
     short mutationChance, mutationAttempt;
 
@@ -99,7 +99,7 @@ creature *generateMonster(short monsterID, boolean itemPossible, boolean mutatio
     }
 
     prependCreature(monsters, monst);
-    initializeMonster(monst, itemPossible);
+    initializeMonster(monst, itemPossible, podName);
 
     return monst;
 }
@@ -109,7 +109,8 @@ creature *generateMonster(short monsterID, boolean itemPossible, boolean mutatio
 /// to be populated and any mutation already applied. Optionally gives the monster an item.
 /// @param monst The monster
 /// @param itemPossible True if the monster can carry an item. May have no effect if the monster can never carry one.
-void initializeMonster(creature *monst, boolean itemPossible)
+/// @param podName Optional pod name to assign to the monster.
+void initializeMonster(creature *monst, boolean itemPossible, const char *podName)
 {
 
     monst->loc.x = monst->loc.y = 0;
@@ -182,7 +183,16 @@ void initializeMonster(creature *monst, boolean itemPossible)
     MONSTER_COUNT++;
     monst->id = MONSTER_COUNT;
     monst->isDead = false;
-    snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTER_COUNT);
+
+    if (podName)
+    {
+        strncpy(monst->podName, podName, sizeof(monst->podName) - 1);
+        snprintf(monst->portalName, sizeof(monst->portalName), "%s-%s-%d", monst->info.monsterName, podName, MONSTER_COUNT);
+    }
+    else
+    {
+        snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTER_COUNT);
+    }
 }
 
 /// @brief Checks if the player knows a monster's location via telepathy or entrancement.
@@ -648,7 +658,7 @@ creature *cloneMonster(creature *monst, boolean announce, boolean placeClone)
     char buf[DCOLS], monstName[DCOLS];
     short jellyCount;
 
-    creature *newMonst = generateMonster(monst->info.monsterID, false, false);
+    creature *newMonst = generateMonster(monst->info.monsterID, false, false, NULL);
     *newMonst = *monst; // boink!
 
     newMonst->carriedMonster = NULL; // Temporarily remove anything it's carrying.
@@ -822,7 +832,7 @@ static boolean spawnMinions(short hordeID, creature *leader, boolean summoned, b
 
         for (iMember = 0; iMember < count; iMember++)
         {
-            monst = generateMonster(theHorde->memberType[iSpecies], itemPossible, !summoned);
+            monst = generateMonster(theHorde->memberType[iSpecies], itemPossible, !summoned, NULL);
             failsafe = 0;
             do
             {
@@ -986,7 +996,7 @@ creature *spawnHorde(short hordeID, pos loc, unsigned long forbiddenFlags, unsig
         buildAMachine(theHorde->machine, loc.x, loc.y, 0, NULL, NULL, NULL);
     }
 
-    leader = generateMonster(theHorde->leaderType, true, true);
+    leader = generateMonster(theHorde->leaderType, true, true, NULL);
     leader->loc = loc;
 
     if (hordeCatalog[hordeID].flags & HORDE_LEADER_CAPTIVE)
@@ -3302,11 +3312,10 @@ boolean resurrectAlly(const pos loc)
     // preferring allies found deeper in the dungeon over ones found higher up and preferring
     // legendary allies over everyone else).
     creature *monToCheck, *monToRaise = NULL;
-    while (monToCheck = nextCreature(&allyIterator))
+    while ((monToCheck = nextCreature(&allyIterator)) != NULL)
     {
         if (monToRaise == NULL || monToCheck->totalPowerCount > monToRaise->totalPowerCount || (monToCheck->totalPowerCount == monToRaise->totalPowerCount && monToCheck->info.monsterID > monToRaise->info.monsterID))
         {
-
             monToRaise = monToCheck;
         }
     }
@@ -3318,15 +3327,13 @@ boolean resurrectAlly(const pos loc)
         prependCreature(monsters, monToRaise);
 
         getQualifyingPathLocNear(&monToRaise->loc.x, &monToRaise->loc.y, loc.x, loc.y, true,
-                                 (T_PATHING_BLOCKER | T_HARMFUL_TERRAIN), 0,
-                                 0, (HAS_PLAYER | HAS_MONSTER), false);
+                                 0, (HAS_PLAYER | HAS_MONSTER), false, false, false);
         pmapAt(monToRaise->loc)->flags |= HAS_MONSTER;
 
         // Restore health etc.
         monToRaise->bookkeepingFlags &= ~(MB_IS_DYING | MB_ADMINISTRATIVE_DEATH | MB_HAS_DIED | MB_IS_FALLING);
         if (!(monToRaise->info.flags & MONST_FIERY) && monToRaise->status[STATUS_BURNING])
         {
-
             monToRaise->status[STATUS_BURNING] = 0;
         }
         monToRaise->status[STATUS_DISCORDANT] = 0;
