@@ -23,8 +23,10 @@ from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
 import requests
+from flask_cors import CORS
 
 bp = Blueprint('monsters', __name__)
+CORS(bp)  # Enable CORS for the blueprint
 
 # Define Prometheus metrics for tracking monsters
 monster_count = Counter('brogue_monster_count',

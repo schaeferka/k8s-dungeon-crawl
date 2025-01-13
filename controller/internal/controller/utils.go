@@ -40,6 +40,35 @@ func generateHTMLContent(monster v1.Monster) string {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>Monster Info: %s</title>
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+			<script>
+				async function adminKillMonster(name, id, depth) {
+					try {
+						console.log('Sending admin kill request for monster:', name, id, depth);
+						const response = await fetch('http://localhost:5000/monsters/admin-kill', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify({
+								monsterName: name,
+								monsterID: id,
+								namespace: 'monsters',
+								depth: depth
+							})
+						});
+						if (response.ok) {
+							alert('Monster admin killed successfully');
+							window.location.href = 'http://localhost:5000/monsters';
+						} else {
+							const errorText = await response.text();
+							alert('Failed to admin kill monster: ' + errorText);
+						}
+					} catch (error) {
+						console.error('Error admin killing monster:', error);
+						alert('Error admin killing monster: ' + error.message);
+					}
+				}
+			</script>
 		</head>
 		<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
 			<header class="bg-blue-900 text-white p-4">
@@ -69,6 +98,7 @@ func generateHTMLContent(monster v1.Monster) string {
 						<li><strong>Spawn Timestamp:</strong> %s</li>
 						<li><strong>Death Timestamp:</strong> %s</li>
 					</ul>
+					<button onclick="adminKillMonster('%s', %d, %d)" class="mt-4 bg-red-500 text-white px-4 py-2 rounded">Admin Kill Monster</button>
 				</div>
 			</main>
 
@@ -77,7 +107,7 @@ func generateHTMLContent(monster v1.Monster) string {
 			</footer>
 		</body>
 		</html>
-	`, monster.Name, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp)
+	`, monster.Name, monster.Name, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp, monster.Name, monster.Spec.ID, monster.Spec.Depth)
 }
 
 // generateNginxConfig generates the Nginx configuration content for the monster
