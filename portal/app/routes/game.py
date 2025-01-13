@@ -17,6 +17,7 @@ from app.routes.equipped_items import equipped_items
 from app.routes.gamestate import game_state_data
 from app.routes.pack_items import pack_items
 from app.routes.monsters import active_monsters, all_monsters, dead_monsters, k8s_service
+from app.routes.monsties import monsties, new_monsties
 
 bp = Blueprint('game', __name__)
 
@@ -70,6 +71,10 @@ def reset_game():
     all_monsters.clear()
     dead_monsters.clear()
     k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
+    
+    # Reset monsties
+    monsties.clear()
+    new_monsties.clear()
 
     # Reset player data
     player_data.clear()

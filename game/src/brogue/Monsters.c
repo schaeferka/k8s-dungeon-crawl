@@ -187,7 +187,7 @@ void initializeMonster(creature *monst, boolean itemPossible, const char *podNam
     if (podName)
     {
         strncpy(monst->podName, podName, sizeof(monst->podName) - 1);
-        snprintf(monst->portalName, sizeof(monst->portalName), "%s-%s-%d", monst->info.monsterName, podName, MONSTER_COUNT);
+        snprintf(monst->portalName, sizeof(monst->portalName), "%s-%d", monst->info.monsterName, MONSTER_COUNT);
     }
     else
     {
@@ -584,6 +584,12 @@ void resolvePronounEscapes(char *text, creature *monst)
         }
     }
     *insert = '\0';
+
+    char *podName = monst->podName;
+    //while ((token = strstr(text, "$POD")))
+    //{
+    //    strncpy(token, podName, strlen(podName));
+    //}
 }
 
 /*

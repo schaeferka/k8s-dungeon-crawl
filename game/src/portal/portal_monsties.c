@@ -28,7 +28,7 @@ static void create_monstie(char *podName) {
 
     if (!locationIsValid) {
         sprintf(theMessage, "Failed to create monstie: no valid location found.");
-        temporaryMessage(theMessage, REFRESH_SIDEBAR);
+        //temporaryMessage(theMessage, REFRESH_SIDEBAR);
         killCreature(theMonster, true);
         removeDeadMonsters();
         return;
@@ -43,8 +43,11 @@ static void create_monstie(char *podName) {
     refreshDungeonCell(theMonster->loc);
 
     // Display a message that the monstie was created
-    sprintf(theMessage, "Monstie created.");
-    temporaryMessage(theMessage, REFRESH_SIDEBAR);
+    if (canSeeMonster(theMonster)) {
+        char buf[COLS];
+        sprintf(buf, "Monstie has been summoned from pod %s", podName);
+        message(buf, 0);
+    }
 }
 
 /**
