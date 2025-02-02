@@ -118,6 +118,7 @@ function createMonsterRow(monster, isDead = false, isActive = false) {
     }
 
     row.appendChild(nameCell);
+    row.appendChild(createTableCell(monster.pod_name));
     row.appendChild(createTableCell(monster.hp));
     row.appendChild(createTableCell(monster.max_hp));
     row.appendChild(createTableCell(monster.depth));
@@ -136,6 +137,7 @@ function createMonsterRow(monster, isDead = false, isActive = false) {
 function createAdminKillRow(kill) {
     const row = document.createElement('tr');
     row.appendChild(createTableCell(kill.monster_name));
+    row.appendChild(createTableCell(kill.pod_name));
     row.appendChild(createTableCell(kill.depth));
     row.appendChild(createTableCell(kill.namespace));
     row.appendChild(createTableCell(new Date(kill.timestamp).toUTCString())); // Format the timestamp
@@ -170,6 +172,7 @@ function updateTables(activeMonsters, deadMonsters, allMonsters) {
     deadMonsters.forEach(monster => {
         const row = document.createElement('tr');
         row.appendChild(createTableCell(monster.name));
+        row.appendChild(createTableCell(monster.pod_name));
         row.appendChild(createTableCell(monster.depth));
         row.appendChild(createTableCell(`${monster.hp || '0'} / ${monster.max_hp || ''}`));
         row.appendChild(createTableCell(monster.death_timestamp));

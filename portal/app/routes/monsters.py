@@ -422,7 +422,7 @@ def reset_current_game_monsters():
 
     k8s_service.delete_all_monsters_in_namespace("dungeon-master-system")
 
-    current_app.logger.info("RESET Monster data has been reset for a new game.")
+    current_app.logger.info("Monster data has been reset for a new game.")
     return jsonify({"status": "success"}), 200
 
 
@@ -461,12 +461,13 @@ def admin_kill():
             return jsonify({"error": "No JSON payload received"}), 400
 
         monster_name = sanitize_string(data.get("monsterName", "Unknown"))
+        pod_name = sanitize_string(data.get("podName", "Unknown"))
         monster_id = sanitize_string(data.get("monsterID", "Unknown"))
         namespace = sanitize_string(data.get("namespace", "Unknown"))
         depth = sanitize_string(data.get("depth", "Unknown"))
 
         # Log the received admin kill notification
-        current_app.logger.info(f"Admin kill notice: Name={monster_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
+        current_app.logger.info(f"Admin kill notice: Name={monster_name}, PodName={pod_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
 
         # Check if the monster is in the active_monsters list
         if monster_id in active_monsters:
@@ -474,12 +475,13 @@ def admin_kill():
             if monster_id not in admin_kills:
                 admin_kills[monster_id] = {
                     "monster_name": monster_name,
+                    "pod_name": pod_name,
                     "monster_id": monster_id,
                     "namespace": namespace,
                     "depth": depth,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
-                current_app.logger.info(f"Added to admin_kills list: {monster_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
+                current_app.logger.info(f"Added to admin_kills list: {monster_name}, PodName={pod_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
 
             # Move the monster from active_monsters to dead_monsters
             monster = active_monsters.pop(monster_id)
@@ -491,7 +493,7 @@ def admin_kill():
             current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
 
         # Log the current state of the lists
-        current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
+        #current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
 
         return jsonify({"message": "Admin kill notice processed"}), 200
 

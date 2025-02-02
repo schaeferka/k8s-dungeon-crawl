@@ -361,13 +361,13 @@ static void dialogCreateMonster(void) {
 
     selectedMonster+= monsterOffset;
 
-    theMonster = generateMonster(monsterKinds[selectedMonster].monsterID, false, false);
+    theMonster = generateMonster(monsterKinds[selectedMonster].monsterID, false, false, NULL);
 
     // Choose a mutation
     if (!(theMonster->info.flags & MONST_NEVER_MUTATED) && !(theMonster->info.abilityFlags & MA_NEVER_MUTATED)) {
         dialogCreateMonsterChooseMutation(theMonster);
     }
-    initializeMonster(theMonster, false);
+    initializeMonster(theMonster, false, NULL);
     
     if (theMonster->info.displayChar == G_TURRET) {
         sprintf(theMessage, "Create %s where? Choose a visible wall.", theMonster->info.monsterName);

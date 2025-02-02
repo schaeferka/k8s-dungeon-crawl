@@ -38,6 +38,8 @@ const char *get_monster_death_url(void) {
     return url;
 }
 
+
+
 /**
  * @brief Get the URL for resetting monster data in the portal.
  *
@@ -176,5 +178,19 @@ const char *get_game_reset_url(void) {
 const char *get_is_admin_kill_url(int monster_id) {
     static char url[256];
     snprintf(url, sizeof(url), "%s/admin-kills/%d", PORTAL_BASE_URL, monster_id);
+    return url;
+}
+
+/**
+ * @brief Get the URL for updating monster data in the portal.
+ *
+ * This function generates the full URL for updating monster data by appending the
+ * endpoint to the base URL.
+ *
+ * @return The full URL for updating monster data.
+ */
+const char *get_update_monsties_url(void) {
+    static char url[256]; 
+    snprintf(url, sizeof(url), "%s/monsties/update", PORTAL_BASE_URL);
     return url;
 }

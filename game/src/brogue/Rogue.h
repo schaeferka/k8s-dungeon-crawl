@@ -1102,6 +1102,8 @@ enum monsterTypes
     MK_PHOENIX_EGG,
     MK_ANCIENT_SPIRIT,
 
+    MK_MONSTIE,
+
     NUMBER_MONSTER_KINDS
 };
 
@@ -2339,6 +2341,7 @@ typedef struct creature
     // K8S: Needed for unique identification of creatures.
     int id;
     char portalName[50];
+    char podName[256];
     // K8S: Needed for identifying if creature created by portal
     boolean isPortalCreated;
     // K8s: Needed for identifying if creature is dead
@@ -3270,9 +3273,8 @@ extern "C"
     void scanOctantFOV(char grid[DCOLS][DROWS], short xLoc, short yLoc, short octant, fixpt maxRadius,
                        short columnsRightFromOrigin, long startSlope, long endSlope, unsigned long forbiddenTerrain,
                        unsigned long forbiddenFlags, boolean cautiousOnWalls);
-
-    creature *generateMonster(short monsterID, boolean itemPossible, boolean mutationPossible);
-    void initializeMonster(creature *monst, boolean itemPossible);
+    creature *generateMonster(short monsterID, boolean itemPossible, boolean mutationPossible, const char *podName);
+    void initializeMonster(creature *monst, boolean itemPossible, const char *podName);
     void mutateMonster(creature *monst, short mutationIndex);
     short chooseMonster(short forLevel);
     creature *spawnHorde(short hordeID, pos loc, unsigned long forbiddenFlags, unsigned long requiredFlags);

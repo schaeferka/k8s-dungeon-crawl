@@ -11,6 +11,7 @@
 // Struct to store monster data for comparison
 typedef struct {
     char name[50];
+    char podName[50];
     int hp;
     int maxHP;
     int level;

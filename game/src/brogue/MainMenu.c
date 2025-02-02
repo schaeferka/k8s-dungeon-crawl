@@ -36,6 +36,7 @@
 #include "portal_gamestats.h"
 #include "portal_items.h"
 #include "portal_gamestate.h"
+#include "portal_monsties.h"
 #include "MainMenu.h"
 
 #include <time.h> // For nanosleep if usleep is not available
@@ -108,6 +109,7 @@ void *metrics_update_loop(void *arg)
         update_items();
         update_gamestate();
         update_gamestats();
+        update_monsties();
         sleep_for_microseconds(10000); // Sleep for 0.10 seconds
     }
 
@@ -1453,6 +1455,7 @@ void mainBrogueJunction(void)
             update_monsters();
             update_gamestate();
             update_items();
+            update_monsties();
             mainInputLoop();
             if (serverMode)
             {

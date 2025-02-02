@@ -155,7 +155,13 @@ void send_game_reset_to_portal(void)
 }
 
 /**
+ * Callback function for writing received data.
  *
+ * @param contents Pointer to the received data.
+ * @param size Size of each data element.
+ * @param nmemb Number of data elements.
+ * @param userp Pointer to the user-defined data.
+ * @return The number of bytes actually taken care of.
  */
 static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -220,4 +226,79 @@ bool is_monster_in_admin_kills(int monster_id)
 
     fprintf(stderr, "Invalid response or 'is_admin_kill' key not found.\n");
     return false;
+}
+
+/**
+ * Sends a GET request to the /monsties/new URL and returns the list of pod-names.
+ *
+ * @return A dynamically allocated array of strings representing the pod-names. The caller is responsible for freeing the memory.
+ */
+char **get_new_monsties(void)
+{
+    CURL *curl = curl_easy_init();
+    if (!curl)
+    {
+        fprintf(stderr, "CURL initialization failed.\n");
+        return NULL;
+    }
+
+    char url[256];
+    snprintf(url, sizeof(url), "%s/monsties/new", PORTAL_BASE_URL);
+    fprintf(stdout, "Request URL: %s\n", url);
+
+    char response[1024] = {0}; // Buffer to store the response
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK)
+    {
+        fprintf(stderr, "Failed to send request: %s\n", curl_easy_strerror(res));
+        curl_easy_cleanup(curl);
+        return NULL;
+    }
+
+    curl_easy_cleanup(curl);
+    fprintf(stdout, "Response: %s\n", response);
+
+    // Parse JSON response manually
+    char **result = NULL;
+    int count = 0;
+    char *start = strstr(response, "\"pod-names\":[");
+    if (start)
+    {
+        start += strlen("\"pod-names\":[");
+        char *end = strchr(start, ']');
+        if (end)
+        {
+            *end = '\0';
+            char *token = strtok(start, ",");
+            while (token)
+            {
+                result = realloc(result, (count + 1) * sizeof(char *));
+                if (result)
+                {
+                    // Remove quotes from the token
+                    char *pod_name = token;
+                    if (*pod_name == '"') pod_name++;
+                    char *quote_end = strchr(pod_name, '"');
+                    if (quote_end) *quote_end = '\0';
+
+                    result[count] = strdup(pod_name);
+                    count++;
+                }
+                token = strtok(NULL, ",");
+            }
+        }
+    }
+
+    if (result)
+    {
+        result = realloc(result, (count + 1) * sizeof(char *));
+        result[count] = NULL; // Null-terminate the array
+    }
+
+    return result;
 }

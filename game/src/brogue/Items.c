@@ -896,7 +896,7 @@ void pickUpItemAt(pos loc) {
             }
             if (!rogue.yendorWarden) {
                 getRandomMonsterSpawnLocation(&guardianX, &guardianY);
-                monst = generateMonster(MK_WARDEN_OF_YENDOR, false, false);
+                monst = generateMonster(MK_WARDEN_OF_YENDOR, false, false, NULL);
                 monst->loc.x = guardianX;
                 monst->loc.y = guardianY;
                 pmap[guardianX][guardianY].flags |= HAS_MONSTER;
@@ -4727,7 +4727,7 @@ static void detonateBolt(bolt *theBolt, creature *caster, short x, short y, bool
             break;
         case BE_CONJURATION:
             for (i = 0; i < (staffBladeCount(theBolt->magnitude * FP_FACTOR)); i++) {
-                monst = generateMonster(MK_SPECTRAL_BLADE, true, false);
+                monst = generateMonster(MK_SPECTRAL_BLADE, true, false, NULL);
                 getQualifyingPathLocNear(&(monst->loc.x), &(monst->loc.y), x, y, true,
                                          T_DIVIDES_LEVEL & avoidedFlagsForMonster(&(monst->info)) & ~T_SPONTANEOUSLY_IGNITES, HAS_PLAYER,
                                          avoidedFlagsForMonster(&(monst->info)) & ~T_SPONTANEOUSLY_IGNITES, (HAS_PLAYER | HAS_MONSTER | HAS_STAIRS), false);
@@ -6631,7 +6631,7 @@ static void summonGuardian(item *theItem) {
     short x = player.loc.x, y = player.loc.y;
     creature *monst;
 
-    monst = generateMonster(MK_CHARM_GUARDIAN, false, false);
+    monst = generateMonster(MK_CHARM_GUARDIAN, false, false, NULL);
     getQualifyingPathLocNear(&(monst->loc.x), &(monst->loc.y), x, y, true,
                              T_DIVIDES_LEVEL & avoidedFlagsForMonster(&(monst->info)) & ~T_SPONTANEOUSLY_IGNITES, HAS_PLAYER,
                              avoidedFlagsForMonster(&(monst->info)) & ~T_SPONTANEOUSLY_IGNITES, (HAS_PLAYER | HAS_MONSTER | HAS_STAIRS), false);

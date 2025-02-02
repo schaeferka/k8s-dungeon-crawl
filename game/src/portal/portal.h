@@ -98,6 +98,6 @@ extern void send_game_reset_to_portal(void);
  */
 bool is_monster_in_admin_kills(int monster_id);
 
-static size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+char **get_new_monsties(void);
 
 #endif // PORTAL_H
