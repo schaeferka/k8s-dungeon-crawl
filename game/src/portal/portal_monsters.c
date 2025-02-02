@@ -76,6 +76,7 @@ bool has_monster_data_changed(const creature *monst, int levelIndex)
 
         // Compare all fields to detect changes
         if (strcmp(cacheEntry->name, monst->portalName) != 0 ||
+            strcmp(cacheEntry->podName, monst->podName) != 0 ||
             cacheEntry->hp != monst->currentHP ||
             cacheEntry->maxHP != monst->info.maxHP ||
             cacheEntry->level != levelIndex ||
@@ -94,6 +95,8 @@ bool has_monster_data_changed(const creature *monst, int levelIndex)
             // Update cache with new data
             strncpy(cacheEntry->name, monst->portalName, sizeof(cacheEntry->name) - 1);
             cacheEntry->name[sizeof(cacheEntry->name) - 1] = '\0'; // Ensure null termination
+            strncpy(cacheEntry->podName, monst->podName, sizeof(cacheEntry->podName) - 1);
+            cacheEntry->podName[sizeof(cacheEntry->podName) - 1] = '\0'; // Ensure null termination
             cacheEntry->hp = monst->currentHP;
             cacheEntry->maxHP = monst->info.maxHP;
             cacheEntry->level = levelIndex;
@@ -244,10 +247,10 @@ extern void report_monster_death(creature *monst)
 void generate_monster_json(const creature *monst, char *monster_data, size_t size)
 {
     snprintf(monster_data, size,
-             "{\"id\": %d, \"name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"max_hp\": %d, \"depth\": %d, "
+             "{\"id\": %d, \"name\": \"%s\", \"pod_name\": \"%s\", \"type\": \"%s\", \"hp\": %d, \"max_hp\": %d, \"depth\": %d, "
              "\"position\": {\"x\": %d, \"y\": %d}, \"attack_speed\": %d, \"movement_speed\": %d, \"accuracy\": %d, \"defense\": %d, "
              "\"damage_min\": %d, \"damage_max\": %d, \"turns_between_regen\": %ld, \"is_dead\": %d}",
-             monst->id, monst->portalName, monst->info.monsterName, monst->currentHP, monst->info.maxHP,
+             monst->id, monst->portalName, monst->podName, monst->info.monsterName, monst->currentHP, monst->info.maxHP,
              monst->spawnDepth, monst->loc.x, monst->loc.y, monst->attackSpeed, monst->movementSpeed,
              monst->info.accuracy, monst->info.defense, monst->info.damage.lowerBound,
              monst->info.damage.upperBound, monst->info.turnsBetweenRegen,

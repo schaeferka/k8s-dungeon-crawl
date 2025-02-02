@@ -25,6 +25,9 @@ type MonsterSpec struct {
 	// Name of the monster.
 	Name string `json:"name,omitempty"`
 
+	// Pod Name of the monster.
+	PodName string `json:"podName,omitempty"`
+
 	// Type of the monster (e.g., "bloat", "goblin").
 	Type string `json:"type,omitempty"`
 

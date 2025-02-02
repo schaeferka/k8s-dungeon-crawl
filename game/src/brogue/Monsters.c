@@ -584,12 +584,6 @@ void resolvePronounEscapes(char *text, creature *monst)
         }
     }
     *insert = '\0';
-
-    char *podName = monst->podName;
-    //while ((token = strstr(text, "$POD")))
-    //{
-    //    strncpy(token, podName, strlen(podName));
-    //}
 }
 
 /*

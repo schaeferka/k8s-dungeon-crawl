@@ -38,6 +38,7 @@ class Monster(BaseModel):
     Attributes:
         id (int): A unique identifier for the monster.
         name (str): The name of the monster.
+        podName (str): The name of the pod where the monster resides.
         type (str): The type/category of the monster.
         hp (int): The current health points of the monster.
         max_hp (int): The maximum health points of the monster.
@@ -56,6 +57,7 @@ class Monster(BaseModel):
     """
     id: int
     name: str
+    pod_name: Optional[str] = ""
     type: str
     hp: int
     max_hp: int

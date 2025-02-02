@@ -79,6 +79,9 @@ spec:
               name:
                 description: Name of the monster.
                 type: string
+              podName:
+                description: Pod Name of the monster.
+                type: string
               position:
                 description: Position of the monster.
                 properties:

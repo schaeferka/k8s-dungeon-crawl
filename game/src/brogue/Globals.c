@@ -1391,7 +1391,7 @@ const monsterWords monsterText[NUMBER_MONSTER_KINDS] = {
      "absorbing",
      "Absorbing",
      {"whips", "lashes", "thrashes", "lacerates", {0}}},
-    {"The $POD monstie prowls the caverns for intruders to rend with $HISHER powerful jaws.",
+    {"The monstie prowls the caverns for intruders to rend with $HISHER powerful jaws.",
      "tearing at",
      "Eating",
      {"claws", "bites", "mauls", {0}}},
