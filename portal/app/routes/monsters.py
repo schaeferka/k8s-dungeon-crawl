@@ -163,7 +163,7 @@ def get_admin_kill_monsters():
         Response: A JSON response containing the list of admin kill monsters.
     """
     try:
-        current_app.logger.info(f"Admin kills: {admin_kills}")
+        #current_app.logger.info(f"Admin kills: {admin_kills}")
         return jsonify([kill for kill in admin_kills.values()])
     except (AttributeError, KeyError, TypeError) as e:
         current_app.logger.error(f"Error fetching admin kill monsters data: {e}")
