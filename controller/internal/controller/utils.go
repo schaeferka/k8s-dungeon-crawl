@@ -53,7 +53,6 @@ func generateHTMLContent(monster v1.Monster) string {
 								monsterName: name,
 								podName: podName,
 								monsterID: id,
-								namespace: 'monsters',
 								depth: depth
 							})
 						});
@@ -94,6 +93,7 @@ func generateHTMLContent(monster v1.Monster) string {
 						<li><strong>Damage Min:</strong> %d</li>
 						<li><strong>Defense:</strong> %d</li>
 						<li><strong>Is Dead:</strong> %t</li>
+						<li><strong>Is Admin Killed:</strong> %t</li>
 						<li><strong>Movement Speed:</strong> %d</li>
 						<li><strong>Position:</strong> (%d, %d)</li>
 						<li><strong>Turns Between Regen:</strong> %d</li>
@@ -109,7 +109,7 @@ func generateHTMLContent(monster v1.Monster) string {
 			</footer>
 		</body>
 		</html>
-	`, monster.Name, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Depth)
+	`, monster.Name, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.IsAdminKilled, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Depth)
 }
 
 // generateNginxConfig generates the Nginx configuration content for the monster

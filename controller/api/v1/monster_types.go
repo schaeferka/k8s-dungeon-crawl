@@ -64,6 +64,9 @@ type MonsterSpec struct {
 	// Indicates if the monster is dead.
 	IsDead bool `json:"isDead,omitempty"`
 
+	// Indicates if the monster is admin killed.
+	IsAdminKilled bool `json:"isAdminKilled,omitempty"`
+
 	// Movement speed of the monster.
 	MovementSpeed int `json:"movementSpeed,omitempty"`
 

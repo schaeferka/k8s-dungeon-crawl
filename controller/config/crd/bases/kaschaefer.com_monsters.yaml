@@ -67,6 +67,9 @@ spec:
               id:
                 description: Unique identifier for the monster.
                 type: integer
+              isAdminKilled:
+                description: Indicates if the monster is admin killed.
+                type: boolean
               isDead:
                 description: Indicates if the monster is dead.
                 type: boolean

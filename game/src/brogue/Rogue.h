@@ -2340,11 +2340,13 @@ typedef struct creature
 {
     // K8S: Needed for unique identification of creatures.
     int id;
+    // K8S: Needed for identifying creatures name in the portal.
     char portalName[50];
+    // K8S: Needed for identifying creatures pod name.
     char podName[256];
     // K8S: Needed for identifying if creature created by portal
     boolean isPortalCreated;
-    // K8s: Needed for identifying if creature is dead
+    // K8S: Needed for identifying if creature is dead
     boolean isDead;
     creatureType info;
     pos loc;

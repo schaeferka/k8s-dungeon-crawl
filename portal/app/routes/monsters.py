@@ -66,7 +66,7 @@ def monsters():
     return render_template("monsters.html")
 
 
-@bp.route("/data", methods=["GET"])
+@bp.route("/active", methods=["GET"])
 def get_monsters():
     """
     Returns the list of all active monsters.
@@ -164,7 +164,7 @@ def get_admin_kill_monsters():
     """
     try:
         #current_app.logger.info(f"Admin kills: {admin_kills}")
-        return jsonify([kill for kill in admin_kills.values()])
+        return jsonify([monster.dict() for monster in admin_kills.values()])
     except (AttributeError, KeyError, TypeError) as e:
         current_app.logger.error(f"Error fetching admin kill monsters data: {e}")
         return jsonify({"error": "Error fetching data"}), 500
@@ -463,11 +463,11 @@ def admin_kill():
         monster_name = sanitize_string(data.get("monsterName", "Unknown"))
         pod_name = sanitize_string(data.get("podName", "Unknown"))
         monster_id = sanitize_string(data.get("monsterID", "Unknown"))
-        namespace = sanitize_string(data.get("namespace", "Unknown"))
+        #namespace = sanitize_string(data.get("namespace", "Unknown"))
         depth = sanitize_string(data.get("depth", "Unknown"))
 
         # Log the received admin kill notification
-        current_app.logger.info(f"Admin kill notice: Name={monster_name}, PodName={pod_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
+        current_app.logger.info(f"Admin kill notice: Name={monster_name}, PodName={pod_name}, ID={monster_id}, Depth={depth}")
 
         # Check if the monster is in the active_monsters list
         if monster_id in active_monsters:
@@ -477,15 +477,15 @@ def admin_kill():
                     "monster_name": monster_name,
                     "pod_name": pod_name,
                     "monster_id": monster_id,
-                    "namespace": namespace,
                     "depth": depth,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
-                current_app.logger.info(f"Added to admin_kills list: {monster_name}, PodName={pod_name}, ID={monster_id}, Namespace={namespace}, Depth={depth}")
+                current_app.logger.info(f"Added to admin_kills list: {monster_name}, PodName={pod_name}, ID={monster_id}, Depth={depth}")
 
             # Move the monster from active_monsters to dead_monsters
             monster = active_monsters.pop(monster_id)
             monster.is_dead = True
+            monster.is_admin_kill = True
             monster.death_timestamp = datetime.now(timezone.utc)
             dead_monsters[monster_id] = monster
             current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster_id}")
@@ -513,32 +513,42 @@ def admin_kill():
         current_app.logger.error(f"Error processing admin kill notice: {e}")
         return jsonify({"error": "Failed to process admin kill notice", "details": str(e)}), 500
 
-@bp.route('/admin-kill/<int:monster_id>', methods=['DELETE'], strict_slashes=False)
+@bp.route('/admin-kill/<monster_id>', methods=['DELETE', 'GET'])
 def admin_kill_monster_by_id(monster_id):
-    """
-    Kills a monster by ID.
+    """Kills a monster by id."""
+    current_app.logger.info(f"INFO: Received admin kill request for monster: {monster_id}")
 
-    Args:
-        monster_id (int): The ID of the monster to kill.
-
-    Returns:
-        Response: A JSON response indicating the status of the kill operation.
-    """
+    # Log current monster keys for debugging
+    current_app.logger.info(f"INFO: active_monsters keys: {list(active_monsters.keys())}")
+    
+     # Convert monster_id to an integer to match active_monsters keys
+    try:
+        monster_id = int(monster_id)
+    except ValueError:
+        return jsonify({"error": f"INFO: Invalid monster_id: {monster_id}"}), 400
+    
     if monster_id in active_monsters:
-        if monster_id not in admin_kills:
-            admin_kills[monster_id] = {
-                "monster_name": active_monsters[monster_id].monster_name,
-                "pod_name": active_monsters[monster_id].pod_name,
-                "monster_id": monster_id,
-                "namespace": active_monsters[monster_id].namespace,
-                "depth": active_monsters[monster_id].depth,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
+        current_app.logger.info(f"INFO: Monster id {monster_id} found in active_monsters list.")
+        
+        monster = active_monsters.get(monster_id)
+        
+        current_app.logger.info(f"INFO: Monster {monster_id}'s name is {monster.name}.")
+        
+        # Move monster from active to dead
         monster = active_monsters.pop(monster_id)
         monster.is_dead = True
+        monster.is_admin_kill = True
         monster.death_timestamp = datetime.now(timezone.utc)
         dead_monsters[monster_id] = monster
-        current_app.logger.info(f"Monster admin killed: {monster.name}, ID: {monster_id}")
-        return jsonify({"status": "success", "message": "Monster admin killed"}), 200
+        current_app.logger.info(f"INFO: Monster {monster_id} marked as dead")
+    
+        # Add monster to admin_kills list
+        admin_kills[monster_id] = monster
+        current_app.logger.info(f"INFO: Monster {monster_id} added to admin_kills list")
 
-    return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
+        return jsonify({"status": "success", "message": f"INFO: Monster {monster_id} admin killed"}), 200
+    else:
+        current_app.logger.warning(f"INFO: Monster with id {monster_id} not found.")
+    
+    return jsonify({"error": f"INFO: Monster with monster_id {monster_id} not found"}), 404
+

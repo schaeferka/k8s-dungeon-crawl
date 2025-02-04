@@ -1,7 +1,7 @@
 let activeMonstersData = [];
 let deadMonstersData = [];
 let allMonstersData = [];
-let adminKillsData = [];
+//let adminKillsData = [];
 
 async function fetchMonsterData() {
     /**
@@ -11,7 +11,7 @@ async function fetchMonsterData() {
      */
     try {
         // Fetch active monsters data
-        const activeMonstersResponse = await fetch('/monsters/data');
+        const activeMonstersResponse = await fetch('/monsters/active');
         activeMonstersData = await activeMonstersResponse.json();
 
         // Fetch dead monsters data
@@ -29,20 +29,20 @@ async function fetchMonsterData() {
     }
 }
 
-async function fetchAdminKillsData() {
+//async function fetchAdminKillsData() {
     /**
      * Fetches data for admin kills from the server.
      * This function sends a request to the relevant endpoint and updates the data array accordingly.
      */
-    try {
+//    try {
         // Fetch admin kills data
-        const adminKillsResponse = await fetch('/monsters/admin-kills');
-        adminKillsData = await adminKillsResponse.json();
-        applyFilters(); // Apply filters after fetching data
-    } catch (error) {
-        console.error('Error fetching admin kills data:', error);
-    }
-}
+//        const adminKillsResponse = await fetch('/monsters/admin-kills');
+//        adminKillsData = await adminKillsResponse.json();
+//        applyFilters(); // Apply filters after fetching data
+//    } catch (error) {
+//        console.error('Error fetching admin kills data:', error);
+//    }
+//}
 
 function applyFilters() {
     /**
@@ -71,15 +71,15 @@ function applyFilters() {
         return matchesType && matchesDepth;
     });
 
-    const filteredAdminKills = adminKillsData.filter(kill => {
-        const matchesType = kill.monster_name.toLowerCase().includes(typeFilter);
-        const matchesDepth = depthFilter ? kill.depth == parseInt(depthFilter) : true;
-        return matchesType && matchesDepth;
-    });
+   // const filteredAdminKills = adminKillsData.filter(kill => {
+   //     const matchesType = kill.monster_name.toLowerCase().includes(typeFilter);
+   //     const matchesDepth = depthFilter ? kill.depth == parseInt(depthFilter) : true;
+   //     return matchesType && matchesDepth;
+   // });
 
     // Update tables with filtered data
     updateTables(filteredActiveMonsters, filteredDeadMonsters, filteredAllMonsters);
-    updateAdminKillsTable(filteredAdminKills);
+    //updateAdminKillsTable(filteredAdminKills);
 }   
 
 function resetFilters() {
@@ -89,7 +89,7 @@ function resetFilters() {
     // Clear filter inputs and reset tables
     document.getElementById('monster-type-filter').value = '';
     document.getElementById('depth-filter').value = '';
-    updateTables(activeMonstersData, deadMonstersData, allMonstersData, adminKillsData); // Reset tables with full data
+    updateTables(activeMonstersData, deadMonstersData, allMonstersData); // Reset tables with full data
 }
 
 function createTableCell(content, className = 'text-center') {
@@ -134,16 +134,15 @@ function createMonsterRow(monster, isDead = false, isActive = false) {
     return row;
 }
 
-function createAdminKillRow(kill) {
+/* function createAdminKillRow(kill) {
     const row = document.createElement('tr');
     row.appendChild(createTableCell(kill.monster_name));
     row.appendChild(createTableCell(kill.pod_name));
     row.appendChild(createTableCell(kill.depth));
-    row.appendChild(createTableCell(kill.namespace));
     row.appendChild(createTableCell(new Date(kill.timestamp).toUTCString())); // Format the timestamp
     row.appendChild(createTableCell(kill.monster_id));
     return row;
-}
+} */
 
 function updateTables(activeMonsters, deadMonsters, allMonsters) {
     /**
@@ -186,27 +185,27 @@ function updateTables(activeMonsters, deadMonsters, allMonsters) {
     });
 }
 
-function updateAdminKillsTable(kills) {
+//function updateAdminKillsTable(kills) {
     /**
      * Updates the admin kills table with the provided data.
      * 
      * @param {Array} kills - List of admin kills to display.
      */
-    const tableBody = document.getElementById('admin-kills-body');
-    tableBody.innerHTML = '';
+//    const tableBody = document.getElementById('admin-kills-body');
+//    tableBody.innerHTML = '';
 
-    kills.forEach(kill => {
-        tableBody.appendChild(createAdminKillRow(kill));
-    });
-}
+//    kills.forEach(kill => {
+//        tableBody.appendChild(createAdminKillRow(kill));
+//    });
+//}
 
 setInterval(fetchMonsterData, 1000);
-setInterval(fetchAdminKillsData, 1000);
+//setInterval(fetchAdminKillsData, 1000);
 
 // Fetch data initially
 window.onload = () => {
     fetchMonsterData();
-    fetchAdminKillsData();
+    //fetchAdminKillsData();
 };
 
 // Add event listeners to buttons

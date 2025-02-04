@@ -58,10 +58,12 @@ class Monster(BaseModel):
     id: int
     name: str
     pod_name: Optional[str] = ""
+    namespace: Optional[str] = ""
     type: str
     hp: int
     max_hp: int
     is_dead: bool
+    is_admin_kill: Optional[bool] = False
     depth: int
     position: Position
     attack_speed: int

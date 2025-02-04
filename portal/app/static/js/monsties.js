@@ -75,10 +75,11 @@ function updateDeploymentsPodsTable(data) {
 }
 
 function updateMonstiesTable(data) {
-    const tableBody = document.getElementById('monsties-body');
-    tableBody.innerHTML = '';
+    const tableBody = document.getElementById("monsties-body");
+    tableBody.innerHTML = "";
+
     data.forEach(monster => {
-        const row = document.createElement('tr');
+        const row = document.createElement("tr");
         row.innerHTML = `
             <td class="border px-4 py-2 text-center">${monster.name}</td>
             <td class="border px-4 py-2 text-center">${monster.hp}</td>
@@ -86,26 +87,35 @@ function updateMonstiesTable(data) {
             <td class="border px-4 py-2 text-center">${monster.attack_speed}</td>
             <td class="border px-4 py-2 text-center">${monster.id}</td>
             <td class="border px-4 py-2 text-center">
-                <button class="delete-monster px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition active:bg-red-900" data-monsterId="${monster.id}">Admin Kill Monstie</button>
+                <button class="delete-monster px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition active:bg-red-900"
+                    data-monster-name="${monster.name}">
+                    Admin Kill Monstie
+                </button>
             </td>
         `;
         tableBody.appendChild(row);
     });
 
-    document.querySelectorAll('.delete-monster').forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const monsterId = event.target.dataset.monsterId;
-            await fetch(`/monsters/admin-kill/${monsterId}`, { method: 'DELETE' });
-            fetchDeploymentsAndPods();
-        });
+    document.addEventListener("click", async (event) => {
+        if (event.target.classList.contains("delete-monster")) {
+            const monsterName = event.target.dataset.monsterName;
+            if (!monsterName) return;
+            try {
+                await fetch(`/monsters/admin-kill/${monsterName}`, { method: "DELETE" });
+                fetchMonsties(); // Refresh monster list
+            } catch (error) {
+                console.error("Error performing admin kill:", error);
+            }
+        }
     });
 }
 
+
 document.getElementById('admin-kill').addEventListener('click', async () => {
-    const monsterID = prompt('Enter the monster id to kill:');
-    if (!monsterID) return;
+    const monsterName = prompt('Enter the monster name to kill:');
+    if (!monsterName) return;
     try {
-        await fetch(`/monsters/admin-kill/${monsterID}`, { method: 'DELETE' });
+        await fetch(`/monsters/admin-kill/${monsterName}`, { method: 'DELETE' });
         fetchDeploymentsAndPods();
     } catch (error) {
         console.error('Error performing admin kill:', error);
