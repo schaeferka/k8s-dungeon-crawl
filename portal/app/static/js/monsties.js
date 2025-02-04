@@ -82,13 +82,12 @@ function updateMonstiesTable(data) {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td class="border px-4 py-2 text-center">${monster.name}</td>
+            <td class="border px-4 py-2 text-center">${monster.pod_name}</td>
             <td class="border px-4 py-2 text-center">${monster.hp}</td>
-            <td class="border px-4 py-2 text-center">${monster.defense}</td>
-            <td class="border px-4 py-2 text-center">${monster.attack_speed}</td>
             <td class="border px-4 py-2 text-center">${monster.id}</td>
             <td class="border px-4 py-2 text-center">
                 <button class="delete-monster px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition active:bg-red-900"
-                    data-monster-name="${monster.name}">
+                    data-monster-name="${monster.pod_name}">
                     Admin Kill Monstie
                 </button>
             </td>
@@ -101,7 +100,7 @@ function updateMonstiesTable(data) {
             const monsterName = event.target.dataset.monsterName;
             if (!monsterName) return;
             try {
-                await fetch(`/monsters/admin-kill/${monsterName}`, { method: "DELETE" });
+                await fetch(`/monsters/admin-kill/pod/${monsterName}`, { method: "DELETE" });
                 fetchMonsties(); // Refresh monster list
             } catch (error) {
                 console.error("Error performing admin kill:", error);
@@ -112,10 +111,10 @@ function updateMonstiesTable(data) {
 
 
 document.getElementById('admin-kill').addEventListener('click', async () => {
-    const monsterName = prompt('Enter the monster name to kill:');
+    const monsterName = prompt('Enter the monster pod name to kill:');
     if (!monsterName) return;
     try {
-        await fetch(`/monsters/admin-kill/${monsterName}`, { method: 'DELETE' });
+        await fetch(`/monsters/admin-kill/pod/${monsterName}`, { method: 'DELETE' });
         fetchDeploymentsAndPods();
     } catch (error) {
         console.error('Error performing admin kill:', error);

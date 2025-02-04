@@ -15,14 +15,12 @@ This blueprint includes routes for:
 Returns:
     None: This module defines routes for the Flask app to manage monsters and Prometheus metrics.
 """
-import json
 from datetime import datetime, timezone
 from app.models.monsters import Monster
 from app.services.k8s_service import KubernetesService
 from flask import Blueprint, current_app, jsonify, render_template, request
 from kubernetes.client.exceptions import ApiException as KubernetesError
 from prometheus_client import Counter, Gauge, Histogram
-import requests
 from flask_cors import CORS
 
 bp = Blueprint('monsters', __name__)
@@ -441,77 +439,46 @@ def sanitize_string(input_str):
         return ''.join(ch for ch in input_str if ch.isprintable())
     return input_str
 
+@bp.route('/admin-kill/pod/<monster_pod_name>', methods=['DELETE', 'GET'])
+def admin_kill_monster_by_pod_name(monster_pod_name):
+    """Kills a monster by id."""
+    current_app.logger.info(f"INFO: Received admin kill request for monster: {monster_pod_name}")
 
-@bp.route('/admin-kill', methods=['POST'], strict_slashes=False)
-def admin_kill():
-    """
-    Receives a notice that a monster has been admin killed.
-    Relays the information to the game.
+    # Log current monster keys for debugging
+    current_app.logger.info(f"INFO: active_monsters keys: {list(active_monsters.keys())}")
+    
+    # Lookup monster_id by pod_name
+    monster_id = None
+    for monster in active_monsters.values():
+        if monster.pod_name == monster_pod_name:
+            monster_id = monster.id
+            break
+            
+    if monster_id in active_monsters:
+        current_app.logger.info(f"INFO: Monster id {monster_id} found in active_monsters list.")
+        
+        monster = active_monsters.get(monster_id)
+        
+        current_app.logger.info(f"INFO: Monster {monster_id}'s name is {monster.pod_name}.")
+        
+        # Move monster from active to dead
+        monster = active_monsters.pop(monster_id)
+        monster.is_dead = True
+        monster.is_admin_kill = True
+        monster.death_timestamp = datetime.now(timezone.utc)
+        dead_monsters[monster_id] = monster
+        current_app.logger.info(f"INFO: Monster {monster_pod_name} marked as dead")
+    
+        # Add monster to admin_kills list
+        admin_kills[monster_id] = monster
+        current_app.logger.info(f"INFO: Monster {monster_pod_name} added to admin_kills list")
 
-    Returns:
-        Response: A JSON response indicating the status of the notice and relay.
-    """
-    try:
-        # Log raw incoming data for debugging
-        raw_data = request.data.decode('utf-8')
+        return jsonify({"status": "success", "message": f"INFO: Monster {monster_pod_name} admin killed"}), 200
+    else:
+        current_app.logger.warning(f"INFO: Monster with pod_name {monster_pod_name} not found.")
+    
+    return jsonify({"error": f"INFO: Monster with monster_pos_nMW {monster_pod_name} not found"}), 404
 
-        data = json.loads(raw_data, strict=False)
-        if not data:
-            current_app.logger.warning("No JSON payload received.")
-            return jsonify({"error": "No JSON payload received"}), 400
-
-        monster_name = sanitize_string(data.get("monsterName", "Unknown"))
-        pod_name = sanitize_string(data.get("podName", "Unknown"))
-        monster_id = sanitize_string(data.get("monsterID", "Unknown"))
-        #namespace = sanitize_string(data.get("namespace", "Unknown"))
-        depth = sanitize_string(data.get("depth", "Unknown"))
-
-        # Log the received admin kill notification
-        current_app.logger.info(f"Admin kill notice: Name={monster_name}, PodName={pod_name}, ID={monster_id}, Depth={depth}")
-
-        # Check if the monster is in the active_monsters list
-        if monster_id in active_monsters:
-            # Add the monster to the admin_kills list if it isn't already there
-            if monster_id not in admin_kills:
-                admin_kills[monster_id] = {
-                    "monster_name": monster_name,
-                    "pod_name": pod_name,
-                    "monster_id": monster_id,
-                    "depth": depth,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }
-                current_app.logger.info(f"Added to admin_kills list: {monster_name}, PodName={pod_name}, ID={monster_id}, Depth={depth}")
-
-            # Move the monster from active_monsters to dead_monsters
-            monster = active_monsters.pop(monster_id)
-            monster.is_dead = True
-            monster.is_admin_kill = True
-            monster.death_timestamp = datetime.now(timezone.utc)
-            dead_monsters[monster_id] = monster
-            current_app.logger.info(f"Monster marked as dead: {monster.name}, ID: {monster_id}")
-        else:
-            current_app.logger.warning(f"Monster with ID {monster_id} not found in active_monsters list.")
-
-        # Log the current state of the lists
-        #current_app.logger.info(f"Admin kills: {[monster for monster in admin_kills.values()]}")
-
-        return jsonify({"message": "Admin kill notice processed"}), 200
-
-    except json.JSONDecodeError as e:
-        current_app.logger.error(f"JSON decoding error: {e}")
-        return jsonify({"error": "Invalid JSON payload", "details": str(e)}), 400
-
-    except requests.Timeout:
-        current_app.logger.error("Request to game timed out.")
-        return jsonify({"error": "Request to game timed out"}), 504
-
-    except requests.RequestException as e:
-        current_app.logger.error(f"RequestException: {e}")
-        return jsonify({"error": "Failed to relay admin kill notice", "details": str(e)}), 500
-
-    except (ValueError, TypeError, KeyError) as e:
-        current_app.logger.error(f"Error processing admin kill notice: {e}")
-        return jsonify({"error": "Failed to process admin kill notice", "details": str(e)}), 500
 
 @bp.route('/admin-kill/<monster_id>', methods=['DELETE', 'GET'])
 def admin_kill_monster_by_id(monster_id):
