@@ -512,3 +512,33 @@ def admin_kill():
     except (ValueError, TypeError, KeyError) as e:
         current_app.logger.error(f"Error processing admin kill notice: {e}")
         return jsonify({"error": "Failed to process admin kill notice", "details": str(e)}), 500
+
+@bp.route('/admin-kill/<int:monster_id>', methods=['DELETE'], strict_slashes=False)
+def admin_kill_monster_by_id(monster_id):
+    """
+    Kills a monster by ID.
+
+    Args:
+        monster_id (int): The ID of the monster to kill.
+
+    Returns:
+        Response: A JSON response indicating the status of the kill operation.
+    """
+    if monster_id in active_monsters:
+        if monster_id not in admin_kills:
+            admin_kills[monster_id] = {
+                "monster_name": active_monsters[monster_id].monster_name,
+                "pod_name": active_monsters[monster_id].pod_name,
+                "monster_id": monster_id,
+                "namespace": active_monsters[monster_id].namespace,
+                "depth": active_monsters[monster_id].depth,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        monster = active_monsters.pop(monster_id)
+        monster.is_dead = True
+        monster.death_timestamp = datetime.now(timezone.utc)
+        dead_monsters[monster_id] = monster
+        current_app.logger.info(f"Monster admin killed: {monster.name}, ID: {monster_id}")
+        return jsonify({"status": "success", "message": "Monster admin killed"}), 200
+
+    return jsonify({"error": f"Monster with ID {monster_id} not found"}), 404
