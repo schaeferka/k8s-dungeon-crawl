@@ -153,16 +153,11 @@ def get_dead_monsters():
 @bp.route("/admin-kills", methods=["GET"])
 def get_admin_kill_monsters():
     """
-    Returns a list of admin kill monsters.
-
-    This route retrieves all monsters that are marked as admin kill.
-
-    Returns:
-        Response: A JSON response containing the list of admin kill monsters.
+    Returns a list of admin kill monsters filtered from all_monsters.
     """
     try:
-        #current_app.logger.info(f"Admin kills: {admin_kills}")
-        return jsonify([monster.dict() for monster in admin_kills.values()])
+        admin_monsters = [monster for monster in all_monsters.values() if getattr(monster, "is_admin_kill", False)]
+        return jsonify([monster.dict() for monster in admin_monsters])
     except (AttributeError, KeyError, TypeError) as e:
         current_app.logger.error(f"Error fetching admin kill monsters data: {e}")
         return jsonify({"error": "Error fetching data"}), 500
@@ -472,6 +467,16 @@ def admin_kill_monster_by_pod_name(monster_pod_name):
         # Add monster to admin_kills list
         admin_kills[monster_id] = monster
         current_app.logger.info(f"INFO: Monster {monster_pod_name} added to admin_kills list")
+        
+        # Call the Kubernetes service to delete the monster resource
+        try:
+            k8s_service.delete_monster_resource(
+                name=monster.name, namespace="dungeon-master-system"
+            )
+            current_app.logger.info(f"Successfully deleted Monster resource: {monster.name}")
+        except KubernetesError as e:
+            current_app.logger.error(f"Failed to delete Monster resource: {monster.name} due to {e}")
+            return jsonify({"error": f"Failed to delete Monster resource: {monster.name}"}), 500
 
         return jsonify({"status": "success", "message": f"INFO: Monster {monster_pod_name} admin killed"}), 200
     else:
@@ -512,6 +517,16 @@ def admin_kill_monster_by_id(monster_id):
         # Add monster to admin_kills list
         admin_kills[monster_id] = monster
         current_app.logger.info(f"INFO: Monster {monster_id} added to admin_kills list")
+        
+        # Call the Kubernetes service to delete the monster resource
+        try:
+            k8s_service.delete_monster_resource(
+                name=monster.name, namespace="dungeon-master-system"
+            )
+            current_app.logger.info(f"Successfully deleted Monster resource: {monster.name}")
+        except KubernetesError as e:
+            current_app.logger.error(f"Failed to delete Monster resource: {monster.name} due to {e}")
+            return jsonify({"error": f"Failed to delete Monster resource: {monster.name}"}), 500
 
         return jsonify({"status": "success", "message": f"INFO: Monster {monster_id} admin killed"}), 200
     else:

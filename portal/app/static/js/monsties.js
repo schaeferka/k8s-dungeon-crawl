@@ -110,7 +110,7 @@ function updateMonstiesTable(data) {
 }
 
 
-document.getElementById('admin-kill').addEventListener('click', async () => {
+/* document.getElementById('admin-kill').addEventListener('click', async () => {
     const monsterName = prompt('Enter the monster pod name to kill:');
     if (!monsterName) return;
     try {
@@ -119,7 +119,7 @@ document.getElementById('admin-kill').addEventListener('click', async () => {
     } catch (error) {
         console.error('Error performing admin kill:', error);
     }
-});
+}); */
 
 document.getElementById('create-deployment').addEventListener('click', async () => {
     try {

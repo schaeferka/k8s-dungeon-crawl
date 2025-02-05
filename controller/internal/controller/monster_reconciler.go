@@ -46,6 +46,35 @@ func (r *MonsterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Handle deletion logic
 	if monster.DeletionTimestamp != nil {
 		log.Info("Reconcile - Monster is marked for deletion", "name", monster.Name)
+
+		// 1) Check if Monster has PodName set
+		if monster.Spec.PodName != "" {
+			log.Info("Reconcile - Monster has PodName set", "name", monster.Name)
+			var pod corev1.Pod
+			podKey := types.NamespacedName{
+				Namespace: "monsties",
+				Name:      monster.Spec.PodName,
+			}
+
+			// 2) Attempt to get the Pod from the monsties namespace
+			if err := r.Get(ctx, podKey, &pod); err == nil {
+				// 2a) Pod found -> Delete it
+				log.Info("Monster is being deleted; also deleting Pod in monsties", "pod", pod.Name)
+				if err := r.Delete(ctx, &pod); err != nil {
+					log.Error(err, "Failed to delete the Pod in monsties", "pod", pod.Name)
+					// Return an error if you want to retry
+					return ctrl.Result{}, err
+				}
+			} else if !apierrors.IsNotFound(err) {
+				// 2b) Some error other than NotFound
+				log.Error(err, "Error fetching Pod from monsties", "podName", monster.Spec.PodName)
+				// Return if you want to retry
+				return ctrl.Result{}, err
+			}
+		} else {
+			log.Info("Reconcile - Monster does not have PodName set", "name", monster.Name)
+		}
+
 		if containsString(monster.Finalizers, "kaschaefer.com/cleanup") {
 			// Execute finalizer logic
 			if err := r.handleFinalizerForMonster(ctx, &monster); err != nil {

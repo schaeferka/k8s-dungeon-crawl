@@ -45,9 +45,12 @@ def add_monster_by_name(pod_name):
     """
     Adds a new monster to the new_monsties list using a URL parameter.
     """
-    new_monsties.append(pod_name)
-    current_app.logger.info(f"Added {pod_name} to new monsties")
-    current_app.logger.info(f"New monsties: {new_monsties}")
+    if pod_name not in monsties and pod_name not in new_monsties:
+        new_monsties.append(pod_name)
+        current_app.logger.info(f"Added {pod_name} to new monsties")
+        current_app.logger.info(f"New monsties: {new_monsties}")
+    else:
+        current_app.logger.info(f"Monstie {pod_name} already exists in the monsties list.")
     return jsonify(monsties)
 
 
