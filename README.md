@@ -415,8 +415,8 @@ This project wouldn't be possible without the amazing [BrogueCE](https://github.
 
 > **Current Development Focus**: Implementing having the Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game.
 
-- [ ] Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game (because even monsters deserve a peaceful exit).
-- [ ] Implement creating monsters based on pods in "monstie" namespace (because randomly destroying real pods in your cluster is always fun).
+- [x] Implement deleting monster in game if monster deployment is deleted in the cluster by some means other than the monster being killed in the game (because even monsters deserve a peaceful exit).
+- [x] Implement creating monsters based on pods in "monstie" namespace (because randomly destroying real pods in your cluster is always fun).
 - [ ] Implement player bonuses based on killing monsties (because stat bonuses are always good).
 - [x] Add architecture diagram (because understanding the dungeon’s structure is key to slaying the monsters).
 - [x] Add event flow diagram (because even the dungeon’s chaos needs a bit of order).
