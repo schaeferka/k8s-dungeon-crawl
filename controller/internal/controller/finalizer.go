@@ -61,7 +61,7 @@ func (r *MonsterReconciler) handleFinalizerForMonster(ctx context.Context, monst
 		}
 	}
 
-	// Delete associated resources (Service, ConfigMap, etc.)
+	// Delete associated resources
 	log.Info("Finalizer - Deleting associated Service for Monster", "name", monster.Name)
 	if err := r.deleteService(ctx, monster.Name, "monsters"); err != nil {
 		log.Error(err, "Finalizer - Unable to delete Service", "name", monster.Name)
@@ -91,18 +91,6 @@ func (r *MonsterReconciler) handleFinalizerForMonster(ctx context.Context, monst
 	log.Info("Finalizer - Finalizer successfully removed", "name", monster.Name)
 	return nil
 }
-
-
-
-// removeString removes a string from a slice of strings
-/* func removeString(slice []string, s string) []string {
-	for i, item := range slice {
-		if item == s {
-			return append(slice[:i], slice[i+1:]...)
-		}
-	}
-	return slice
-} */
 
 
 

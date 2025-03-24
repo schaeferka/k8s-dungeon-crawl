@@ -42,7 +42,7 @@ func (r *MonsterReconciler) createOrUpdateDeployment(ctx context.Context, monste
 	}
 
 	// Generate a hash for the ConfigMap data to trigger the deployment update when the config changes
-	cmHash := fmt.Sprintf("%x", hashData(cm.Data)) // Assuming `hashData` is a function to compute the hash
+	cmHash := fmt.Sprintf("%x", hashData(cm.Data))
 
 	// Create or Update the Nginx Deployment
 	deployment := &appsv1.Deployment{

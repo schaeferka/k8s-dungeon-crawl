@@ -83,7 +83,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
         if apierrors.IsNotFound(err) {
             // 2. The Pod is gone from the cluster
             //    => call "admin-kill" if it's in monsties
-            //       (predicate ensured it's monsties, but let's double-check)
+            //       (predicate ensured it's monsties
             if req.Namespace == "monsties" {
                 killEndpoint := fmt.Sprintf(
                     "http://portal-service.portal.svc.cluster.local:5000/monsters/admin-kill/pod/%s", 
@@ -92,7 +92,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
                 _, callErr := http.Get(killEndpoint)
                 if callErr != nil {
                     logger.Error(callErr, "Failed to call admin-kill on delete")
-                    // If you want to re-try or handle differently, do so here
+                    // Add re-try or other handling here
                 }
             }
             return ctrl.Result{}, nil
@@ -132,12 +132,12 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
     logger.Info("Calling monsties /add endpoint", "endpoint", addEndpoint)
     if _, err := http.Get(addEndpoint); err != nil {
         logger.Error(err, "Failed to call monsties /add endpoint")
-        // If you need to remove the annotation for a retry, do it here
+        // Add code to remove the annotation for a retry
         // or else it won't be re-processed.
         return ctrl.Result{}, err
     }
 
-    // Record an event (optional)
+    // Record an event
     if r.Recorder != nil {
         r.Recorder.Eventf(&pod, "Normal", "EndpointCalled",
             "Called monsties /add endpoint for Pod %s", pod.Name)
