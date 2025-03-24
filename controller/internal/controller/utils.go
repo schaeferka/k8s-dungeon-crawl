@@ -41,21 +41,14 @@ func generateHTMLContent(monster v1.Monster) string {
 			<title>Monster Info: %s</title>
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 			<script>
-				async function adminKillMonster(name, id, depth) {
+				async function adminKillMonster(monsterId) {
 					try {
-						console.log('Sending admin kill request for monster:', name, id, depth);
-						const response = await fetch('http://localhost:5000/monsters/admin-kill', {
-							method: 'POST',
+						console.log('Sending admin kill request for monster ID:', monsterId);
+						const response = await fetch("http://localhost:5000/monsters/admin-kill/" + monsterId, {
+							method: 'DELETE',
 							headers: {
 								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify({
-								monsterName: name,
-								podName: podName,
-								monsterID: id,
-								namespace: 'monsters',
-								depth: depth
-							})
+							}
 						});
 						if (response.ok) {
 							alert('Monster admin killed successfully');
@@ -94,13 +87,14 @@ func generateHTMLContent(monster v1.Monster) string {
 						<li><strong>Damage Min:</strong> %d</li>
 						<li><strong>Defense:</strong> %d</li>
 						<li><strong>Is Dead:</strong> %t</li>
+						<li><strong>Is Admin Killed:</strong> %t</li>
 						<li><strong>Movement Speed:</strong> %d</li>
 						<li><strong>Position:</strong> (%d, %d)</li>
 						<li><strong>Turns Between Regen:</strong> %d</li>
 						<li><strong>Spawn Timestamp:</strong> %s</li>
 						<li><strong>Death Timestamp:</strong> %s</li>
 					</ul>
-					<button onclick="adminKillMonster('%s', %d, %d)" class="mt-4 bg-red-500 text-white px-4 py-2 rounded">Admin Kill Monster</button>
+					<button onclick="adminKillMonster(%d)" class="mt-4 bg-red-500 text-white px-4 py-2 rounded">Admin Kill Monster</button>
 				</div>
 			</main>
 
@@ -109,7 +103,7 @@ func generateHTMLContent(monster v1.Monster) string {
 			</footer>
 		</body>
 		</html>
-	`, monster.Name, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp, monster.Name, monster.Spec.ID, monster.Spec.Depth)
+	`, monster.Name, monster.Name, monster.Spec.PodName, monster.Spec.ID, monster.Spec.Type, monster.Spec.CurrentHP, monster.Spec.MaxHP, monster.Spec.Depth, monster.Spec.Accuracy, monster.Spec.AttackSpeed, monster.Spec.DamageMax, monster.Spec.DamageMin, monster.Spec.Defense, monster.Spec.IsDead, monster.Spec.IsAdminKilled, monster.Spec.MovementSpeed, monster.Spec.Position.X, monster.Spec.Position.Y, monster.Spec.TurnsBetweenRegen, monster.Spec.SpawnTimestamp, monster.Spec.DeathTimestamp, monster.Spec.ID)
 }
 
 // generateNginxConfig generates the Nginx configuration content for the monster

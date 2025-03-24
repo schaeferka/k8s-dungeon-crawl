@@ -23,7 +23,7 @@ Yields:
 """
 import pytest
 from app import create_app
-from app.routes.monsters import monsters_data
+from app.routes.monsters import active_monsters
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ def reset_monsters_data():
     This fixture automatically clears the monsters data in memory before
     each test is run to ensure that each test starts with a clean state.
     """
-    monsters_data.clear()
+    active_monsters.clear()
 
 
 def test_monster_creation_flow(test_client):
@@ -82,7 +82,7 @@ def test_monster_creation_flow(test_client):
         2. Check if the response status is 200 (OK) and verify the monster's
            name in the response data.
         3. Verify that the monster appears in the list by making a GET request
-           to /monsters/data.
+           to /monsters/active.
         4. Check if the response data contains the newly created monster and
            verify its details.
         5. Verify the monster's details by making a GET request to /monsters/count
@@ -105,8 +105,8 @@ def test_monster_creation_flow(test_client):
     assert response.status_code == 200
     assert b"Dragon" in response.data
 
-    # Verify the monster appears in the list (GET /monsters/data)
-    response = test_client.get('/monsters/data')
+    # Verify the monster appears in the list (GET /monsters/active)
+    response = test_client.get('/monsters/active')
     assert response.status_code == 200
 
     # Check if the response data contains the newly created monster

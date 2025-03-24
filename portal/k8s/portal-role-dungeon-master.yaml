@@ -1,0 +1,9 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: portal-role-dungeon-master
+  namespace: dungeon-master-system
+rules:
+  - apiGroups: ["kaschaefer.com"]
+    resources: ["monsters"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"]

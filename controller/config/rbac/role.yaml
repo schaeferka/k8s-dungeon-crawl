@@ -5,28 +5,20 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - kaschaefer.com
+  - ""
   resources:
-  - monsters
+  - events
   verbs:
   - create
-  - delete
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
   - get
   - list
   - patch
   - update
   - watch
-- apiGroups:
-  - kaschaefer.com
-  resources:
-  - monsters/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - kaschaefer.com
-  resources:
-  - monsters/status
-  verbs:
-  - get
-  - patch
-  - update

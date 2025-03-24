@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: portal-rolebinding-dungeon-master
+  namespace: dungeon-master-system
+subjects:
+  - kind: ServiceAccount
+    name: portal-sa
+    namespace: portal
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: portal-role-dungeon-master
